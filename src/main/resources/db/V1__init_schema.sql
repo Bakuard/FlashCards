@@ -4,14 +4,16 @@ CREATE TABLE Users (
     email VARCHAR(512) NOT NULL,
     salt VARCHAR(512) NOT NULL,
     PRIMARY KEY(userId),
-    UNIQUE(name),
     UNIQUE(email),
     UNIQUE(salt)
 );
 
-CREATE TABLE Intervals (
+CREATE TABLE RepeatData (
+    repeatDataId UUID NOT NULL,
     userId UUID NOT NULL,
     numberDays INT NOT NULL,
+    lastDateOfRepeat DATE NOT NULL,
+    PRIMARY KEY(repeatDataId),
     FOREIGN KEY(userId) REFERENCES Users(userId) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE(userId, numberDays)
 );
@@ -21,18 +23,17 @@ CREATE TABLE Words (
     wordId UUID NOT NULL,
     wordValue VARCHAR(64) NOT NULL,
     note VARCHAR(512),
-    repeatInterval INT NOT NULL,
-    lastDateOfRepeat DATE NOT NULL,
+    repeatDataId UUID NOT NULL,
     PRIMARY KEY(wordId),
     FOREIGN KEY(userId) REFERENCES Users(userId) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY(repeatInterval) REFERENCES Intervals(numberDays) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY(repeatDataId) REFERENCES RepeatData(repeatDataId) ON DELETE NO ACTION ON UPDATE CASCADE,
     UNIQUE(userId, wordValue)
 );
 
 CREATE TABLE WordsInterpretations (
     wordId UUID NOT NULL,
     value VARCHAR(512) NOT NULL,
-    FOREIGN KEY (wordId) REFERENCES Words(id) ON DELETE CASCADE,
+    FOREIGN KEY (wordId) REFERENCES Words(wordId) ON DELETE CASCADE,
     UNIQUE(wordId, value)
 );
 
@@ -41,7 +42,7 @@ CREATE TABLE WordsTranscriptions (
     value VARCHAR(128) NOT NULL,
     note VARCHAR(128),
     UNIQUE(wordId, value),
-    FOREIGN KEY (wordId) REFERENCES Words(id) ON DELETE CASCADE
+    FOREIGN KEY (wordId) REFERENCES Words(wordId) ON DELETE CASCADE
 );
 
 CREATE TABLE WordsTranslations (
@@ -49,7 +50,7 @@ CREATE TABLE WordsTranslations (
     value VARCHAR(64) NOT NULL,
     note VARCHAR(128),
     UNIQUE(wordId, value),
-    FOREIGN KEY (wordId) REFERENCES Words(id) ON DELETE CASCADE
+    FOREIGN KEY (wordId) REFERENCES Words(wordId) ON DELETE CASCADE
 );
 
 CREATE TABLE WordsExamples (
@@ -58,26 +59,26 @@ CREATE TABLE WordsExamples (
     translate VARCHAR(512),
     note VARCHAR(128),
     UNIQUE(wordId, origin),
-    FOREIGN KEY (wordId) REFERENCES Words(id) ON DELETE CASCADE
+    FOREIGN KEY (wordId) REFERENCES Words(wordId) ON DELETE CASCADE
 );
 
 CREATE TABLE Expressions (
     userId UUID NOT NULL,
-    expressionId UUID PRIMARY KEY,
-    value VARCHAR(512) NOT NULL,
+    expressionId UUID NOT NULL,
+    expressionValue VARCHAR(512) NOT NULL,
     note VARCHAR(256) NOT NULL,
-    repeatInterval INT NOT NULL,
-    lastDateOfRepeat DATE NOT NULL,
+    repeatDataId UUID NOT NULL,
     PRIMARY KEY(expressionId),
-    UNIQUE(userId, value),
-    FOREIGN KEY(repeatInterval) REFERENCES Intervals(numberDays) ON DELETE NO ACTION ON UPDATE CASCADE
+    FOREIGN KEY(userId) REFERENCES Users(userId) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY(repeatDataId) REFERENCES RepeatData(repeatDataId) ON DELETE NO ACTION ON UPDATE CASCADE,
+    UNIQUE(userId, expressionValue)
 );
 
 CREATE TABLE ExpressionsInterpretations (
     expressionId UUID NOT NULL,
     value VARCHAR(512) NOT NULL,
     UNIQUE(expressionId, value),
-    FOREIGN KEY(expressionId) REFERENCES Expressions(id) ON DELETE CASCADE
+    FOREIGN KEY(expressionId) REFERENCES Expressions(expressionId) ON DELETE CASCADE
 );
 
 CREATE TABLE ExpressionsTranslations (
@@ -85,7 +86,7 @@ CREATE TABLE ExpressionsTranslations (
     value VARCHAR(64) NOT NULL,
     note VARCHAR(128),
     UNIQUE(expressionId, value),
-    FOREIGN KEY(expressionId) REFERENCES Expressions(id) ON DELETE CASCADE
+    FOREIGN KEY(expressionId) REFERENCES Expressions(expressionId) ON DELETE CASCADE
 );
 
 CREATE TABLE ExpressionsExamples (
@@ -94,8 +95,5 @@ CREATE TABLE ExpressionsExamples (
     translate VARCHAR(512),
     note VARCHAR(128),
     UNIQUE(origin, translate),
-    FOREIGN KEY(expressionId) REFERENCES Expressions(id) ON DELETE CASCADE
+    FOREIGN KEY(expressionId) REFERENCES Expressions(expressionId) ON DELETE CASCADE
 );
-
-
-INSERT INTO Intervals(numberDays) VALUES (1),(3),(7),(11);
