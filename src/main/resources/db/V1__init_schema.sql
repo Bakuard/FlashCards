@@ -8,14 +8,23 @@ CREATE TABLE Users (
     UNIQUE(salt)
 );
 
+CREATE TABLE Intervals (
+    intervalId UUID NOT NULL,
+    userId UUID NOT NULL,
+    numberDays INT NOT NULL,
+    PRIMARY KEY(intervalId),
+    FOREIGN KEY(userId) REFERENCES Users(userId) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE(userId, numberDays)
+);
+
 CREATE TABLE RepeatData (
     repeatDataId UUID NOT NULL,
     userId UUID NOT NULL,
-    numberDays INT NOT NULL,
+    intervalId UUID NOT NULL,
     lastDateOfRepeat DATE NOT NULL,
     PRIMARY KEY(repeatDataId),
     FOREIGN KEY(userId) REFERENCES Users(userId) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE(userId, numberDays)
+    FOREIGN KEY(intervalId) REFERENCES Intervals(intervalId) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Words (

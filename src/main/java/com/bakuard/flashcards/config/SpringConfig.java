@@ -2,14 +2,13 @@ package com.bakuard.flashcards.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import org.flywaydb.core.Flyway;
-
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -25,6 +24,7 @@ import javax.sql.DataSource;
         }
 )
 @EnableTransactionManagement
+@EnableJdbcRepositories(basePackages = {"com.bakuard.flashcards.dal"})
 @PropertySource("classpath:config/security.properties")
 public class SpringConfig implements WebMvcConfigurer {
 
