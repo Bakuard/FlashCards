@@ -1,20 +1,26 @@
 package com.bakuard.flashcards.config;
 
+import com.bakuard.flashcards.model.Expression;
+import com.bakuard.flashcards.model.User;
+import com.bakuard.flashcards.model.Word;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
+import org.springframework.data.relational.core.mapping.event.BeforeSaveEvent;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.sql.DataSource;
+import java.util.UUID;
 
 @SpringBootApplication(
         exclude = {SecurityAutoConfiguration.class},
@@ -56,6 +62,15 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean("transactionManager")
         public PlatformTransactionManager transactionManager(DataSource dataSource) {
                 return new DataSourceTransactionManager(dataSource);
+        }
+
+        @Bean
+        public ApplicationListener<BeforeSaveEvent<?>> idGenerator() {
+                return event -> {
+                       if(event.getEntity() instanceof User user) user.generateIdIfAbsent();
+                       else if(event.getEntity() instanceof Word word);
+                       else if(event.getEntity() instanceof Expression expression);
+                };
         }
 
 }

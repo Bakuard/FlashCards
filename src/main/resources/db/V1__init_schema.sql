@@ -17,25 +17,16 @@ CREATE TABLE Intervals (
     UNIQUE(userId, numberDays)
 );
 
-CREATE TABLE RepeatData (
-    repeatDataId UUID NOT NULL,
-    userId UUID NOT NULL,
-    intervalId UUID NOT NULL,
-    lastDateOfRepeat DATE NOT NULL,
-    PRIMARY KEY(repeatDataId),
-    FOREIGN KEY(userId) REFERENCES Users(userId) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY(intervalId) REFERENCES Intervals(intervalId) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
 CREATE TABLE Words (
     userId UUID NOT NULL,
     wordId UUID NOT NULL,
     wordValue VARCHAR(64) NOT NULL,
     note VARCHAR(512),
-    repeatDataId UUID NOT NULL,
+    intervalId UUID NOT NULL,
+    lastDateOfRepeat DATE NOT NULL,
     PRIMARY KEY(wordId),
     FOREIGN KEY(userId) REFERENCES Users(userId) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY(repeatDataId) REFERENCES RepeatData(repeatDataId) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY(intervalId) REFERENCES Intervals(intervalId) ON DELETE NO ACTION ON UPDATE CASCADE,
     UNIQUE(userId, wordValue)
 );
 
@@ -76,10 +67,11 @@ CREATE TABLE Expressions (
     expressionId UUID NOT NULL,
     expressionValue VARCHAR(512) NOT NULL,
     note VARCHAR(256) NOT NULL,
-    repeatDataId UUID NOT NULL,
+    intervalId UUID NOT NULL,
+    lastDateOfRepeat DATE NOT NULL,
     PRIMARY KEY(expressionId),
     FOREIGN KEY(userId) REFERENCES Users(userId) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY(repeatDataId) REFERENCES RepeatData(repeatDataId) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY(intervalId) REFERENCES Intervals(intervalId) ON DELETE NO ACTION ON UPDATE CASCADE,
     UNIQUE(userId, expressionValue)
 );
 
