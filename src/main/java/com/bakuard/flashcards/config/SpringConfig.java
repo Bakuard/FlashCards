@@ -10,17 +10,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
-import org.springframework.data.relational.core.mapping.event.BeforeSaveEvent;
+import org.springframework.data.relational.core.mapping.event.BeforeConvertEvent;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.sql.DataSource;
-import java.util.UUID;
 
 @SpringBootApplication(
         exclude = {SecurityAutoConfiguration.class},
@@ -31,7 +29,6 @@ import java.util.UUID;
 )
 @EnableTransactionManagement
 @EnableJdbcRepositories(basePackages = {"com.bakuard.flashcards.dal"})
-@PropertySource("classpath:config/security.properties")
 public class SpringConfig implements WebMvcConfigurer {
 
         @Bean
@@ -65,7 +62,7 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public ApplicationListener<BeforeSaveEvent<?>> idGenerator() {
+        public ApplicationListener<BeforeConvertEvent<?>> idGenerator() {
                 return event -> {
                        if(event.getEntity() instanceof User user) user.generateIdIfAbsent();
                        else if(event.getEntity() instanceof Word word);

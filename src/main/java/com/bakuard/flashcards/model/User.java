@@ -3,6 +3,8 @@ package com.bakuard.flashcards.model;
 import com.google.common.hash.Hashing;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -10,12 +12,17 @@ import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 
+@Table("users")
 public class User {
 
     @Id
+    @Column("user_id")
     private UUID id;
+    @Column("password_hash")
     private String passwordHash;
+    @Column("salt")
     private final String salt;
+    @Column("email")
     private String email;
 
     @PersistenceCreator
@@ -53,7 +60,7 @@ public class User {
     }
 
     public void setPassword(String currentPassword, String newPassword) {
-        if(passwordHash.equals(calculatePasswordHash(currentPassword, salt))) {
+        if(calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
             this.passwordHash = calculatePasswordHash(newPassword, salt);
         }
     }
