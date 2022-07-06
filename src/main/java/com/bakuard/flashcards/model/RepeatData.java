@@ -1,10 +1,8 @@
 package com.bakuard.flashcards.model;
 
+import org.springframework.data.relational.core.mapping.Column;
+
 import java.time.LocalDate;
 
-public class RepeatData {
-
-    private Interval interval;
-    private LocalDate lastDateOfRepeat;
-
-}
+public record RepeatData(@Column("interval") int interval,
+                         @Column("last_date_of_repeat") LocalDate lastDateOfRepeat) {}

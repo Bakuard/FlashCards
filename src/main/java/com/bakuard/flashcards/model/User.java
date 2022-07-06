@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Table("users")
-public class User {
+public class User implements Entity<User> {
 
     @Id
     @Column("user_id")
@@ -39,6 +39,7 @@ public class User {
         passwordHash = calculatePasswordHash(password, salt);
     }
 
+    @Override
     public UUID getId() {
         return id;
     }
@@ -55,6 +56,7 @@ public class User {
         return email;
     }
 
+    @Override
     public void generateIdIfAbsent() {
         if(id == null) id = UUID.randomUUID();
     }

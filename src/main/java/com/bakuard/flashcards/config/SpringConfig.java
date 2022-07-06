@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.config;
 
+import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.Expression;
 import com.bakuard.flashcards.model.User;
 import com.bakuard.flashcards.model.Word;
@@ -64,9 +65,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public ApplicationListener<BeforeConvertEvent<?>> idGenerator() {
                 return event -> {
-                       if(event.getEntity() instanceof User user) user.generateIdIfAbsent();
-                       else if(event.getEntity() instanceof Word word);
-                       else if(event.getEntity() instanceof Expression expression);
+                       if(event.getEntity() instanceof Entity<?> entity) entity.generateIdIfAbsent();
                 };
         }
 

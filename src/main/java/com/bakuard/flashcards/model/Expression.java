@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public class Expression {
 
-    private UUID id;
+    /*private UUID id;
     private User user;
     private String value;
     private String note;
@@ -13,6 +13,6 @@ public class Expression {
     private List<Translation> translations;
     private List<Example> examples;
 
-    private RepeatData repeatData;
+    private RepeatData repeatData;*/
 
 }
