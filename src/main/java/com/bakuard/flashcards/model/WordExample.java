@@ -1,6 +1,9 @@
 package com.bakuard.flashcards.model;
 
-public class Example {
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("words_examples")
+public class WordExample {
 
     private String origin;
     private String translate;
