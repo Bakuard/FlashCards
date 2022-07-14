@@ -4,6 +4,7 @@ import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.model.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
@@ -15,6 +16,7 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootTest(classes = SpringConfig.class)
@@ -43,7 +45,12 @@ class UserRepositoryTest {
     }
 
     @Test
-    public void findByEmail() {
+    @DisplayName("""
+            findByEmail(email):
+             there is user with such email
+             => return correct user
+            """)
+    public void findByEmail1() {
         User expected = user(1);
         userRepository.save(expected);
         userRepository.save(user(2));
@@ -55,6 +62,23 @@ class UserRepositoryTest {
                 assertThat(expected).
                 usingRecursiveComparison().
                 isEqualTo(actual);
+    }
+
+    @Test
+    @DisplayName("""
+            findByEmail(email):
+             there is not user with such email
+             => return empty Optional
+            """)
+    public void findByEmail2() {
+        User expected = user(1);
+        userRepository.save(expected);
+        userRepository.save(user(2));
+        userRepository.save(user(3));
+
+        Optional<User> actual = userRepository.findByEmail(toEmail(1000));
+
+        Assertions.assertTrue(actual.isEmpty());
     }
 
 

@@ -24,13 +24,13 @@ public class Word implements Entity<Word> {
     @Column("note")
     private String note;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private List<WordInterpretation> interpretations;
+    private final List<WordInterpretation> interpretations;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private List<WordTranscription> transcriptions;
+    private final List<WordTranscription> transcriptions;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private List<WordTranslation> translations;
+    private final List<WordTranslation> translations;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private List<WordExample> examples;
+    private final List<WordExample> examples;
     @Embedded.Nullable
     private RepeatData repeatData;
 

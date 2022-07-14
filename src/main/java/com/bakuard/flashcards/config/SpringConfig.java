@@ -1,9 +1,13 @@
 package com.bakuard.flashcards.config;
 
+import com.bakuard.flashcards.dal.IntervalsRepository;
+import com.bakuard.flashcards.dal.WordsRepository;
+import com.bakuard.flashcards.dal.impl.IntervalsRepositoryImpl;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.Expression;
 import com.bakuard.flashcards.model.User;
 import com.bakuard.flashcards.model.Word;
+import com.bakuard.flashcards.service.WordService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
@@ -14,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.data.relational.core.mapping.event.BeforeConvertEvent;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -60,6 +65,17 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean("transactionManager")
         public PlatformTransactionManager transactionManager(DataSource dataSource) {
                 return new DataSourceTransactionManager(dataSource);
+        }
+
+        @Bean
+        public IntervalsRepository intervalsRepository(JdbcTemplate jdbcTemplate) {
+                return new IntervalsRepositoryImpl(jdbcTemplate);
+        }
+
+        @Bean
+        public WordService wordService(WordsRepository wordsRepository,
+                                       IntervalsRepository intervalsRepository) {
+                return new WordService(wordsRepository, intervalsRepository);
         }
 
         @Bean
