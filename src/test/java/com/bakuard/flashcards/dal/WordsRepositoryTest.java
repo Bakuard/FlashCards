@@ -467,7 +467,8 @@ class WordsRepositoryTest {
 
         wordsRepository.replaceRepeatInterval(user.getId(), 5, 10);
 
-        List<Word> actual = wordsRepository.findByUserId(user.getId(), PageRequest.of(0, 20)).
+        List<Word> actual = wordsRepository.findByUserId(user.getId(),
+                        PageRequest.of(0, 20, Sort.by("value").ascending())).
                 getContent();
         org.assertj.core.api.Assertions.
                 assertThat(actual).
@@ -482,8 +483,8 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             replaceRepeatInterval(userId, oldInterval, newInterval):
-             there are  words with oldInterval
-             => do nothing
+             there are words with oldInterval
+             => replace them to newInterval
             """)
     public void replaceRepeatInterval2() {
         User user = userRepository.save(user(1));
@@ -492,7 +493,8 @@ class WordsRepositoryTest {
 
         wordsRepository.replaceRepeatInterval(user.getId(), 1, 10);
 
-        List<Word> actual = wordsRepository.findByUserId(user.getId(), PageRequest.of(0, 20)).
+        List<Word> actual = wordsRepository.findByUserId(user.getId(),
+                        PageRequest.of(0, 20, Sort.by("value").ascending())).
                 getContent();
         SoftAssertions assertions = new SoftAssertions();
         assertions.assertThat(actual).

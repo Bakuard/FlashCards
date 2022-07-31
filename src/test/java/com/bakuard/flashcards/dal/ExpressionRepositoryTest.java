@@ -469,7 +469,8 @@ class ExpressionRepositoryTest {
 
         expressionRepository.replaceRepeatInterval(user.getId(), 5, 10);
 
-        List<Expression> actual = expressionRepository.findByUserId(user.getId(), PageRequest.of(0, 20)).
+        List<Expression> actual = expressionRepository.findByUserId(user.getId(),
+                        PageRequest.of(0, 20, Sort.by("value").ascending())).
                 getContent();
         org.assertj.core.api.Assertions.
                 assertThat(actual).
@@ -485,7 +486,7 @@ class ExpressionRepositoryTest {
     @DisplayName("""
             replaceRepeatInterval(userId, oldInterval, newInterval):
              there are expressions with oldInterval
-             => do nothing
+             => replace them to newInterval
             """)
     public void replaceRepeatInterval2() {
         User user = userRepository.save(user(1));
@@ -494,7 +495,8 @@ class ExpressionRepositoryTest {
 
         expressionRepository.replaceRepeatInterval(user.getId(), 1, 10);
 
-        List<Expression> actual = expressionRepository.findByUserId(user.getId(), PageRequest.of(0, 20)).
+        List<Expression> actual = expressionRepository.findByUserId(user.getId(),
+                        PageRequest.of(0, 20, Sort.by("value").ascending())).
                 getContent();
         SoftAssertions assertions = new SoftAssertions();
         assertions.assertThat(actual).

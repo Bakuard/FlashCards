@@ -8,7 +8,7 @@ public interface IntervalsRepository {
 
     public void add(UUID userId, int interval);
 
-    public void remove(UUID userId, int interval);
+    public void removeUnused(UUID userId);
 
     public ImmutableList<Integer> findAll(UUID userId);
 
