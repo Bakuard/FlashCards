@@ -27,12 +27,23 @@ public class IntervalsRepositoryImpl implements IntervalsRepository {
     }
 
     @Override
-    public void remove(UUID userId, int interval) {
+    public void removeUnused(UUID userId) {
         jdbcTemplate.update(
-                "delete from intervals where user_id=? and number_days=?;",
+                """
+                        delete from intervals
+                            where user_id=?
+                                and number_days not in (
+                                    select repeat_interval from words
+                                        where user_id=?
+                                    union
+                                    select repeat_interval from expressions
+                                        where user_id=?
+                                );
+                        """,
                 ps -> {
                     ps.setObject(1, userId);
-                    ps.setInt(2, interval);
+                    ps.setObject(2, userId);
+                    ps.setObject(3, userId);
                 }
         );
     }

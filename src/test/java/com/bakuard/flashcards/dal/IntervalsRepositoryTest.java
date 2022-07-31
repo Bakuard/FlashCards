@@ -1,7 +1,10 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.SpringConfig;
+import com.bakuard.flashcards.model.Expression;
+import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.User;
+import com.bakuard.flashcards.model.Word;
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +21,10 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @SpringBootTest(classes = SpringConfig.class)
 @AutoConfigureDataJdbc
@@ -29,6 +35,10 @@ class IntervalsRepositoryTest {
     private UserRepository userRepository;
     @Autowired
     private IntervalsRepository intervalsRepository;
+    @Autowired
+    private WordsRepository wordsRepository;
+    @Autowired
+    private ExpressionRepository expressionRepository;
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Autowired
@@ -79,11 +89,11 @@ class IntervalsRepositoryTest {
 
     @Test
     @DisplayName("""
-            remove(userId, interval):
-             there is not such interval
+            removeUnused(userId):
+             there are not unused intervals
              => do nothing
             """)
-    public void remove1() {
+    public void removeUnused1() {
         User user = userRepository.save(user(1));
         commit(() -> {
             intervalsRepository.add(user.getId(), 1);
@@ -91,8 +101,12 @@ class IntervalsRepositoryTest {
             intervalsRepository.add(user.getId(), 5);
             intervalsRepository.add(user.getId(), 11);
         });
+        wordsRepository.save(word(user.getId(), "v1", "n1", repeatData(1)));
+        wordsRepository.save(word(user.getId(), "v2", "n2", repeatData(3)));
+        expressionRepository.save(expression(user.getId(), "v1", "n1", repeatData(5)));
+        expressionRepository.save(expression(user.getId(), "v2", "n2", repeatData(11)));
 
-        commit(() -> intervalsRepository.remove(user.getId(), 100));
+        commit(() -> intervalsRepository.removeUnused(user.getId()));
 
         ImmutableList<Integer> intervals = intervalsRepository.findAll(user.getId());
         Assertions.assertEquals(intervals, List.of(1, 3, 5, 11));
@@ -100,11 +114,11 @@ class IntervalsRepositoryTest {
 
     @Test
     @DisplayName("""
-            remove(userId, interval):
-             there is such interval
-             => remove this interval
+            removeUnused(userId):
+             there are unused intervals
+             => remove them
             """)
-    public void remove2() {
+    public void removeUnused2() {
         User user = userRepository.save(user(1));
         commit(() -> {
             intervalsRepository.add(user.getId(), 1);
@@ -112,11 +126,13 @@ class IntervalsRepositoryTest {
             intervalsRepository.add(user.getId(), 5);
             intervalsRepository.add(user.getId(), 11);
         });
+        wordsRepository.save(word(user.getId(), "v2", "n2", repeatData(3)));
+        expressionRepository.save(expression(user.getId(), "v2", "n2", repeatData(11)));
 
-        commit(() -> intervalsRepository.remove(user.getId(), 5));
+        commit(() -> intervalsRepository.removeUnused(user.getId()));
 
         ImmutableList<Integer> intervals = intervalsRepository.findAll(user.getId());
-        Assertions.assertEquals(intervals, List.of(1, 3, 11));
+        Assertions.assertEquals(intervals, List.of(3, 11));
     }
 
 
@@ -127,6 +143,43 @@ class IntervalsRepositoryTest {
                 "salt" + number,
                 "user" + number + "@gmail.com"
         );
+    }
+
+    private Word word(UUID userId,
+                      String value,
+                      String note,
+                      RepeatData repeatData) {
+        return new Word(
+                null,
+                userId,
+                value,
+                note,
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                repeatData
+        );
+    }
+
+    private Expression expression(UUID userId,
+                                  String value,
+                                  String note,
+                                  RepeatData repeatData) {
+        return new Expression(
+                null,
+                userId,
+                value,
+                note,
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                repeatData
+        );
+    }
+
+    private RepeatData repeatData(int interval) {
+        return new RepeatData(interval, LocalDate.of(2022, 7, 7));
     }
 
     private void commit(Runnable command) {
