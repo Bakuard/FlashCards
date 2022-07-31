@@ -1,6 +1,7 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.SpringConfig;
+import com.bakuard.flashcards.model.Expression;
 import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.User;
 import com.bakuard.flashcards.model.Word;
@@ -29,10 +30,10 @@ import java.util.*;
 @SpringBootTest(classes = SpringConfig.class)
 @AutoConfigureDataJdbc
 @TestPropertySource(locations = "classpath:application.properties")
-class WordsRepositoryTest {
+class ExpressionRepositoryTest {
 
     @Autowired
-    private WordsRepository wordsRepository;
+    private ExpressionRepository expressionRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -53,22 +54,23 @@ class WordsRepositoryTest {
         }
     }
 
+
     @Test
     @DisplayName("""
-            save(word):
-             there are not words in DB with such value
-             => success save word
+            save(expression):
+             there are not expressions in DB with such value
+             => success save expression
             """)
     public void save() {
         User user = user(1);
         userRepository.save(user);
-        Word expected = word(
+        Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
 
-        wordsRepository.save(expected);
+        expressionRepository.save(expected);
 
-        Word actual = wordsRepository.findById(expected.getId()).orElseThrow();
+        Expression actual = expressionRepository.findById(expected.getId()).orElseThrow();
         org.assertj.core.api.Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
@@ -77,38 +79,38 @@ class WordsRepositoryTest {
 
     @Test
     @DisplayName("""
-            findById(userId, wordId):
-             there is not word with such id
+            findById(userId, expressionId):
+             there is not expression with such id
              => return empty Optional
             """)
     public void findById1() {
         User user = user(1);
         userRepository.save(user);
-        Word expected = word(
+        Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        expressionRepository.save(expected);
 
-        Optional<Word> actual = wordsRepository.findById(user.getId(), toUUID(1));
+        Optional<Expression> actual = expressionRepository.findById(user.getId(), toUUID(1));
 
         Assertions.assertTrue(actual.isEmpty());
     }
 
     @Test
     @DisplayName("""
-            findById(userId, wordId):
+            findById(userId, expressionId):
              there is word with such id
-             => return correct word
+             => return correct expression
             """)
     public void findById2() {
         User user = user(1);
         userRepository.save(user);
-        Word expected = word(
+        Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        expressionRepository.save(expected);
 
-        Word actual = wordsRepository.findById(user.getId(), expected.getId()).orElseThrow();
+        Expression actual = expressionRepository.findById(user.getId(), expected.getId()).orElseThrow();
 
         org.assertj.core.api.Assertions.
                 assertThat(expected).
@@ -119,18 +121,18 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             findByValue(userId, value):
-             there is not word with such value
+             there is not expression with such value
              => return empty optional
             """)
     public void findByValue1() {
         User user = user(1);
         userRepository.save(user);
-        Word expected = word(
+        Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        expressionRepository.save(expected);
 
-        Optional<Word> actual = wordsRepository.findByValue(user.getId(), "Unknown value");
+        Optional<Expression> actual = expressionRepository.findByValue(user.getId(), "Unknown value");
 
         Assertions.assertTrue(actual.isEmpty());
     }
@@ -138,18 +140,18 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             findByValue(userId, value):
-             there is word with such value
-             => return correct word
+             there is expression with such value
+             => return correct expression
             """)
     public void findByValue2() {
         User user = user(1);
         userRepository.save(user);
-        Word expected = word(
+        Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        expressionRepository.save(expected);
 
-        Word actual = wordsRepository.findByValue(user.getId(), "value 1").orElseThrow();
+        Expression actual = expressionRepository.findByValue(user.getId(), "value 1").orElseThrow();
 
         org.assertj.core.api.Assertions.
                 assertThat(expected).
@@ -159,90 +161,90 @@ class WordsRepositoryTest {
 
     @Test
     @DisplayName("""
-            deleteById(userId, wordId):
-             there is not word with such wordId
+            deleteById(userId, expressionId):
+             there is not expression with such expressionId
              => do nothing
             """)
     public void deleteById1() {
         User user = user(1);
         userRepository.save(user);
-        Word expected = word(
+        Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        expressionRepository.save(expected);
 
-        wordsRepository.deleteById(user.getId(), toUUID(1));
+        expressionRepository.deleteById(user.getId(), toUUID(1));
 
-        Assertions.assertTrue(wordsRepository.existsById(expected.getId()));
+        Assertions.assertTrue(expressionRepository.existsById(expected.getId()));
     }
 
     @Test
     @DisplayName("""
-            deleteById(userId, wordId):
-             there is word with such wordId
-             => delete this word
+            deleteById(userId, expressionId):
+             there is expression with such expressionId
+             => delete this expression
             """)
     public void deleteById2() {
         User user = user(1);
         userRepository.save(user);
-        Word expected = word(
+        Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        expressionRepository.save(expected);
 
-        wordsRepository.deleteById(user.getId(), expected.getId());
+        expressionRepository.deleteById(user.getId(), expected.getId());
 
-        Assertions.assertFalse(wordsRepository.existsById(expected.getId()));
+        Assertions.assertFalse(expressionRepository.existsById(expected.getId()));
     }
 
     @Test
     @DisplayName("""
-            existsById(userId, wordId):
-             there is not word with such wordId
+            existsById(userId, expressionId):
+             there is not expression with such expressionId
              => return false
             """)
     public void existsById1() {
         User user = user(1);
         userRepository.save(user);
-        Word expected = word(
+        Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        expressionRepository.save(expected);
 
-        Assertions.assertFalse(wordsRepository.existsById(user.getId(), toUUID(1)));
+        Assertions.assertFalse(expressionRepository.existsById(user.getId(), toUUID(1)));
     }
 
     @Test
     @DisplayName("""
-            existsById(userId, wordId):
-             there is word with such wordId
+            existsById(userId, expressionId):
+             there is expression with such expressionId
              => return true
             """)
     public void existsById2() {
         User user = user(1);
         userRepository.save(user);
-        Word expected = word(
+        Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        expressionRepository.save(expected);
 
-        Assertions.assertTrue(wordsRepository.existsById(user.getId(), expected.getId()));
+        Assertions.assertTrue(expressionRepository.existsById(user.getId(), expected.getId()));
     }
 
     @Test
     @DisplayName("""
             count(user):
-             user haven't any words
+             user haven't any expressions
              => return 0
             """)
     public void count1() {
         User user1 = userRepository.save(user(1));
         User user2 = userRepository.save(user(2));
         User user3 = userRepository.save(user(3));
-        wordsRepository.save(word(user1.getId(), "value1", "note1", defaultRepeatData()));
-        wordsRepository.save(word(user2.getId(), "value2", "note2", defaultRepeatData()));
+        expressionRepository.save(expression(user1.getId(), "value1", "note1", defaultRepeatData()));
+        expressionRepository.save(expression(user2.getId(), "value2", "note2", defaultRepeatData()));
 
-        long actual = wordsRepository.count(user3.getId());
+        long actual = expressionRepository.count(user3.getId());
 
         Assertions.assertEquals(0, actual);
     }
@@ -250,19 +252,19 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             count(user):
-             user have some words
+             user have some expressions
              => return correct result
             """)
     public void count2() {
         User user1 = userRepository.save(user(1));
         User user2 = userRepository.save(user(2));
         User user3 = userRepository.save(user(3));
-        wordsRepository.save(word(user1.getId(), "value1", "note1", defaultRepeatData()));
-        wordsRepository.save(word(user2.getId(), "value2", "note2", defaultRepeatData()));
-        wordsRepository.save(word(user3.getId(), "value3", "note3", defaultRepeatData()));
-        wordsRepository.save(word(user3.getId(), "value4", "note4", defaultRepeatData()));
+        expressionRepository.save(expression(user1.getId(), "value1", "note1", defaultRepeatData()));
+        expressionRepository.save(expression(user2.getId(), "value2", "note2", defaultRepeatData()));
+        expressionRepository.save(expression(user3.getId(), "value3", "note3", defaultRepeatData()));
+        expressionRepository.save(expression(user3.getId(), "value4", "note4", defaultRepeatData()));
 
-        long actual = wordsRepository.count(user3.getId());
+        long actual = expressionRepository.count(user3.getId());
 
         Assertions.assertEquals(2, actual);
     }
@@ -270,21 +272,21 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             countForRepeat(userId, date):
-             user with such id have some words for repeat with date
+             user with such id have some expressions for repeat with date
              => return correct result
             """)
     public void countForRepeat1() {
         User user1 = userRepository.save(user(1));
-        wordsRepository.save(word(user1.getId(), "value1", "note1",
+        expressionRepository.save(expression(user1.getId(), "value1", "note1",
                 new RepeatData(1, LocalDate.of(2022, 7, 7))));
-        wordsRepository.save(word(user1.getId(), "value2", "note2",
+        expressionRepository.save(expression(user1.getId(), "value2", "note2",
                 new RepeatData(3, LocalDate.of(2022, 7, 7))));
-        wordsRepository.save(word(user1.getId(), "value3", "note3",
+        expressionRepository.save(expression(user1.getId(), "value3", "note3",
                 new RepeatData(1, LocalDate.of(2022, 7, 10))));
-        wordsRepository.save(word(user1.getId(), "value4", "note4",
+        expressionRepository.save(expression(user1.getId(), "value4", "note4",
                 new RepeatData(10, LocalDate.of(2022, 7, 7))));
 
-        long actual = wordsRepository.countForRepeat(
+        long actual = expressionRepository.countForRepeat(
                 user1.getId(), LocalDate.of(2022, 7, 10)
         );
 
@@ -294,13 +296,13 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             countForRepeat(userId, date):
-             user haven't any words
+             user haven't any expressions
              => return 0
             """)
     public void countForRepeat2() {
         User user1 = userRepository.save(user(1));
 
-        long actual = wordsRepository.countForRepeat(
+        long actual = expressionRepository.countForRepeat(
                 user1.getId(), LocalDate.of(2022, 7, 10)
         );
 
@@ -310,21 +312,21 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             countForRepeat(userId, date):
-             user have words, but haven't any words to repeat
+             user have expressions, but haven't any expressions to repeat
              => return 0
             """)
     public void countForRepeat3() {
         User user1 = userRepository.save(user(1));
-        wordsRepository.save(word(user1.getId(), "value1", "note1",
+        expressionRepository.save(expression(user1.getId(), "value1", "note1",
                 new RepeatData(1, LocalDate.of(2022, 7, 7))));
-        wordsRepository.save(word(user1.getId(), "value2", "note2",
+        expressionRepository.save(expression(user1.getId(), "value2", "note2",
                 new RepeatData(3, LocalDate.of(2022, 7, 7))));
-        wordsRepository.save(word(user1.getId(), "value3", "note3",
+        expressionRepository.save(expression(user1.getId(), "value3", "note3",
                 new RepeatData(1, LocalDate.of(2022, 7, 10))));
-        wordsRepository.save(word(user1.getId(), "value4", "note4",
+        expressionRepository.save(expression(user1.getId(), "value4", "note4",
                 new RepeatData(10, LocalDate.of(2022, 7, 7))));
 
-        long actual = wordsRepository.countForRepeat(
+        long actual = expressionRepository.countForRepeat(
                 user1.getId(), LocalDate.of(2022, 7, 7)
         );
 
@@ -334,13 +336,13 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             findByUserId(userId, pageable):
-             user haven't any words
+             user haven't any expressions
              => return empty page
             """)
     public void findByUserId1() {
         User user1 = userRepository.save(user(1));
 
-        Page<Word> actual = wordsRepository.findByUserId(user1.getId(), PageRequest.of(0, 20));
+        Page<Expression> actual = expressionRepository.findByUserId(user1.getId(), PageRequest.of(0, 20));
 
         Assertions.assertTrue(actual.isEmpty());
     }
@@ -348,20 +350,20 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             findByUserId(userId, pageable):
-             user have some words,
-             sort words by value descending
+             user have some expressions,
+             sort expressions by value descending
              => return correct result
             """)
     public void findByUserId2() {
         User user = userRepository.save(user(1));
-        List<Word> words = words(user.getId());
-        words.forEach(word -> wordsRepository.save(word));
+        List<Expression> expressions = expressions(user.getId());
+        expressions.forEach(expression -> expressionRepository.save(expression));
 
-        Page<Word> actual = wordsRepository.findByUserId(user.getId(),
+        Page<Expression> actual = expressionRepository.findByUserId(user.getId(),
                 PageRequest.of(0, 20, Sort.by("value").descending()));
 
-        List<Word> expected = words.stream().
-                sorted(Comparator.comparing(Word::getValue).reversed()).
+        List<Expression> expected = expressions.stream().
+                sorted(Comparator.comparing(Expression::getValue).reversed()).
                 toList();
         Assertions.assertEquals(expected, actual.getContent());
     }
@@ -369,21 +371,21 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             findByUserId(userId, pageable):
-             user have some words,
-             sort words by interval asc and value asc
+             user have some expressions,
+             sort expressions by interval asc and value asc
              => return correct result
             """)
     public void findByUserId3() {
         User user = userRepository.save(user(1));
-        List<Word> words = words(user.getId());
-        words.forEach(word -> wordsRepository.save(word));
+        List<Expression> expressions = expressions(user.getId());
+        expressions.forEach(expression -> expressionRepository.save(expression));
 
-        Page<Word> actual = wordsRepository.findByUserId(user.getId(),
+        Page<Expression> actual = expressionRepository.findByUserId(user.getId(),
                 PageRequest.of(0, 20, Sort.by("repeat_interval", "value")));
 
-        List<Word> expected = words.stream().
-                sorted(Comparator.comparing((Word w) -> w.getRepeatData().interval()).
-                        thenComparing(Word::getValue)).
+        List<Expression> expected = expressions.stream().
+                sorted(Comparator.comparing((Expression e) -> e.getRepeatData().interval()).
+                        thenComparing(Expression::getValue)).
                 toList();
         Assertions.assertEquals(expected, actual.getContent());
     }
@@ -391,13 +393,13 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             findAllForRepeat(userId, date):
-             user haven't any words
+             user haven't any expression
              => return empty page
             """)
     public void findAllForRepeat1() {
         User user = userRepository.save(user(1));
 
-        List<Word> actual = wordsRepository.findAllForRepeat(
+        List<Expression> actual = expressionRepository.findAllForRepeat(
                 user.getId(),
                 LocalDate.of(2022, 7, 10),
                 20, 0
@@ -409,16 +411,16 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             findAllForRepeat(userId, date):
-             user have some words,
-             there are not words for repeat
+             user have some expressions,
+             there are not expressions for repeat
              => return empty page
             """)
     public void findAllForRepeat2() {
         User user = userRepository.save(user(1));
-        List<Word> words = words(user.getId());
-        words.forEach(word -> wordsRepository.save(word));
+        List<Expression> expressions = expressions(user.getId());
+        expressions.forEach(expression -> expressionRepository.save(expression));
 
-        List<Word> actual = wordsRepository.findAllForRepeat(
+        List<Expression> actual = expressionRepository.findAllForRepeat(
                 user.getId(),
                 LocalDate.of(2022, 7, 1),
                 20, 0
@@ -430,25 +432,25 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             findAllForRepeat(userId, date):
-             user have some words,
-             there are words for repeat
+             user have some expressions,
+             there are expressions for repeat
              => return correct result
             """)
     public void findAllForRepeat3() {
         User user = userRepository.save(user(1));
-        List<Word> words = words(user.getId());
-        words.forEach(word -> wordsRepository.save(word));
+        List<Expression> words = expressions(user.getId());
+        words.forEach(word -> expressionRepository.save(word));
 
         LocalDate repeatDate = LocalDate.of(2022, 7, 10);
-        List<Word> actual = wordsRepository.findAllForRepeat(
+        List<Expression> actual = expressionRepository.findAllForRepeat(
                 user.getId(),
                 repeatDate,
                 2, 0
         );
 
-        List<Word> expected = words.stream().
-                sorted(Comparator.comparing((Word w) -> w.getRepeatData().nextDateOfRepeat())).
-                filter(w -> w.getRepeatData().nextDateOfRepeat().compareTo(repeatDate) <= 0).
+        List<Expression> expected = words.stream().
+                sorted(Comparator.comparing((Expression e) -> e.getRepeatData().nextDateOfRepeat())).
+                filter(e -> e.getRepeatData().nextDateOfRepeat().compareTo(repeatDate) <= 0).
                 limit(2).
                 toList();
         Assertions.assertEquals(expected, actual);
@@ -457,17 +459,17 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             replaceRepeatInterval(userId, oldInterval, newInterval):
-             there are not words with oldInterval
+             there are not expressions with oldInterval
              => do nothing
             """)
     public void replaceRepeatInterval1() {
         User user = userRepository.save(user(1));
-        List<Word> expected = words(user.getId());
-        expected.forEach(word -> wordsRepository.save(word));
+        List<Expression> expected = expressions(user.getId());
+        expected.forEach(expression -> expressionRepository.save(expression));
 
-        wordsRepository.replaceRepeatInterval(user.getId(), 5, 10);
+        expressionRepository.replaceRepeatInterval(user.getId(), 5, 10);
 
-        List<Word> actual = wordsRepository.findByUserId(user.getId(), PageRequest.of(0, 20)).
+        List<Expression> actual = expressionRepository.findByUserId(user.getId(), PageRequest.of(0, 20)).
                 getContent();
         org.assertj.core.api.Assertions.
                 assertThat(actual).
@@ -482,17 +484,17 @@ class WordsRepositoryTest {
     @Test
     @DisplayName("""
             replaceRepeatInterval(userId, oldInterval, newInterval):
-             there are  words with oldInterval
+             there are expressions with oldInterval
              => do nothing
             """)
     public void replaceRepeatInterval2() {
         User user = userRepository.save(user(1));
-        List<Word> expected = words(user.getId());
-        expected.forEach(word -> wordsRepository.save(word));
+        List<Expression> expected = expressions(user.getId());
+        expected.forEach(word -> expressionRepository.save(word));
 
-        wordsRepository.replaceRepeatInterval(user.getId(), 1, 10);
+        expressionRepository.replaceRepeatInterval(user.getId(), 1, 10);
 
-        List<Word> actual = wordsRepository.findByUserId(user.getId(), PageRequest.of(0, 20)).
+        List<Expression> actual = expressionRepository.findByUserId(user.getId(), PageRequest.of(0, 20)).
                 getContent();
         SoftAssertions assertions = new SoftAssertions();
         assertions.assertThat(actual).
@@ -516,11 +518,11 @@ class WordsRepositoryTest {
         );
     }
 
-    private Word word(UUID userId,
-                      String value,
-                      String note,
-                      RepeatData repeatData) {
-        return new Word(
+    private Expression expression(UUID userId,
+                                  String value,
+                                  String note,
+                                  RepeatData repeatData) {
+        return new Expression(
                 null,
                 userId,
                 value,
@@ -528,46 +530,45 @@ class WordsRepositoryTest {
                 new ArrayList<>(),
                 new ArrayList<>(),
                 new ArrayList<>(),
-                new ArrayList<>(),
                 repeatData
         );
     }
 
-    private List<Word> words(UUID userId) {
-        ArrayList<Word> words = new ArrayList<>();
+    private List<Expression> expressions(UUID userId) {
+        ArrayList<Expression> expressions = new ArrayList<>();
 
-        words.add(
-                word(userId, "wordA", "noteA",
+        expressions.add(
+                expression(userId, "expressionA", "noteA",
                         new RepeatData(1, LocalDate.of(2022, 7, 1))
                 )
         );
-        words.add(
-                word(userId, "wordB", "noteB",
+        expressions.add(
+                expression(userId, "expressionB", "noteB",
                         new RepeatData(1, LocalDate.of(2022, 7, 2))
                 )
         );
-        words.add(
-                word(userId, "wordC", "noteB",
+        expressions.add(
+                expression(userId, "expressionC", "noteB",
                         new RepeatData(3, LocalDate.of(2022, 7, 6))
                 )
         );
-        words.add(
-                word(userId, "wordD", "noteD",
+        expressions.add(
+                expression(userId, "expressionD", "noteD",
                         new RepeatData(3, LocalDate.of(2022, 7, 7))
                 )
         );
-        words.add(
-                word(userId, "wordE", "noteE",
+        expressions.add(
+                expression(userId, "expressionE", "noteE",
                         new RepeatData(3, LocalDate.of(2022, 7, 8))
                 )
         );
-        words.add(
-                word(userId, "wordF", "noteF",
+        expressions.add(
+                expression(userId, "expressionF", "noteF",
                         new RepeatData(1, LocalDate.of(2022, 7, 10))
                 )
         );
 
-        return words;
+        return expressions;
     }
 
     private RepeatData defaultRepeatData() {

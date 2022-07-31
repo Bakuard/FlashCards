@@ -7,4 +7,8 @@ public class WordInterpretation {
 
     private String value;
 
+    public WordInterpretation(String value) {
+        this.value = value;
+    }
+
 }

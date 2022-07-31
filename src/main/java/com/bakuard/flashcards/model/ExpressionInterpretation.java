@@ -2,15 +2,13 @@ package com.bakuard.flashcards.model;
 
 import org.springframework.data.relational.core.mapping.Table;
 
-@Table("words_translations")
-public class WordTranslation {
+@Table("expressions_interpretations")
+public class ExpressionInterpretation {
 
     private String value;
-    private String note;
 
-    public WordTranslation(String value, String note) {
+    public ExpressionInterpretation(String value) {
         this.value = value;
-        this.note = note;
     }
 
 }

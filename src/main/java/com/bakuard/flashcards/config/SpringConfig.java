@@ -1,12 +1,11 @@
 package com.bakuard.flashcards.config;
 
+import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
 import com.bakuard.flashcards.dal.impl.IntervalsRepositoryImpl;
 import com.bakuard.flashcards.model.Entity;
-import com.bakuard.flashcards.model.Expression;
-import com.bakuard.flashcards.model.User;
-import com.bakuard.flashcards.model.Word;
+import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.WordService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -76,6 +75,12 @@ public class SpringConfig implements WebMvcConfigurer {
         public WordService wordService(WordsRepository wordsRepository,
                                        IntervalsRepository intervalsRepository) {
                 return new WordService(wordsRepository, intervalsRepository);
+        }
+
+        @Bean
+        public ExpressionService expressionService(ExpressionRepository expressionRepository,
+                                                   IntervalsRepository intervalsRepository) {
+                return new ExpressionService(expressionRepository, intervalsRepository);
         }
 
         @Bean
