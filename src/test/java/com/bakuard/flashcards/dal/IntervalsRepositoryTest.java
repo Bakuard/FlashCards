@@ -108,8 +108,8 @@ class IntervalsRepositoryTest {
 
         commit(() -> intervalsRepository.removeUnused(user.getId()));
 
-        ImmutableList<Integer> intervals = intervalsRepository.findAll(user.getId());
-        Assertions.assertEquals(intervals, List.of(1, 3, 5, 11));
+        ImmutableList<Integer> actual = intervalsRepository.findAll(user.getId());
+        Assertions.assertEquals(actual, List.of(1, 3, 5, 11));
     }
 
     @Test
@@ -131,8 +131,37 @@ class IntervalsRepositoryTest {
 
         commit(() -> intervalsRepository.removeUnused(user.getId()));
 
-        ImmutableList<Integer> intervals = intervalsRepository.findAll(user.getId());
-        Assertions.assertEquals(intervals, List.of(3, 11));
+        ImmutableList<Integer> actual = intervalsRepository.findAll(user.getId());
+        Assertions.assertEquals(actual, List.of(3, 11));
+    }
+
+    @Test
+    @DisplayName("""
+            removeUnused(userId):
+             there are unused intervals
+             => don't remove intervals other users
+            """)
+    public void removeUnused3() {
+        User user = userRepository.save(user(1));
+        User otherUser = userRepository.save(user(2));
+        commit(() -> {
+            intervalsRepository.add(user.getId(), 1);
+            intervalsRepository.add(user.getId(), 3);
+            intervalsRepository.add(user.getId(), 5);
+            intervalsRepository.add(user.getId(), 11);
+
+            intervalsRepository.add(otherUser.getId(), 1);
+            intervalsRepository.add(otherUser.getId(), 3);
+            intervalsRepository.add(otherUser.getId(), 5);
+            intervalsRepository.add(otherUser.getId(), 11);
+        });
+        wordsRepository.save(word(user.getId(), "v2", "n2", repeatData(3)));
+        expressionRepository.save(expression(user.getId(), "v2", "n2", repeatData(11)));
+
+        commit(() -> intervalsRepository.removeUnused(user.getId()));
+
+        ImmutableList<Integer> actual = intervalsRepository.findAll(otherUser.getId());
+        Assertions.assertEquals(actual, List.of(1, 3, 5, 11));
     }
 
 
