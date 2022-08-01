@@ -3,6 +3,7 @@ package com.bakuard.flashcards.service;
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
 import com.bakuard.flashcards.model.Word;
+import com.google.common.collect.ImmutableList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -65,6 +66,19 @@ public class WordService {
     @Transactional
     public void repeat(Word word, boolean isRemember) {
         word.repeat(isRemember, LocalDate.now(), intervalsRepository.findAll(word.getUserId()));
+    }
+
+    @Transactional
+    public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
+        ImmutableList<Integer> intervals = intervalsRepository.findAll(userId);
+        if(!intervals.contains(oldInterval)) {
+            throw new IllegalArgumentException("Unknown oldInterval=" + oldInterval + " for user=" + userId);
+        } else if(!intervals.contains(newInterval)) {
+            throw new IllegalArgumentException("Unknown newInterval=" + newInterval + " for user=" + userId);
+        } else if(oldInterval != newInterval) {
+            wordsRepository.replaceRepeatInterval(userId, oldInterval, newInterval);
+            intervalsRepository.removeUnused(userId);
+        }
     }
 
 }
