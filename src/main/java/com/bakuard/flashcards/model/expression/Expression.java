@@ -100,7 +100,7 @@ public class Expression implements Entity<Expression> {
     }
 
     public boolean isHotRepeat(ImmutableList<Integer> intervals) {
-        return repeatData.interval() == intervals.get(0);
+        return repeatData.getInterval() == intervals.get(0);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class Expression implements Entity<Expression> {
 
     public void repeat(boolean isRemember, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
         int index = isRemember ?
-                Math.min(intervals.indexOf(repeatData.interval()) + 1, intervals.size() - 1) : 0;
+                Math.min(intervals.indexOf(repeatData.getInterval()) + 1, intervals.size() - 1) : 0;
 
         repeatData = new RepeatData(intervals.get(index), lastDateOfRepeat);
     }

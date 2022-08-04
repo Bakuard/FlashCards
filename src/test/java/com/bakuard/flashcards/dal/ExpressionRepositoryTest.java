@@ -383,7 +383,7 @@ class ExpressionRepositoryTest {
                 PageRequest.of(0, 20, Sort.by("repeat_interval", "value")));
 
         List<Expression> expected = expressions.stream().
-                sorted(Comparator.comparing((Expression e) -> e.getRepeatData().interval()).
+                sorted(Comparator.comparing((Expression e) -> e.getRepeatData().getInterval()).
                         thenComparing(Expression::getValue)).
                 toList();
         Assertions.assertEquals(expected, actual.getContent());
@@ -499,9 +499,9 @@ class ExpressionRepositoryTest {
                 getContent();
         SoftAssertions assertions = new SoftAssertions();
         assertions.assertThat(actual).
-                elements(2, 3, 4).allMatch(w -> w.getRepeatData().interval() == 3);
+                elements(2, 3, 4).allMatch(w -> w.getRepeatData().getInterval() == 3);
         assertions.assertThat(actual).
-                elements(0, 1, 5).allMatch(w -> w.getRepeatData().interval() == 10);
+                elements(0, 1, 5).allMatch(w -> w.getRepeatData().getInterval() == 10);
         assertions.assertAll();
     }
 

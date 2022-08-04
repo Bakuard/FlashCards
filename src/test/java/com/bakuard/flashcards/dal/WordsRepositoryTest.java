@@ -382,7 +382,7 @@ class WordsRepositoryTest {
                 PageRequest.of(0, 20, Sort.by("repeat_interval", "value")));
 
         List<Word> expected = words.stream().
-                sorted(Comparator.comparing((Word w) -> w.getRepeatData().interval()).
+                sorted(Comparator.comparing((Word w) -> w.getRepeatData().getInterval()).
                         thenComparing(Word::getValue)).
                 toList();
         Assertions.assertEquals(expected, actual.getContent());
@@ -498,9 +498,9 @@ class WordsRepositoryTest {
                 getContent();
         SoftAssertions assertions = new SoftAssertions();
         assertions.assertThat(actual).
-                elements(2, 3, 4).allMatch(w -> w.getRepeatData().interval() == 3);
+                elements(2, 3, 4).allMatch(w -> w.getRepeatData().getInterval() == 3);
         assertions.assertThat(actual).
-                elements(0, 1, 5).allMatch(w -> w.getRepeatData().interval() == 10);
+                elements(0, 1, 5).allMatch(w -> w.getRepeatData().getInterval() == 10);
         assertions.assertAll();
     }
 

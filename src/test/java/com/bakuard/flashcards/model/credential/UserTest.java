@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.model;
+package com.bakuard.flashcards.model.credential;
 
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.model.credential.Credential;
@@ -32,9 +32,9 @@ class UserTest {
     public void constructor1() {
         Credential credential = new Credential("12345678", "incorrect email");
 
-        Set<ConstraintViolation<Credential>> constraints = validator.validate(credential);
+        Set<ConstraintViolation<Credential>> actual = validator.validate(credential);
 
-        Assertions.assertThat(constraints).
+        Assertions.assertThat(actual).
                 extracting(ConstraintViolation::getMessage).
                 containsExactlyInAnyOrder("Email.format");
     }
@@ -48,9 +48,9 @@ class UserTest {
     public void construct2() {
         Credential credential = new Credential(null, "user@gmail.com");
 
-        Set<ConstraintViolation<Credential>> constraints = validator.validate(credential);
+        Set<ConstraintViolation<Credential>> actual = validator.validate(credential);
 
-        Assertions.assertThat(constraints).
+        Assertions.assertThat(actual).
                 extracting(ConstraintViolation::getMessage).
                 containsExactlyInAnyOrder("Password.format");
     }
@@ -64,9 +64,9 @@ class UserTest {
     public void construct3() {
         Credential credential = new Credential("       ", "user@gmail.com");
 
-        Set<ConstraintViolation<Credential>> constraints = validator.validate(credential);
+        Set<ConstraintViolation<Credential>> actual = validator.validate(credential);
 
-        Assertions.assertThat(constraints).
+        Assertions.assertThat(actual).
                 extracting(ConstraintViolation::getMessage).
                 containsExactlyInAnyOrder("Password.format");
     }
@@ -80,9 +80,9 @@ class UserTest {
     public void construct4() {
         Credential credential = new Credential("1234567", "user@gmail.com");
 
-        Set<ConstraintViolation<Credential>> constraints = validator.validate(credential);
+        Set<ConstraintViolation<Credential>> actual = validator.validate(credential);
 
-        Assertions.assertThat(constraints).
+        Assertions.assertThat(actual).
                 extracting(ConstraintViolation::getMessage).
                 containsExactlyInAnyOrder("Password.format");
     }
@@ -99,9 +99,9 @@ class UserTest {
                 "user@gmail.com"
         );
 
-        Set<ConstraintViolation<Credential>> constraints = validator.validate(credential);
+        Set<ConstraintViolation<Credential>> actual = validator.validate(credential);
 
-        Assertions.assertThat(constraints).
+        Assertions.assertThat(actual).
                 extracting(ConstraintViolation::getMessage).
                 containsExactlyInAnyOrder("Password.format");
     }
@@ -115,9 +115,9 @@ class UserTest {
     public void construct6() {
         Credential credential = new Credential("12345678", null);
 
-        Set<ConstraintViolation<Credential>> constraints = validator.validate(credential);
+        Set<ConstraintViolation<Credential>> actual = validator.validate(credential);
 
-        Assertions.assertThat(constraints).
+        Assertions.assertThat(actual).
                 extracting(ConstraintViolation::getMessage).
                 containsExactlyInAnyOrder("Email.notNull");
     }
