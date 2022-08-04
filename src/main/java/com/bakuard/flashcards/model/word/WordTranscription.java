@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.model;
+package com.bakuard.flashcards.model.word;
 
 import org.springframework.data.relational.core.mapping.Table;
 

@@ -1,5 +1,7 @@
-package com.bakuard.flashcards.model;
+package com.bakuard.flashcards.model.expression;
 
+import com.bakuard.flashcards.model.Entity;
+import com.bakuard.flashcards.model.RepeatData;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
@@ -11,11 +13,11 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.time.LocalDate;
 import java.util.*;
 
-@Table("words")
-public class Word implements Entity<Word> {
+@Table("expressions")
+public class Expression implements Entity<Expression> {
 
     @Id
-    @Column("word_id")
+    @Column("expression_id")
     private UUID id;
     @Column("user_id")
     private final UUID userId;
@@ -23,47 +25,42 @@ public class Word implements Entity<Word> {
     private String value;
     @Column("note")
     private String note;
-    @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private final List<WordInterpretation> interpretations;
-    @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private final List<WordTranscription> transcriptions;
-    @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private final List<WordTranslation> translations;
-    @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private final List<WordExample> examples;
+    @MappedCollection(idColumn = "expression_id", keyColumn = "index")
+    private List<ExpressionInterpretation> interpretations;
+    @MappedCollection(idColumn = "expression_id", keyColumn = "index")
+    private List<ExpressionTranslation> translations;
+    @MappedCollection(idColumn = "expression_id", keyColumn = "index")
+    private List<ExpressionExample> examples;
     @Embedded.Nullable
     private RepeatData repeatData;
 
     @PersistenceCreator
-    public Word(UUID id,
-                UUID userId,
-                String value,
-                String note,
-                List<WordInterpretation> interpretations,
-                List<WordTranscription> transcriptions,
-                List<WordTranslation> translations,
-                List<WordExample> examples,
-                RepeatData repeatData) {
+    public Expression(UUID id,
+                      UUID userId,
+                      String value,
+                      String note,
+                      List<ExpressionInterpretation> interpretations,
+                      List<ExpressionTranslation> translations,
+                      List<ExpressionExample> examples,
+                      RepeatData repeatData) {
         this.id = id;
         this.userId = userId;
         this.value = value;
         this.note = note;
         this.interpretations = interpretations;
-        this.transcriptions = transcriptions;
         this.translations = translations;
         this.examples = examples;
         this.repeatData = repeatData;
     }
 
-    public Word(UUID userId,
-                String value,
-                String note,
-                ImmutableList<Integer> intervals) {
+    public Expression(UUID userId,
+                      String value,
+                      String note,
+                      ImmutableList<Integer> intervals) {
         this.userId = userId;
         this.value = value;
         this.note = note;
         interpretations = new ArrayList<>();
-        transcriptions = new ArrayList<>();
         translations = new ArrayList<>();
         examples = new ArrayList<>();
         repeatData = new RepeatData(intervals.get(0), LocalDate.now());
@@ -86,19 +83,15 @@ public class Word implements Entity<Word> {
         return note;
     }
 
-    public List<WordInterpretation> getInterpretations() {
+    public List<ExpressionInterpretation> getInterpretations() {
         return Collections.unmodifiableList(interpretations);
     }
 
-    public List<WordTranscription> getTranscriptions() {
-        return Collections.unmodifiableList(transcriptions);
-    }
-
-    public List<WordTranslation> getTranslations() {
+    public List<ExpressionTranslation> getTranslations() {
         return Collections.unmodifiableList(translations);
     }
 
-    public List<WordExample> getExamples() {
+    public List<ExpressionExample> getExamples() {
         return Collections.unmodifiableList(examples);
     }
 
@@ -115,22 +108,17 @@ public class Word implements Entity<Word> {
         if(id == null) id = UUID.randomUUID();
     }
 
-    public Word addInterpretations(WordInterpretation interpretation) {
+    public Expression addInterpretations(ExpressionInterpretation interpretation) {
         interpretations.add(interpretation);
         return this;
     }
 
-    public Word addTranscriptions(WordTranscription transcription) {
-        transcriptions.add(transcription);
-        return this;
-    }
-
-    public Word addTranslations(WordTranslation translation) {
+    public Expression addTranslations(ExpressionTranslation translation) {
         translations.add(translation);
         return this;
     }
 
-    public Word addExamples(WordExample example) {
+    public Expression addExamples(ExpressionExample example) {
         examples.add(example);
         return this;
     }
@@ -146,8 +134,8 @@ public class Word implements Entity<Word> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Word word = (Word) o;
-        return id.equals(word.id);
+        Expression that = (Expression) o;
+        return id.equals(that.id);
     }
 
     @Override
@@ -157,13 +145,12 @@ public class Word implements Entity<Word> {
 
     @Override
     public String toString() {
-        return "Word{" +
+        return "Expression{" +
                 "id=" + id +
                 ", userId=" + userId +
                 ", value='" + value + '\'' +
                 ", note='" + note + '\'' +
                 ", interpretations=" + interpretations +
-                ", transcriptions=" + transcriptions +
                 ", translations=" + translations +
                 ", examples=" + examples +
                 ", repeatData=" + repeatData +

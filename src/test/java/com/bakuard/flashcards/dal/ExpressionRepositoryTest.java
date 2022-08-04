@@ -1,10 +1,9 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.SpringConfig;
-import com.bakuard.flashcards.model.Expression;
+import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.RepeatData;
-import com.bakuard.flashcards.model.User;
-import com.bakuard.flashcards.model.Word;
+import com.bakuard.flashcards.model.credential.User;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Assertions;

@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.model;
+package com.bakuard.flashcards.model.expression;
 
 import org.springframework.data.relational.core.mapping.Table;
 
