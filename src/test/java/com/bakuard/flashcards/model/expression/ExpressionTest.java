@@ -2,7 +2,6 @@ package com.bakuard.flashcards.model.expression;
 
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.model.RepeatData;
-import com.bakuard.flashcards.model.word.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

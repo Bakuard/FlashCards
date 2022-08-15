@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,10 +18,14 @@ public class ExpressionService {
 
     private ExpressionRepository expressionRepository;
     private IntervalsRepository intervalsRepository;
+    private Clock clock;
 
-    public ExpressionService(ExpressionRepository expressionRepository, IntervalsRepository intervalsRepository) {
+    public ExpressionService(ExpressionRepository expressionRepository,
+                             IntervalsRepository intervalsRepository,
+                             Clock clock) {
         this.expressionRepository = expressionRepository;
         this.intervalsRepository = intervalsRepository;
+        this.clock = clock;
     }
 
     public void save(Expression expression) {
@@ -47,15 +52,17 @@ public class ExpressionService {
         return expressionRepository.count(userId);
     }
 
-    public long countForRepeat(UUID userId, LocalDate date) {
-        return expressionRepository.countForRepeat(userId, date);
+    public long countForRepeat(UUID userId) {
+        return expressionRepository.countForRepeat(userId, LocalDate.now(clock));
     }
 
     public Page<Expression> findByUserId(UUID userId, Pageable pageable) {
         return expressionRepository.findByUserId(userId, pageable);
     }
 
-    public Page<Expression> findAllForRepeat(UUID userId, LocalDate date, Pageable pageable) {
+    public Page<Expression> findAllForRepeat(UUID userId, Pageable pageable) {
+        LocalDate date = LocalDate.now(clock);
+
         return PageableExecutionUtils.getPage(
                 expressionRepository.findAllForRepeat(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
                 pageable,
@@ -65,7 +72,7 @@ public class ExpressionService {
 
     @Transactional
     public void repeat(Expression expression, boolean isRemember) {
-        expression.repeat(isRemember, LocalDate.now(), intervalsRepository.findAll(expression.getUserId()));
+        expression.repeat(isRemember, LocalDate.now(clock), intervalsRepository.findAll(expression.getUserId()));
     }
 
     @Transactional
