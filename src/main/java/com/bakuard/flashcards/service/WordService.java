@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,10 +18,14 @@ public class WordService {
 
     private WordsRepository wordsRepository;
     private IntervalsRepository intervalsRepository;
+    private Clock clock;
 
-    public WordService(WordsRepository wordsRepository, IntervalsRepository intervalsRepository) {
+    public WordService(WordsRepository wordsRepository,
+                       IntervalsRepository intervalsRepository,
+                       Clock clock) {
         this.wordsRepository = wordsRepository;
         this.intervalsRepository = intervalsRepository;
+        this.clock = clock;
     }
 
     public void save(Word word) {
@@ -47,15 +52,17 @@ public class WordService {
         return wordsRepository.count(userId);
     }
 
-    public long countForRepeat(UUID userId, LocalDate date) {
-        return wordsRepository.countForRepeat(userId, date);
+    public long countForRepeat(UUID userId) {
+        return wordsRepository.countForRepeat(userId, LocalDate.now(clock));
     }
 
     public Page<Word> findByUserId(UUID userId, Pageable pageable) {
         return wordsRepository.findByUserId(userId, pageable);
     }
 
-    public Page<Word> findAllForRepeat(UUID userId, LocalDate date, Pageable pageable) {
+    public Page<Word> findAllForRepeat(UUID userId, Pageable pageable) {
+        LocalDate date = LocalDate.now(clock);
+
         return PageableExecutionUtils.getPage(
                 wordsRepository.findAllForRepeat(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
                 pageable,
@@ -65,7 +72,7 @@ public class WordService {
 
     @Transactional
     public void repeat(Word word, boolean isRemember) {
-        word.repeat(isRemember, LocalDate.now(), intervalsRepository.findAll(word.getUserId()));
+        word.repeat(isRemember, LocalDate.now(clock), intervalsRepository.findAll(word.getUserId()));
     }
 
     @Transactional

@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.sql.DataSource;
+import java.time.Clock;
 
 @SpringBootApplication(
         exclude = {SecurityAutoConfiguration.class},
@@ -72,15 +73,22 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
+        public Clock clock() {
+             return Clock.systemUTC();
+        }
+
+        @Bean
         public WordService wordService(WordsRepository wordsRepository,
-                                       IntervalsRepository intervalsRepository) {
-                return new WordService(wordsRepository, intervalsRepository);
+                                       IntervalsRepository intervalsRepository,
+                                       Clock clock) {
+                return new WordService(wordsRepository, intervalsRepository, clock);
         }
 
         @Bean
         public ExpressionService expressionService(ExpressionRepository expressionRepository,
-                                                   IntervalsRepository intervalsRepository) {
-                return new ExpressionService(expressionRepository, intervalsRepository);
+                                                   IntervalsRepository intervalsRepository,
+                                                   Clock clock) {
+                return new ExpressionService(expressionRepository, intervalsRepository, clock);
         }
 
         @Bean
