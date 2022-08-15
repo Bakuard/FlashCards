@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.dal;
 
-import com.bakuard.flashcards.model.Expression;
+import com.bakuard.flashcards.model.expression.Expression;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jdbc.repository.query.Modifying;

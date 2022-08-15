@@ -2,7 +2,7 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
-import com.bakuard.flashcards.model.Word;
+import com.bakuard.flashcards.model.word.Word;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,5 +1,6 @@
-package com.bakuard.flashcards.model;
+package com.bakuard.flashcards.model.credential;
 
+import com.bakuard.flashcards.model.Entity;
 import com.google.common.hash.Hashing;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
@@ -33,10 +34,10 @@ public class User implements Entity<User> {
         this.email = email;
     }
 
-    public User(String email, String password) {
-        this.email = email;
+    public User(Credential credential) {
+        this.email = credential.getEmail().asString();
         salt = Base64.getEncoder().encodeToString(SecureRandom.getSeed(255));
-        passwordHash = calculatePasswordHash(password, salt);
+        passwordHash = calculatePasswordHash(credential.getRawPassword().asString(), salt);
     }
 
     @Override
@@ -61,14 +62,16 @@ public class User implements Entity<User> {
         if(id == null) id = UUID.randomUUID();
     }
 
-    public void setPassword(String currentPassword, String newPassword) {
-        if(calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
-            this.passwordHash = calculatePasswordHash(newPassword, salt);
+    public void setPassword(RawPassword currentPassword, RawPassword newPassword) {
+        if(calculatePasswordHash(currentPassword.asString(), salt).equals(passwordHash)) {
+            this.passwordHash = calculatePasswordHash(newPassword.asString(), salt);
+        } else {
+            throw new IncorrectCredentials();
         }
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setEmail(Email email) {
+        this.email = email.asString();
     }
 
     @Override

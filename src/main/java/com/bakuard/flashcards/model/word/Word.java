@@ -1,5 +1,9 @@
-package com.bakuard.flashcards.model;
+package com.bakuard.flashcards.model.word;
 
+import com.bakuard.flashcards.model.Entity;
+import com.bakuard.flashcards.model.RepeatData;
+import com.bakuard.flashcards.validation.AllUnique;
+import com.bakuard.flashcards.validation.NotBlankOrNull;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
@@ -8,6 +12,9 @@ import org.springframework.data.relational.core.mapping.Embedded;
 import org.springframework.data.relational.core.mapping.MappedCollection;
 import org.springframework.data.relational.core.mapping.Table;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -18,20 +25,28 @@ public class Word implements Entity<Word> {
     @Column("word_id")
     private UUID id;
     @Column("user_id")
+    @NotNull(message = "Word.userId.notNull")
     private final UUID userId;
     @Column("value")
+    @NotBlank(message = "Word.value.notBlank")
     private String value;
     @Column("note")
+    @NotBlankOrNull(message = "Word.note.notBlankOrNull")
     private String note;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private final List<WordInterpretation> interpretations;
+    @AllUnique(nameOfGetterMethod = "getValue", message = "Word.interpretations.allUnique")
+    private final List<@Valid WordInterpretation> interpretations;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private final List<WordTranscription> transcriptions;
+    @AllUnique(nameOfGetterMethod = "getValue", message = "Word.transcriptions.allUnique")
+    private final List<@Valid WordTranscription> transcriptions;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private final List<WordTranslation> translations;
+    @AllUnique(nameOfGetterMethod = "getValue", message = "Word.translations.allUnique")
+    private final List<@Valid WordTranslation> translations;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
-    private final List<WordExample> examples;
+    @AllUnique(nameOfGetterMethod = "getOrigin", message = "Word.examples.allUnique")
+    private final List<@Valid WordExample> examples;
     @Embedded.Nullable
+    @Valid
     private RepeatData repeatData;
 
     @PersistenceCreator
@@ -107,7 +122,7 @@ public class Word implements Entity<Word> {
     }
 
     public boolean isHotRepeat(ImmutableList<Integer> intervals) {
-        return repeatData.interval() == intervals.get(0);
+        return repeatData.getInterval() == intervals.get(0);
     }
 
     @Override
@@ -115,29 +130,29 @@ public class Word implements Entity<Word> {
         if(id == null) id = UUID.randomUUID();
     }
 
-    public Word addInterpretations(WordInterpretation interpretation) {
+    public Word addInterpretation(WordInterpretation interpretation) {
         interpretations.add(interpretation);
         return this;
     }
 
-    public Word addTranscriptions(WordTranscription transcription) {
+    public Word addTranscription(WordTranscription transcription) {
         transcriptions.add(transcription);
         return this;
     }
 
-    public Word addTranslations(WordTranslation translation) {
+    public Word addTranslation(WordTranslation translation) {
         translations.add(translation);
         return this;
     }
 
-    public Word addExamples(WordExample example) {
+    public Word addExample(WordExample example) {
         examples.add(example);
         return this;
     }
 
     public void repeat(boolean isRemember, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
         int index = isRemember ?
-                Math.min(intervals.indexOf(repeatData.interval()) + 1, intervals.size() - 1) : 0;
+                Math.min(intervals.indexOf(repeatData.getInterval()) + 1, intervals.size() - 1) : 0;
 
         repeatData = new RepeatData(intervals.get(index), lastDateOfRepeat);
     }

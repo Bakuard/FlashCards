@@ -1,7 +1,7 @@
 package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.UserRepository;
-import com.bakuard.flashcards.model.User;
+import com.bakuard.flashcards.model.credential.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
