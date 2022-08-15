@@ -36,7 +36,7 @@ class WordTest {
              several examples is not valid,
              there are examples duplicates,
              repeat interval < 1,
-             date of repeat is null
+             date of repeat < current day
              => fail validate
             """)
     public void createWord1() {
@@ -70,8 +70,8 @@ class WordTest {
         Assertions.assertThat(actual).
                 extracting(ConstraintViolation::getMessage).
                 containsExactlyInAnyOrder("Word.userId.notNull",
-                        "Word.userId.notBlank",
-                        "Word.userId.notBlankOrNull",
+                        "Word.value.notBlank",
+                        "Word.note.notBlankOrNull",
                         "Word.interpretations.allUnique",
                         "WordTranscription.value.notBlank",
                         "WordTranscription.note.notBlankOrNull",

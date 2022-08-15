@@ -28,10 +28,10 @@ public class Word implements Entity<Word> {
     @NotNull(message = "Word.userId.notNull")
     private final UUID userId;
     @Column("value")
-    @NotBlank(message = "Word.userId.notBlank")
+    @NotBlank(message = "Word.value.notBlank")
     private String value;
     @Column("note")
-    @NotBlankOrNull(message = "Word.userId.notBlankOrNull")
+    @NotBlankOrNull(message = "Word.note.notBlankOrNull")
     private String note;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Word.interpretations.allUnique")
