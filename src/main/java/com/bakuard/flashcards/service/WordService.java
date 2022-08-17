@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Transactional
 public class WordService {
 
     private WordsRepository wordsRepository;
@@ -29,7 +30,6 @@ public class WordService {
         this.clock = clock;
     }
 
-    @Transactional
     public Word newWord(UUID userId,
                         String value,
                         String note) {
@@ -79,12 +79,10 @@ public class WordService {
         );
     }
 
-    @Transactional
     public void repeat(Word word, boolean isRemember) {
         word.repeat(isRemember, LocalDate.now(clock), intervalsRepository.findAll(word.getUserId()));
     }
 
-    @Transactional
     public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
         ImmutableList<Integer> intervals = intervalsRepository.findAll(userId);
         if(!intervals.contains(oldInterval)) {
@@ -97,7 +95,6 @@ public class WordService {
         }
     }
 
-    @Transactional
     public boolean isHotRepeat(Word word) {
         return word.isHotRepeat(intervalsRepository.findAll(word.getUserId()));
     }

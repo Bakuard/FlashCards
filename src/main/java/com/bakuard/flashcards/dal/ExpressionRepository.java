@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-@Transactional
 public interface ExpressionRepository extends PagingAndSortingRepository<Expression, UUID> {
 
     @Query("select * from expressions where user_id = :userId and expression_id = :expressionId;")

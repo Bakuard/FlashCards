@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Transactional
 public class ExpressionService {
 
     private ExpressionRepository expressionRepository;
@@ -29,7 +30,6 @@ public class ExpressionService {
         this.clock = clock;
     }
 
-    @Transactional
     public Expression newExpression(UUID userId,
                                     String value,
                                     String note) {
@@ -79,12 +79,10 @@ public class ExpressionService {
         );
     }
 
-    @Transactional
     public void repeat(Expression expression, boolean isRemember) {
         expression.repeat(isRemember, LocalDate.now(clock), intervalsRepository.findAll(expression.getUserId()));
     }
 
-    @Transactional
     public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
         ImmutableList<Integer> intervals = intervalsRepository.findAll(userId);
         if(!intervals.contains(oldInterval)) {
@@ -97,7 +95,6 @@ public class ExpressionService {
         }
     }
 
-    @Transactional
     public boolean isHotRepeat(Expression expression) {
         return expression.isHotRepeat(intervalsRepository.findAll(expression.getUserId()));
     }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,15 +34,8 @@ class UserRepositoryTest {
 
     @BeforeEach
     public void beforeEach() {
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(def);
-        try {
-            JdbcTestUtils.deleteFromTables(jdbcTemplate, "expressions", "words", "intervals", "users");
-            transactionManager.commit(status);
-        } catch(RuntimeException e) {
-            transactionManager.rollback(status);
-            throw e;
-        }
+        commit(() -> JdbcTestUtils.deleteFromTables(jdbcTemplate,
+                "expressions", "words", "intervals", "users"));
     }
 
     @Test
@@ -52,9 +46,11 @@ class UserRepositoryTest {
             """)
     public void findByEmail1() {
         User expected = user(1);
-        userRepository.save(expected);
-        userRepository.save(user(2));
-        userRepository.save(user(3));
+        commit(() -> {
+            userRepository.save(expected);
+            userRepository.save(user(2));
+            userRepository.save(user(3));
+        });
 
         User actual = userRepository.findByEmail(toEmail(1)).orElseThrow();
 
@@ -72,9 +68,11 @@ class UserRepositoryTest {
             """)
     public void findByEmail2() {
         User expected = user(1);
-        userRepository.save(expected);
-        userRepository.save(user(2));
-        userRepository.save(user(3));
+        commit(() -> {
+            userRepository.save(expected);
+            userRepository.save(user(2));
+            userRepository.save(user(3));
+        });
 
         Optional<User> actual = userRepository.findByEmail(toEmail(1000));
 
@@ -97,6 +95,18 @@ class UserRepositoryTest {
                 "salt" + number,
                 toEmail(number)
         );
+    }
+
+    private void commit(Executable executable) {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        try {
+            executable.execute();
+            transactionManager.commit(status);
+        } catch(Throwable e) {
+            transactionManager.rollback(status);
+            throw new RuntimeException(e);
+        }
     }
 
 }

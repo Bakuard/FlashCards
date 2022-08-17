@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +26,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Supplier;
 
 @SpringBootTest(classes = SpringConfig.class)
 @AutoConfigureDataJdbc
@@ -42,15 +44,11 @@ class WordsRepositoryTest {
 
     @BeforeEach
     public void beforeEach() {
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(def);
-        try {
-            JdbcTestUtils.deleteFromTables(jdbcTemplate, "expressions", "words", "intervals", "users");
-            transactionManager.commit(status);
-        } catch(RuntimeException e) {
-            transactionManager.rollback(status);
-            throw e;
-        }
+        commit(() -> JdbcTestUtils.deleteFromTables(jdbcTemplate,
+                        "expressions",
+                        "words",
+                        "intervals",
+                        "users"));
     }
 
     @Test
@@ -61,12 +59,12 @@ class WordsRepositoryTest {
             """)
     public void save() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Word expected = word(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
 
-        wordsRepository.save(expected);
+        commit(() -> wordsRepository.save(expected));
 
         Word actual = wordsRepository.findById(expected.getId()).orElseThrow();
         org.assertj.core.api.Assertions.
@@ -83,11 +81,11 @@ class WordsRepositoryTest {
             """)
     public void findById1() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Word expected = word(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        commit(() -> wordsRepository.save(expected));
 
         Optional<Word> actual = wordsRepository.findById(user.getId(), toUUID(1));
 
@@ -102,11 +100,11 @@ class WordsRepositoryTest {
             """)
     public void findById2() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Word expected = word(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        commit(() -> wordsRepository.save(expected));
 
         Word actual = wordsRepository.findById(user.getId(), expected.getId()).orElseThrow();
 
@@ -124,11 +122,11 @@ class WordsRepositoryTest {
             """)
     public void findByValue1() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Word expected = word(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        commit(() -> wordsRepository.save(expected));
 
         Optional<Word> actual = wordsRepository.findByValue(user.getId(), "Unknown value");
 
@@ -143,11 +141,11 @@ class WordsRepositoryTest {
             """)
     public void findByValue2() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Word expected = word(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        commit(() -> wordsRepository.save(expected));
 
         Word actual = wordsRepository.findByValue(user.getId(), "value 1").orElseThrow();
 
@@ -165,13 +163,13 @@ class WordsRepositoryTest {
             """)
     public void deleteById1() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Word expected = word(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        commit(() -> wordsRepository.save(expected));
 
-        wordsRepository.deleteById(user.getId(), toUUID(1));
+        commit(() -> wordsRepository.deleteById(user.getId(), toUUID(1)));
 
         Assertions.assertTrue(wordsRepository.existsById(expected.getId()));
     }
@@ -184,13 +182,13 @@ class WordsRepositoryTest {
             """)
     public void deleteById2() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Word expected = word(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        commit(() -> wordsRepository.save(expected));
 
-        wordsRepository.deleteById(user.getId(), expected.getId());
+        commit(() -> wordsRepository.deleteById(user.getId(), expected.getId()));
 
         Assertions.assertFalse(wordsRepository.existsById(expected.getId()));
     }
@@ -203,11 +201,11 @@ class WordsRepositoryTest {
             """)
     public void existsById1() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Word expected = word(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        commit(() -> wordsRepository.save(expected));
 
         Assertions.assertFalse(wordsRepository.existsById(user.getId(), toUUID(1)));
     }
@@ -220,11 +218,11 @@ class WordsRepositoryTest {
             """)
     public void existsById2() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Word expected = word(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        wordsRepository.save(expected);
+        commit(() -> wordsRepository.save(expected));
 
         Assertions.assertTrue(wordsRepository.existsById(user.getId(), expected.getId()));
     }
@@ -236,11 +234,13 @@ class WordsRepositoryTest {
              => return 0
             """)
     public void count1() {
-        User user1 = userRepository.save(user(1));
-        User user2 = userRepository.save(user(2));
-        User user3 = userRepository.save(user(3));
-        wordsRepository.save(word(user1.getId(), "value1", "note1", defaultRepeatData()));
-        wordsRepository.save(word(user2.getId(), "value2", "note2", defaultRepeatData()));
+        User user1 = commit(() -> userRepository.save(user(1)));
+        User user2 = commit(() -> userRepository.save(user(2)));
+        User user3 = commit(() -> userRepository.save(user(3)));
+        commit(() -> {
+            wordsRepository.save(word(user1.getId(), "value1", "note1", defaultRepeatData()));
+            wordsRepository.save(word(user2.getId(), "value2", "note2", defaultRepeatData()));
+        });
 
         long actual = wordsRepository.count(user3.getId());
 
@@ -254,13 +254,15 @@ class WordsRepositoryTest {
              => return correct result
             """)
     public void count2() {
-        User user1 = userRepository.save(user(1));
-        User user2 = userRepository.save(user(2));
-        User user3 = userRepository.save(user(3));
-        wordsRepository.save(word(user1.getId(), "value1", "note1", defaultRepeatData()));
-        wordsRepository.save(word(user2.getId(), "value2", "note2", defaultRepeatData()));
-        wordsRepository.save(word(user3.getId(), "value3", "note3", defaultRepeatData()));
-        wordsRepository.save(word(user3.getId(), "value4", "note4", defaultRepeatData()));
+        User user1 = commit(() -> userRepository.save(user(1)));
+        User user2 = commit(() -> userRepository.save(user(2)));
+        User user3 = commit(() -> userRepository.save(user(3)));
+        commit(() -> {
+            wordsRepository.save(word(user1.getId(), "value1", "note1", defaultRepeatData()));
+            wordsRepository.save(word(user2.getId(), "value2", "note2", defaultRepeatData()));
+            wordsRepository.save(word(user3.getId(), "value3", "note3", defaultRepeatData()));
+            wordsRepository.save(word(user3.getId(), "value4", "note4", defaultRepeatData()));
+        });
 
         long actual = wordsRepository.count(user3.getId());
 
@@ -274,15 +276,17 @@ class WordsRepositoryTest {
              => return correct result
             """)
     public void countForRepeat1() {
-        User user1 = userRepository.save(user(1));
-        wordsRepository.save(word(user1.getId(), "value1", "note1",
-                new RepeatData(1, LocalDate.of(2022, 7, 7))));
-        wordsRepository.save(word(user1.getId(), "value2", "note2",
-                new RepeatData(3, LocalDate.of(2022, 7, 7))));
-        wordsRepository.save(word(user1.getId(), "value3", "note3",
-                new RepeatData(1, LocalDate.of(2022, 7, 10))));
-        wordsRepository.save(word(user1.getId(), "value4", "note4",
-                new RepeatData(10, LocalDate.of(2022, 7, 7))));
+        User user1 = commit(() -> userRepository.save(user(1)));
+        commit(() -> {
+            wordsRepository.save(word(user1.getId(), "value1", "note1",
+                    new RepeatData(1, LocalDate.of(2022, 7, 7))));
+            wordsRepository.save(word(user1.getId(), "value2", "note2",
+                    new RepeatData(3, LocalDate.of(2022, 7, 7))));
+            wordsRepository.save(word(user1.getId(), "value3", "note3",
+                    new RepeatData(1, LocalDate.of(2022, 7, 10))));
+            wordsRepository.save(word(user1.getId(), "value4", "note4",
+                    new RepeatData(10, LocalDate.of(2022, 7, 7))));
+        });
 
         long actual = wordsRepository.countForRepeat(
                 user1.getId(), LocalDate.of(2022, 7, 10)
@@ -298,7 +302,7 @@ class WordsRepositoryTest {
              => return 0
             """)
     public void countForRepeat2() {
-        User user1 = userRepository.save(user(1));
+        User user1 = commit(() -> userRepository.save(user(1)));
 
         long actual = wordsRepository.countForRepeat(
                 user1.getId(), LocalDate.of(2022, 7, 10)
@@ -314,15 +318,17 @@ class WordsRepositoryTest {
              => return 0
             """)
     public void countForRepeat3() {
-        User user1 = userRepository.save(user(1));
-        wordsRepository.save(word(user1.getId(), "value1", "note1",
-                new RepeatData(1, LocalDate.of(2022, 7, 7))));
-        wordsRepository.save(word(user1.getId(), "value2", "note2",
-                new RepeatData(3, LocalDate.of(2022, 7, 7))));
-        wordsRepository.save(word(user1.getId(), "value3", "note3",
-                new RepeatData(1, LocalDate.of(2022, 7, 10))));
-        wordsRepository.save(word(user1.getId(), "value4", "note4",
-                new RepeatData(10, LocalDate.of(2022, 7, 7))));
+        User user1 = commit(() -> userRepository.save(user(1)));
+        commit(() -> {
+            wordsRepository.save(word(user1.getId(), "value1", "note1",
+                    new RepeatData(1, LocalDate.of(2022, 7, 7))));
+            wordsRepository.save(word(user1.getId(), "value2", "note2",
+                    new RepeatData(3, LocalDate.of(2022, 7, 7))));
+            wordsRepository.save(word(user1.getId(), "value3", "note3",
+                    new RepeatData(1, LocalDate.of(2022, 7, 10))));
+            wordsRepository.save(word(user1.getId(), "value4", "note4",
+                    new RepeatData(10, LocalDate.of(2022, 7, 7))));
+        });
 
         long actual = wordsRepository.countForRepeat(
                 user1.getId(), LocalDate.of(2022, 7, 7)
@@ -338,7 +344,7 @@ class WordsRepositoryTest {
              => return empty page
             """)
     public void findByUserId1() {
-        User user1 = userRepository.save(user(1));
+        User user1 = commit(() -> userRepository.save(user(1)));
 
         Page<Word> actual = wordsRepository.findByUserId(user1.getId(), PageRequest.of(0, 20));
 
@@ -353,9 +359,9 @@ class WordsRepositoryTest {
              => return correct result
             """)
     public void findByUserId2() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Word> words = words(user.getId());
-        words.forEach(word -> wordsRepository.save(word));
+        commit(() -> words.forEach(word -> wordsRepository.save(word)));
 
         Page<Word> actual = wordsRepository.findByUserId(user.getId(),
                 PageRequest.of(0, 20, Sort.by("value").descending()));
@@ -374,9 +380,9 @@ class WordsRepositoryTest {
              => return correct result
             """)
     public void findByUserId3() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Word> words = words(user.getId());
-        words.forEach(word -> wordsRepository.save(word));
+        commit(() -> words.forEach(word -> wordsRepository.save(word)));
 
         Page<Word> actual = wordsRepository.findByUserId(user.getId(),
                 PageRequest.of(0, 20, Sort.by("repeat_interval", "value")));
@@ -395,7 +401,7 @@ class WordsRepositoryTest {
              => return empty page
             """)
     public void findAllForRepeat1() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
 
         List<Word> actual = wordsRepository.findAllForRepeat(
                 user.getId(),
@@ -414,9 +420,9 @@ class WordsRepositoryTest {
              => return empty page
             """)
     public void findAllForRepeat2() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Word> words = words(user.getId());
-        words.forEach(word -> wordsRepository.save(word));
+        commit(() -> words.forEach(word -> wordsRepository.save(word)));
 
         List<Word> actual = wordsRepository.findAllForRepeat(
                 user.getId(),
@@ -435,9 +441,9 @@ class WordsRepositoryTest {
              => return correct result
             """)
     public void findAllForRepeat3() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Word> words = words(user.getId());
-        words.forEach(word -> wordsRepository.save(word));
+        commit(() -> words.forEach(word -> wordsRepository.save(word)));
 
         LocalDate repeatDate = LocalDate.of(2022, 7, 10);
         List<Word> actual = wordsRepository.findAllForRepeat(
@@ -461,11 +467,11 @@ class WordsRepositoryTest {
              => do nothing
             """)
     public void replaceRepeatInterval1() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Word> expected = words(user.getId());
-        expected.forEach(word -> wordsRepository.save(word));
+        commit(() -> expected.forEach(word -> wordsRepository.save(word)));
 
-        wordsRepository.replaceRepeatInterval(user.getId(), 5, 10);
+        commit(() -> wordsRepository.replaceRepeatInterval(user.getId(), 5, 10));
 
         List<Word> actual = wordsRepository.findByUserId(user.getId(),
                         PageRequest.of(0, 20, Sort.by("value").ascending())).
@@ -487,11 +493,11 @@ class WordsRepositoryTest {
              => replace them to newInterval
             """)
     public void replaceRepeatInterval2() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Word> expected = words(user.getId());
-        expected.forEach(word -> wordsRepository.save(word));
+        commit(() -> expected.forEach(word -> wordsRepository.save(word)));
 
-        wordsRepository.replaceRepeatInterval(user.getId(), 1, 10);
+        commit(() -> wordsRepository.replaceRepeatInterval(user.getId(), 1, 10));
 
         List<Word> actual = wordsRepository.findByUserId(user.getId(),
                         PageRequest.of(0, 20, Sort.by("value").ascending())).
@@ -574,6 +580,31 @@ class WordsRepositoryTest {
 
     private RepeatData defaultRepeatData() {
         return new RepeatData(1, LocalDate.of(2022, 7, 7));
+    }
+
+    private void commit(Executable executable) {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        try {
+            executable.execute();
+            transactionManager.commit(status);
+        } catch(Throwable e) {
+            transactionManager.rollback(status);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private <T> T commit(Supplier<T> supplier) {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        try {
+            T result = supplier.get();
+            transactionManager.commit(status);
+            return result;
+        } catch(Throwable e) {
+            transactionManager.rollback(status);
+            throw new RuntimeException(e);
+        }
     }
 
 }
