@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,6 +27,14 @@ public class WordService {
         this.wordsRepository = wordsRepository;
         this.intervalsRepository = intervalsRepository;
         this.clock = clock;
+    }
+
+    @Transactional
+    public Word newWord(UUID userId,
+                        String value,
+                        String note) {
+        List<Integer> intervals = intervalsRepository.findAll(userId);
+        return new Word(userId, value, note, intervals.get(0), LocalDate.now(clock));
     }
 
     public void save(Word word) {
@@ -86,6 +95,11 @@ public class WordService {
             wordsRepository.replaceRepeatInterval(userId, oldInterval, newInterval);
             intervalsRepository.removeUnused(userId);
         }
+    }
+
+    @Transactional
+    public boolean isHotRepeat(Word word) {
+        return word.isHotRepeat(intervalsRepository.findAll(word.getUserId()));
     }
 
 }

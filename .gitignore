@@ -5,3 +5,4 @@
 /docs/**
 *.ini
 /externalConfig/**
+/saves/**

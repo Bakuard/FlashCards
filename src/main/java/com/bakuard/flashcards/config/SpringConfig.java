@@ -4,6 +4,7 @@ import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
 import com.bakuard.flashcards.dal.impl.IntervalsRepositoryImpl;
+import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.WordService;
@@ -89,6 +90,12 @@ public class SpringConfig implements WebMvcConfigurer {
                                                    IntervalsRepository intervalsRepository,
                                                    Clock clock) {
                 return new ExpressionService(expressionRepository, intervalsRepository, clock);
+        }
+
+        @Bean
+        public DtoMapper dtoMapper(WordService wordService,
+                                   ExpressionService expressionService) {
+                return new DtoMapper(wordService, expressionService);
         }
 
         @Bean

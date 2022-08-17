@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,6 +27,14 @@ public class ExpressionService {
         this.expressionRepository = expressionRepository;
         this.intervalsRepository = intervalsRepository;
         this.clock = clock;
+    }
+
+    @Transactional
+    public Expression newExpression(UUID userId,
+                                    String value,
+                                    String note) {
+        List<Integer> intervals = intervalsRepository.findAll(userId);
+        return new Expression(userId, value, note, intervals.get(0), LocalDate.now(clock));
     }
 
     public void save(Expression expression) {
@@ -86,6 +95,11 @@ public class ExpressionService {
             expressionRepository.replaceRepeatInterval(userId, oldInterval, newInterval);
             intervalsRepository.removeUnused(userId);
         }
+    }
+
+    @Transactional
+    public boolean isHotRepeat(Expression expression) {
+        return expression.isHotRepeat(intervalsRepository.findAll(expression.getUserId()));
     }
 
 }
