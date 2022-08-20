@@ -3,6 +3,7 @@ package com.bakuard.flashcards.service;
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
 import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.validation.UnknownEntityException;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,11 +38,16 @@ public class WordService {
         return new Word(userId, value, note, intervals.get(0), LocalDate.now(clock));
     }
 
-    public void save(Word word) {
-        wordsRepository.save(word);
+    public Word save(Word word) {
+        return wordsRepository.save(word);
     }
 
-    public void deleteById(UUID userId, UUID wordId) {
+    public void tryDeleteById(UUID userId, UUID wordId) {
+        if(!existsById(userId, wordId)) {
+            throw new UnknownEntityException(
+                    "Unknown word with id=" + wordId + " userId=" + userId,
+                    "Word.unknownId");
+        }
         wordsRepository.deleteById(userId, wordId);
     }
 
@@ -55,6 +61,26 @@ public class WordService {
 
     public Optional<Word> findByValue(UUID userId, String value) {
         return wordsRepository.findByValue(userId, value);
+    }
+
+    public Word tryFindById(UUID userId, UUID wordId) {
+        return findById(userId, wordId).
+                orElseThrow(
+                        () -> new UnknownEntityException(
+                                "Unknown word with id=" + wordId + " userId=" + userId,
+                                "Word.unknownId"
+                        )
+                );
+    }
+
+    public Word tryFindByValue(UUID userId, String value) {
+        return findByValue(userId, value).
+                orElseThrow(
+                        () -> new UnknownEntityException(
+                                "Unknown word with value=" + value + " userId=" + userId,
+                                "Word.unknownValue"
+                        )
+                );
     }
 
     public long count(UUID userId) {

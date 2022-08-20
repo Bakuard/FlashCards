@@ -6,7 +6,6 @@ import java.util.UUID;
 public class WordRepeatRequest {
 
     private UUID wordId;
-    private UUID userId;
     private boolean isRemember;
 
     public WordRepeatRequest() {
@@ -18,15 +17,6 @@ public class WordRepeatRequest {
 
     public WordRepeatRequest setWordId(UUID wordId) {
         this.wordId = wordId;
-        return this;
-    }
-
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public WordRepeatRequest setUserId(UUID userId) {
-        this.userId = userId;
         return this;
     }
 
@@ -45,20 +35,18 @@ public class WordRepeatRequest {
         if (o == null || getClass() != o.getClass()) return false;
         WordRepeatRequest that = (WordRepeatRequest) o;
         return isRemember == that.isRemember &&
-                Objects.equals(wordId, that.wordId) &&
-                Objects.equals(userId, that.userId);
+                Objects.equals(wordId, that.wordId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(wordId, userId, isRemember);
+        return Objects.hash(wordId, isRemember);
     }
 
     @Override
     public String toString() {
         return "WordRepeatRequest{" +
                 "wordId=" + wordId +
-                ", userId=" + userId +
                 ", isRemember=" + isRemember +
                 '}';
     }

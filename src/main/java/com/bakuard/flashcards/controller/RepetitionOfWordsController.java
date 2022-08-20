@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.controller;
 
+import com.bakuard.flashcards.config.security.QueryContext;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.word.WordForRepetitionResponse;
 import com.bakuard.flashcards.dto.word.WordRepeatRequest;
@@ -16,12 +17,15 @@ public class RepetitionOfWordsController {
 
     private WordService wordService;
     private DtoMapper dtoMapper;
+    private QueryContext queryContext;
 
     @Autowired
     public RepetitionOfWordsController(WordService wordService,
-                                       DtoMapper dtoMapper) {
+                                       DtoMapper dtoMapper,
+                                       QueryContext queryContext) {
         this.wordService = wordService;
         this.dtoMapper = dtoMapper;
+        this.queryContext = queryContext;
     }
 
     @GetMapping

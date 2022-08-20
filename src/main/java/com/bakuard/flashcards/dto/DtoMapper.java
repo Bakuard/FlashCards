@@ -1,24 +1,36 @@
 package com.bakuard.flashcards.dto;
 
+import com.bakuard.flashcards.config.ConfigData;
 import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
 import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
 import com.bakuard.flashcards.dto.common.TranscriptionRequestResponse;
 import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
 import com.bakuard.flashcards.dto.word.*;
+import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.model.word.*;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.WordService;
-import com.bakuard.flashcards.validation.UnknownEntityException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import java.util.UUID;
 
 public class DtoMapper {
 
     private WordService wordService;
     private ExpressionService expressionService;
+    private ConfigData configData;
+    private SortRules sortRules;
 
     public DtoMapper(WordService wordService,
-                     ExpressionService expressionService) {
+                     ExpressionService expressionService,
+                     ConfigData configData,
+                     SortRules sortRules) {
         this.wordService = wordService;
         this.expressionService = expressionService;
+        this.configData = configData;
+        this.sortRules = sortRules;
     }
 
     public WordResponse toWordResponse(Word word) {
@@ -41,26 +53,30 @@ public class DtoMapper {
                         toList());
     }
 
-    public WordForDictionaryListResponse toWordForDictionaryListResponse(Word word) {
-        return new WordForDictionaryListResponse().
-                setWordId(word.getId()).
-                setUserId(word.getUserId()).
-                setValue(word.getValue()).
-                setHotRepeat(wordService.isHotRepeat(word));
+    public Page<WordForDictionaryListResponse> toWordsForDictionaryListResponse(Page<Word> words) {
+        return words.map(
+                word -> new WordForDictionaryListResponse().
+                        setWordId(word.getId()).
+                        setUserId(word.getUserId()).
+                        setValue(word.getValue()).
+                        setHotRepeat(wordService.isHotRepeat(word))
+        );
     }
 
-    public WordForRepetitionResponse toWordForRepetitionResponse(Word word) {
-        return new WordForRepetitionResponse().
-                setWordId(word.getId()).
-                setUserId(word.getUserId()).
-                setValue(word.getValue()).
-                setExamples(word.getExamples().stream().
-                        map(WordExample::getOrigin).
-                        toList());
+    public Page<WordForRepetitionResponse> toWordsForRepetitionResponse(Page<Word> words) {
+        return words.map(
+                word -> new WordForRepetitionResponse().
+                        setWordId(word.getId()).
+                        setUserId(word.getUserId()).
+                        setValue(word.getValue()).
+                        setExamples(word.getExamples().stream().
+                                map(WordExample::getOrigin).
+                                toList())
+        );
     }
 
-    public Word toWord(WordAddRequest dto) {
-        Word word = wordService.newWord(dto.getUserId(), dto.getValue(), dto.getNote());
+    public Word toWord(WordAddRequest dto, UUID userID) {
+        Word word = wordService.newWord(userID, dto.getValue(), dto.getNote());
         dto.getTranscriptions().forEach(t -> word.addTranscription(toWordTranscription(t)));
         dto.getInterpretations().forEach(i -> word.addInterpretation(toWordInterpretation(i)));
         dto.getTranslates().forEach(t -> word.addTranslation(toWordTranslation(t)));
@@ -68,32 +84,30 @@ public class DtoMapper {
         return word;
     }
 
-    public Word toWord(WordUpdateRequest dto) {
-        return wordService.findById(dto.getUserId(), dto.getWordId()).
-                map(word -> {
-                    word.setValue(dto.getValue()).setNote(dto.getNote());
-                    dto.getTranscriptions().forEach(t -> word.addTranscription(toWordTranscription(t)));
-                    dto.getInterpretations().forEach(i -> word.addInterpretation(toWordInterpretation(i)));
-                    dto.getTranslates().forEach(t -> word.addTranslation(toWordTranslation(t)));
-                    dto.getExamples().forEach(e -> word.addExample(toWordExample(e)));
-                    return word;
-                }).
-                orElseThrow(
-                        () -> new UnknownEntityException(
-                                "Unknown word with id=" + dto.getWordId() + " userId=" + dto.getUserId(),
-                                "Word.unknown"
-                        )
-                );
+    public Word toWord(WordUpdateRequest dto, UUID userID) {
+        Word word = wordService.tryFindById(userID, dto.getWordId());
+
+        word.setValue(dto.getValue()).setNote(dto.getNote());
+        dto.getTranscriptions().forEach(t -> word.addTranscription(toWordTranscription(t)));
+        dto.getInterpretations().forEach(i -> word.addInterpretation(toWordInterpretation(i)));
+        dto.getTranslates().forEach(t -> word.addTranslation(toWordTranslation(t)));
+        dto.getExamples().forEach(e -> word.addExample(toWordExample(e)));
+
+        return word;
     }
 
-    public Word toWord(WordRepeatRequest dto) {
-        return wordService.findById(dto.getUserId(), dto.getWordId()).
-                orElseThrow(
-                        () -> new UnknownEntityException(
-                                "Unknown word with id=" + dto.getWordId() + " userId=" + dto.getUserId(),
-                                "Word.unknown"
-                        )
-                );
+    public Word toWord(WordRepeatRequest dto, UUID userID) {
+        return wordService.tryFindById(userID, dto.getWordId());
+    }
+
+    public Pageable toPageableForDictionaryWords(int page, int size, String sort) {
+        size = Math.min(configData.maxPageSize(), size);
+
+        return PageRequest.of(
+                page,
+                size,
+                sortRules.toWordsSort(sort)
+        );
     }
 
 

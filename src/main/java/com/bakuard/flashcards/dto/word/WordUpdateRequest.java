@@ -12,7 +12,6 @@ import java.util.UUID;
 public class WordUpdateRequest {
 
     private UUID wordId;
-    private UUID userId;
     private String value;
     private String note;
     private List<TranscriptionRequestResponse> transcriptions;
@@ -30,15 +29,6 @@ public class WordUpdateRequest {
 
     public WordUpdateRequest setWordId(UUID wordId) {
         this.wordId = wordId;
-        return this;
-    }
-
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public WordUpdateRequest setUserId(UUID userId) {
-        this.userId = userId;
         return this;
     }
 
@@ -102,7 +92,6 @@ public class WordUpdateRequest {
         if (o == null || getClass() != o.getClass()) return false;
         WordUpdateRequest that = (WordUpdateRequest) o;
         return Objects.equals(wordId, that.wordId) &&
-                Objects.equals(userId, that.userId) &&
                 Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
                 Objects.equals(transcriptions, that.transcriptions) &&
@@ -113,14 +102,13 @@ public class WordUpdateRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(wordId, userId, value, note, transcriptions, interpretations, translates, examples);
+        return Objects.hash(wordId, value, note, transcriptions, interpretations, translates, examples);
     }
 
     @Override
     public String toString() {
         return "WordUpdateRequest{" +
                 "wordId=" + wordId +
-                ", userId=" + userId +
                 ", value='" + value + '\'' +
                 ", note='" + note + '\'' +
                 ", transcriptions=" + transcriptions +

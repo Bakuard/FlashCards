@@ -3,6 +3,7 @@ package com.bakuard.flashcards.service;
 import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.validation.UnknownEntityException;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,11 +38,16 @@ public class ExpressionService {
         return new Expression(userId, value, note, intervals.get(0), LocalDate.now(clock));
     }
 
-    public void save(Expression expression) {
-        expressionRepository.save(expression);
+    public Expression save(Expression expression) {
+        return expressionRepository.save(expression);
     }
 
-    public void deleteById(UUID userId, UUID expressionId) {
+    public void tryDeleteById(UUID userId, UUID expressionId) {
+        if(!existsById(userId, expressionId)) {
+            throw new UnknownEntityException(
+                    "Unknown expression with id=" + expressionId + " userId=" + userId,
+                    "Expression.unknown");
+        }
         expressionRepository.deleteById(userId, expressionId);
     }
 

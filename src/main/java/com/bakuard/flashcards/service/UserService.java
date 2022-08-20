@@ -2,6 +2,8 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.model.credential.User;
+import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.validation.UnknownEntityException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +20,16 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public void save(User user) {
-        userRepository.save(user);
+    public User save(User user) {
+        return userRepository.save(user);
     }
 
-    public void deleteById(UUID userId) {
+    public void tryDeleteById(UUID userId) {
+        if(!existsById(userId)) {
+            throw new UnknownEntityException(
+                    "Unknown user with id=" + userId,
+                    "User.unknown");
+        }
         userRepository.deleteById(userId);
     }
 

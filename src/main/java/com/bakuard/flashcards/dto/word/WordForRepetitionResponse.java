@@ -1,7 +1,5 @@
 package com.bakuard.flashcards.dto.word;
 
-import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
