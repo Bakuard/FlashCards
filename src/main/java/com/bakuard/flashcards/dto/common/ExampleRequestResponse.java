@@ -1,11 +1,26 @@
 package com.bakuard.flashcards.dto.common;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 
+@Schema(description = "Пример использования слова или устойчевого выражения.")
 public class ExampleRequestResponse {
 
+    @Schema(description = """
+            Пример на оригинальном языке. <br/>
+            Должен представлять собой не пустую строку.
+            """)
     private String origin;
+    @Schema(description = """
+            Перевод примера. <br/>
+            Должен представлять собой не пустую строку.
+            """)
     private String translate;
+    @Schema(description = """
+            Примечание к примеру. <br/>
+            Должно представлять собой не пустую строку или иметь значение null.
+            """)
     private String note;
 
     public ExampleRequestResponse() {

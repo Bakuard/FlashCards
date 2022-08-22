@@ -4,18 +4,43 @@ import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
 import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
 import com.bakuard.flashcards.dto.common.TranscriptionRequestResponse;
 import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
+@Schema(description = "Данные добавляемого слова.")
 public class WordAddRequest {
 
+    @Schema(description = """
+            Значение слова. <br/>
+            Должно представлять собой не пустую строку.
+            """)
     private String value;
+    @Schema(description = """
+            Примечание к слову. <br/>
+            Должно представлять собой не пустую строку или иметь значение null.
+            """)
     private String note;
+    @Schema(description = """
+            Список транскрипций слова. <br/>
+            Список транскрипций слова не должен содержать дубликатов. Сам список может иметь значение null.
+            """)
     private List<TranscriptionRequestResponse> transcriptions;
+    @Schema(description = """
+            Список интерпретаций слова. <br/>
+            Список интерпретаций слова не должен содержать дубликатов. Сам список может иметь значение null.
+            """)
     private List<InterpretationRequestResponse> interpretations;
+    @Schema(description = """
+            Список переводов слова. <br/>
+            Список переводов слова не должен содержать дубликатов. Сам список может иметь значение null.
+            """)
     private List<TranslateRequestResponse> translates;
+    @Schema(description = """
+            Список примеров слова. <br/>
+            Список примеров слова не должен содержать дубликатов. Сам список может иметь значение null.
+            """)
     private List<ExampleRequestResponse> examples;
 
     public WordAddRequest() {

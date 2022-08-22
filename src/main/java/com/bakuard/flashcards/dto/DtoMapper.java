@@ -13,8 +13,11 @@ import com.bakuard.flashcards.service.WordService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public class DtoMapper {
 
@@ -77,10 +80,10 @@ public class DtoMapper {
 
     public Word toWord(WordAddRequest dto, UUID userID) {
         Word word = wordService.newWord(userID, dto.getValue(), dto.getNote());
-        dto.getTranscriptions().forEach(t -> word.addTranscription(toWordTranscription(t)));
-        dto.getInterpretations().forEach(i -> word.addInterpretation(toWordInterpretation(i)));
-        dto.getTranslates().forEach(t -> word.addTranslation(toWordTranslation(t)));
-        dto.getExamples().forEach(e -> word.addExample(toWordExample(e)));
+        toStream(dto.getTranscriptions()).forEach(t -> word.addTranscription(toWordTranscription(t)));
+        toStream(dto.getInterpretations()).forEach(i -> word.addInterpretation(toWordInterpretation(i)));
+        toStream(dto.getTranslates()).forEach(t -> word.addTranslation(toWordTranslation(t)));
+        toStream(dto.getExamples()).forEach(e -> word.addExample(toWordExample(e)));
         return word;
     }
 
@@ -88,10 +91,10 @@ public class DtoMapper {
         Word word = wordService.tryFindById(userID, dto.getWordId());
 
         word.setValue(dto.getValue()).setNote(dto.getNote());
-        dto.getTranscriptions().forEach(t -> word.addTranscription(toWordTranscription(t)));
-        dto.getInterpretations().forEach(i -> word.addInterpretation(toWordInterpretation(i)));
-        dto.getTranslates().forEach(t -> word.addTranslation(toWordTranslation(t)));
-        dto.getExamples().forEach(e -> word.addExample(toWordExample(e)));
+        toStream(dto.getTranscriptions()).forEach(t -> word.addTranscription(toWordTranscription(t)));
+        toStream(dto.getInterpretations()).forEach(i -> word.addInterpretation(toWordInterpretation(i)));
+        toStream(dto.getTranslates()).forEach(t -> word.addTranslation(toWordTranslation(t)));
+        toStream(dto.getExamples()).forEach(e -> word.addExample(toWordExample(e)));
 
         return word;
     }
@@ -150,6 +153,11 @@ public class DtoMapper {
 
     private WordExample toWordExample(ExampleRequestResponse dto) {
         return new WordExample(dto.getOrigin(), dto.getTranslate(), dto.getNote());
+    }
+
+
+    private <T> Stream<T> toStream(Collection<T> collection) {
+        return collection == null ? Stream.empty() : collection.stream();
     }
 
 }

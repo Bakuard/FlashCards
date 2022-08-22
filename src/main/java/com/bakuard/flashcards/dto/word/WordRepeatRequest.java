@@ -1,11 +1,21 @@
 package com.bakuard.flashcards.dto.word;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Запрос на повторение слова.")
 public class WordRepeatRequest {
 
+    @Schema(description = """
+            Уникальный идентификатор слова. <br/>
+            Не должен быть null.
+            """)
     private UUID wordId;
+    @Schema(description = """
+            Указывает - помнит ли пользователь данное слово или нет.
+            """)
     private boolean isRemember;
 
     public WordRepeatRequest() {

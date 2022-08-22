@@ -15,6 +15,9 @@ import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.WordService;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -139,6 +142,18 @@ public class SpringConfig implements WebMvcConfigurer {
                 return event -> {
                        if(event.getEntity() instanceof Entity<?> entity) entity.generateIdIfAbsent();
                 };
+        }
+
+
+        @Bean
+        public OpenAPI openAPI() {
+                return new OpenAPI().
+                        info(
+                                new Info().
+                                        title("Flashcards API").
+                                        version("0.1.0").
+                                        contact(new Contact().email("purplespicemerchant@gmail.com"))
+                        );
         }
 
 }

@@ -1,10 +1,21 @@
 package com.bakuard.flashcards.dto.common;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 
+@Schema(description = "Один из переводов слова или устойчевого выражения.")
 public class TranslateRequestResponse {
 
+    @Schema(description = """
+            Значение перевода. <br/>
+            Должно представлять собой не пустую строку.
+            """)
     private String value;
+    @Schema(description = """
+            Примечание к переводу. <br/>
+            Должно представлять собой не пустую строку или иметь значение null.
+            """)
     private String note;
 
     public TranslateRequestResponse() {

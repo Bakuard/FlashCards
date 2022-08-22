@@ -4,20 +4,30 @@ import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
 import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
 import com.bakuard.flashcards.dto.common.TranscriptionRequestResponse;
 import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Подробные данные об одном слове.")
 public class WordResponse {
 
+    @Schema(description = "Уникальный идентификатор слова.")
     private UUID wordId;
+    @Schema(description = "Уникальный идентификатор пользователя, к словарю которого относится это слово.")
     private UUID userId;
+    @Schema(description = "Значение слова.")
     private String value;
+    @Schema(description = "Примечание к слову.")
     private String note;
+    @Schema(description = "Список транскрипций слова.")
     private List<TranscriptionRequestResponse> transcriptions;
+    @Schema(description = "Список толкований слова.")
     private List<InterpretationRequestResponse> interpretations;
+    @Schema(description = "Список переводов слова.")
     private List<TranslateRequestResponse> translates;
+    @Schema(description = "Список примеров слова.")
     private List<ExampleRequestResponse> examples;
 
     public WordResponse() {

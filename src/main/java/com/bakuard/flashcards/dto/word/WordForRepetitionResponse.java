@@ -1,14 +1,21 @@
 package com.bakuard.flashcards.dto.word;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Данные слова для списка повторяемых слов.")
 public class WordForRepetitionResponse {
 
+    @Schema(description = "Уникальный идентификатор слова.")
     private UUID wordId;
+    @Schema(description = "Уникальный идентификатор пользователя, к словарю которого относится это слово.")
     private UUID userId;
+    @Schema(description = "Значение слова.")
     private String value;
+    @Schema(description = "Список примеров слова.")
     private List<String> examples;
 
     public WordForRepetitionResponse() {

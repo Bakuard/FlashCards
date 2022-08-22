@@ -1,13 +1,24 @@
 package com.bakuard.flashcards.dto.word;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Данные слова для списка слов в словаре.")
 public class WordForDictionaryListResponse {
 
+    @Schema(description = "Уникальный идентификатор слова.")
     private UUID wordId;
+    @Schema(description = "Уникальный идентификатор пользователя, к словарю которого относится это слово.")
     private UUID userId;
+    @Schema(description = "Значение слова.")
     private String value;
+    @Schema(description = """
+            Указывает - помнит ли пользователь это слово или нет. <br/>
+            Значение true указывает, что пользователь не смог вспомнить это слово во время повторения,
+            или оно является новым.
+            """)
     private boolean isHotRepeat;
 
     public WordForDictionaryListResponse() {

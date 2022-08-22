@@ -1,10 +1,21 @@
 package com.bakuard.flashcards.dto.common;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 
+@Schema(description = "Транскрипция слова.")
 public class TranscriptionRequestResponse {
 
+    @Schema(description = """
+            Значение транскрипции слова. <br/>
+            Должна представлять собой не пустую строку.
+            """)
     private String value;
+    @Schema(description = """
+            Примечание к транскрипции. <br/>
+            Должно представлять собой не пустую строку или иметь значение null.
+            """)
     private String note;
 
     public TranscriptionRequestResponse() {

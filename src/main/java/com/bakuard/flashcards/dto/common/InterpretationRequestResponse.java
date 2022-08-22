@@ -1,9 +1,16 @@
 package com.bakuard.flashcards.dto.common;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 
+@Schema(description = "Толкование слова или устойчевого выражения")
 public class InterpretationRequestResponse {
 
+    @Schema(description = """
+            Подробное описание значения и употребления слова или устойчевого выражения. <br/>
+            Должно представлять собой не пустую строку.
+            """)
     private String value;
 
     public InterpretationRequestResponse() {

@@ -18,6 +18,8 @@ public class AllUniqueConstraintValidator implements ConstraintValidator<AllUniq
 
     @Override
     public boolean isValid(List<?> objects, ConstraintValidatorContext constraintValidatorContext) {
+        if(objects == null) return false;
+
         long countUnique = objects.stream().
                 map(obj -> {
                     Class<?> c = obj.getClass();

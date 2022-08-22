@@ -122,6 +122,39 @@ class WordTest {
         Assertions.assertThat(actual.isEmpty()).isTrue();
     }
 
+    @Test
+    @DisplayName("""
+            create word:
+             transcriptions list is null,
+             translates list is null,
+             examples list is null,
+             interpretations list is null
+             => fail validate
+            """)
+    public void createWord3() {
+        Word word = new Word(
+                toUUID(1),
+                toUUID(1),
+                "value",
+                "note",
+                null,
+                null,
+                null,
+                null,
+                new RepeatData(1, LocalDate.now())
+        );
+
+        Set<ConstraintViolation<Word>> actual = validator.validate(word);
+
+        Assertions.assertThat(actual).
+                extracting(ConstraintViolation::getMessage).
+                containsExactlyInAnyOrder(
+                        "Word.interpretations.allUnique",
+                        "Word.examples.allUnique",
+                        "Word.translations.allUnique",
+                        "Word.transcriptions.allUnique");
+    }
+
 
     private UUID toUUID(int number) {
         return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
