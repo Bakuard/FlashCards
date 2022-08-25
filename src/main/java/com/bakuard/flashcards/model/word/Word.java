@@ -73,7 +73,8 @@ public class Word implements Entity<Word> {
     public Word(UUID userId,
                 String value,
                 String note,
-                ImmutableList<Integer> intervals) {
+                int smallestInterval,
+                LocalDate today) {
         this.userId = userId;
         this.value = value;
         this.note = note;
@@ -81,7 +82,7 @@ public class Word implements Entity<Word> {
         transcriptions = new ArrayList<>();
         translations = new ArrayList<>();
         examples = new ArrayList<>();
-        repeatData = new RepeatData(intervals.get(0), LocalDate.now());
+        repeatData = new RepeatData(smallestInterval, today);
     }
 
     @Override
@@ -128,6 +129,16 @@ public class Word implements Entity<Word> {
     @Override
     public void generateIdIfAbsent() {
         if(id == null) id = UUID.randomUUID();
+    }
+
+    public Word setValue(String value) {
+        this.value = value;
+        return this;
+    }
+
+    public Word setNote(String note) {
+        this.note = note;
+        return this;
     }
 
     public Word addInterpretation(WordInterpretation interpretation) {

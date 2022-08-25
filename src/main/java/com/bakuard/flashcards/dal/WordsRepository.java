@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-@Transactional
 public interface WordsRepository extends PagingAndSortingRepository<Word, UUID> {
 
     @Query("select * from words where user_id = :userId and word_id = :wordId;")

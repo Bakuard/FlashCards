@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Transactional
 public class IntervalService {
 
     private IntervalsRepository intervalsRepository;
@@ -13,7 +14,6 @@ public class IntervalService {
         this.intervalsRepository = intervalsRepository;
     }
 
-    @Transactional
     public void add(UUID userId, int interval) {
         if(interval <= 0) {
             throw new IllegalArgumentException("interval can't be less then 1. Actual: " + interval);

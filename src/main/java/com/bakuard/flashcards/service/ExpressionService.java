@@ -3,6 +3,7 @@ package com.bakuard.flashcards.service;
 import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.validation.UnknownEntityException;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,9 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Transactional
 public class ExpressionService {
 
     private ExpressionRepository expressionRepository;
@@ -28,11 +31,23 @@ public class ExpressionService {
         this.clock = clock;
     }
 
-    public void save(Expression expression) {
-        expressionRepository.save(expression);
+    public Expression newExpression(UUID userId,
+                                    String value,
+                                    String note) {
+        List<Integer> intervals = intervalsRepository.findAll(userId);
+        return new Expression(userId, value, note, intervals.get(0), LocalDate.now(clock));
     }
 
-    public void deleteById(UUID userId, UUID expressionId) {
+    public Expression save(Expression expression) {
+        return expressionRepository.save(expression);
+    }
+
+    public void tryDeleteById(UUID userId, UUID expressionId) {
+        if(!existsById(userId, expressionId)) {
+            throw new UnknownEntityException(
+                    "Unknown expression with id=" + expressionId + " userId=" + userId,
+                    "Expression.unknown");
+        }
         expressionRepository.deleteById(userId, expressionId);
     }
 
@@ -70,12 +85,10 @@ public class ExpressionService {
         );
     }
 
-    @Transactional
     public void repeat(Expression expression, boolean isRemember) {
         expression.repeat(isRemember, LocalDate.now(clock), intervalsRepository.findAll(expression.getUserId()));
     }
 
-    @Transactional
     public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
         ImmutableList<Integer> intervals = intervalsRepository.findAll(userId);
         if(!intervals.contains(oldInterval)) {
@@ -86,6 +99,10 @@ public class ExpressionService {
             expressionRepository.replaceRepeatInterval(userId, oldInterval, newInterval);
             intervalsRepository.removeUnused(userId);
         }
+    }
+
+    public boolean isHotRepeat(Expression expression) {
+        return expression.isHotRepeat(intervalsRepository.findAll(expression.getUserId()));
     }
 
 }

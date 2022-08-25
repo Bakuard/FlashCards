@@ -71,14 +71,15 @@ public class Expression implements Entity<Expression> {
     public Expression(UUID userId,
                       String value,
                       String note,
-                      ImmutableList<Integer> intervals) {
+                      int smallestInterval,
+                      LocalDate today) {
         this.userId = userId;
         this.value = value;
         this.note = note;
         interpretations = new ArrayList<>();
         translations = new ArrayList<>();
         examples = new ArrayList<>();
-        repeatData = new RepeatData(intervals.get(0), LocalDate.now());
+        repeatData = new RepeatData(smallestInterval, today);
     }
 
     @Override

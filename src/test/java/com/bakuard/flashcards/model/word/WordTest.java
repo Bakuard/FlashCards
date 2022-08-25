@@ -2,7 +2,6 @@ package com.bakuard.flashcards.model.word;
 
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.model.RepeatData;
-import com.google.common.collect.ImmutableList;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -120,6 +119,39 @@ class WordTest {
         Set<ConstraintViolation<Word>> actual = validator.validate(word);
 
         Assertions.assertThat(actual.isEmpty()).isTrue();
+    }
+
+    @Test
+    @DisplayName("""
+            create word:
+             transcriptions list is null,
+             translates list is null,
+             examples list is null,
+             interpretations list is null
+             => fail validate
+            """)
+    public void createWord3() {
+        Word word = new Word(
+                toUUID(1),
+                toUUID(1),
+                "value",
+                "note",
+                null,
+                null,
+                null,
+                null,
+                new RepeatData(1, LocalDate.now())
+        );
+
+        Set<ConstraintViolation<Word>> actual = validator.validate(word);
+
+        Assertions.assertThat(actual).
+                extracting(ConstraintViolation::getMessage).
+                containsExactlyInAnyOrder(
+                        "Word.interpretations.allUnique",
+                        "Word.examples.allUnique",
+                        "Word.translations.allUnique",
+                        "Word.transcriptions.allUnique");
     }
 
 

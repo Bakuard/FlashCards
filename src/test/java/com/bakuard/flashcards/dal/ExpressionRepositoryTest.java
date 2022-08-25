@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +26,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Supplier;
 
 @SpringBootTest(classes = SpringConfig.class)
 @AutoConfigureDataJdbc
@@ -42,15 +44,8 @@ class ExpressionRepositoryTest {
 
     @BeforeEach
     public void beforeEach() {
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(def);
-        try {
-            JdbcTestUtils.deleteFromTables(jdbcTemplate, "expressions", "words", "intervals", "users");
-            transactionManager.commit(status);
-        } catch(RuntimeException e) {
-            transactionManager.rollback(status);
-            throw e;
-        }
+        commit(() -> JdbcTestUtils.deleteFromTables(jdbcTemplate,
+                "expressions", "words", "intervals", "users"));
     }
 
 
@@ -62,12 +57,12 @@ class ExpressionRepositoryTest {
             """)
     public void save() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
 
-        expressionRepository.save(expected);
+        commit(() -> expressionRepository.save(expected));
 
         Expression actual = expressionRepository.findById(expected.getId()).orElseThrow();
         org.assertj.core.api.Assertions.
@@ -84,11 +79,11 @@ class ExpressionRepositoryTest {
             """)
     public void findById1() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        expressionRepository.save(expected);
+        commit(() -> expressionRepository.save(expected));
 
         Optional<Expression> actual = expressionRepository.findById(user.getId(), toUUID(1));
 
@@ -103,11 +98,11 @@ class ExpressionRepositoryTest {
             """)
     public void findById2() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        expressionRepository.save(expected);
+        commit(() -> expressionRepository.save(expected));
 
         Expression actual = expressionRepository.findById(user.getId(), expected.getId()).orElseThrow();
 
@@ -125,11 +120,11 @@ class ExpressionRepositoryTest {
             """)
     public void findByValue1() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        expressionRepository.save(expected);
+        commit(() -> expressionRepository.save(expected));
 
         Optional<Expression> actual = expressionRepository.findByValue(user.getId(), "Unknown value");
 
@@ -144,11 +139,11 @@ class ExpressionRepositoryTest {
             """)
     public void findByValue2() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        expressionRepository.save(expected);
+        commit(() -> expressionRepository.save(expected));
 
         Expression actual = expressionRepository.findByValue(user.getId(), "value 1").orElseThrow();
 
@@ -166,13 +161,13 @@ class ExpressionRepositoryTest {
             """)
     public void deleteById1() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        expressionRepository.save(expected);
+        commit(() -> expressionRepository.save(expected));
 
-        expressionRepository.deleteById(user.getId(), toUUID(1));
+        commit(() -> expressionRepository.deleteById(user.getId(), toUUID(1)));
 
         Assertions.assertTrue(expressionRepository.existsById(expected.getId()));
     }
@@ -185,13 +180,13 @@ class ExpressionRepositoryTest {
             """)
     public void deleteById2() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        expressionRepository.save(expected);
+        commit(() -> expressionRepository.save(expected));
 
-        expressionRepository.deleteById(user.getId(), expected.getId());
+        commit(() -> expressionRepository.deleteById(user.getId(), expected.getId()));
 
         Assertions.assertFalse(expressionRepository.existsById(expected.getId()));
     }
@@ -204,11 +199,11 @@ class ExpressionRepositoryTest {
             """)
     public void existsById1() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        expressionRepository.save(expected);
+        commit(() -> expressionRepository.save(expected));
 
         Assertions.assertFalse(expressionRepository.existsById(user.getId(), toUUID(1)));
     }
@@ -221,11 +216,11 @@ class ExpressionRepositoryTest {
             """)
     public void existsById2() {
         User user = user(1);
-        userRepository.save(user);
+        commit(() -> userRepository.save(user));
         Expression expected = expression(
                 user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
         );
-        expressionRepository.save(expected);
+        commit(() -> expressionRepository.save(expected));
 
         Assertions.assertTrue(expressionRepository.existsById(user.getId(), expected.getId()));
     }
@@ -237,11 +232,13 @@ class ExpressionRepositoryTest {
              => return 0
             """)
     public void count1() {
-        User user1 = userRepository.save(user(1));
-        User user2 = userRepository.save(user(2));
-        User user3 = userRepository.save(user(3));
-        expressionRepository.save(expression(user1.getId(), "value1", "note1", defaultRepeatData()));
-        expressionRepository.save(expression(user2.getId(), "value2", "note2", defaultRepeatData()));
+        User user1 = commit(() -> userRepository.save(user(1)));
+        User user2 = commit(() -> userRepository.save(user(2)));
+        User user3 = commit(() -> userRepository.save(user(3)));
+        commit(() -> {
+            expressionRepository.save(expression(user1.getId(), "value1", "note1", defaultRepeatData()));
+            expressionRepository.save(expression(user2.getId(), "value2", "note2", defaultRepeatData()));
+        });
 
         long actual = expressionRepository.count(user3.getId());
 
@@ -255,13 +252,15 @@ class ExpressionRepositoryTest {
              => return correct result
             """)
     public void count2() {
-        User user1 = userRepository.save(user(1));
-        User user2 = userRepository.save(user(2));
-        User user3 = userRepository.save(user(3));
-        expressionRepository.save(expression(user1.getId(), "value1", "note1", defaultRepeatData()));
-        expressionRepository.save(expression(user2.getId(), "value2", "note2", defaultRepeatData()));
-        expressionRepository.save(expression(user3.getId(), "value3", "note3", defaultRepeatData()));
-        expressionRepository.save(expression(user3.getId(), "value4", "note4", defaultRepeatData()));
+        User user1 = commit(() -> userRepository.save(user(1)));
+        User user2 = commit(() -> userRepository.save(user(2)));
+        User user3 = commit(() -> userRepository.save(user(3)));
+        commit(() -> {
+            expressionRepository.save(expression(user1.getId(), "value1", "note1", defaultRepeatData()));
+            expressionRepository.save(expression(user2.getId(), "value2", "note2", defaultRepeatData()));
+            expressionRepository.save(expression(user3.getId(), "value3", "note3", defaultRepeatData()));
+            expressionRepository.save(expression(user3.getId(), "value4", "note4", defaultRepeatData()));
+        });
 
         long actual = expressionRepository.count(user3.getId());
 
@@ -275,15 +274,17 @@ class ExpressionRepositoryTest {
              => return correct result
             """)
     public void countForRepeat1() {
-        User user1 = userRepository.save(user(1));
-        expressionRepository.save(expression(user1.getId(), "value1", "note1",
-                new RepeatData(1, LocalDate.of(2022, 7, 7))));
-        expressionRepository.save(expression(user1.getId(), "value2", "note2",
-                new RepeatData(3, LocalDate.of(2022, 7, 7))));
-        expressionRepository.save(expression(user1.getId(), "value3", "note3",
-                new RepeatData(1, LocalDate.of(2022, 7, 10))));
-        expressionRepository.save(expression(user1.getId(), "value4", "note4",
-                new RepeatData(10, LocalDate.of(2022, 7, 7))));
+        User user1 = commit(() -> userRepository.save(user(1)));
+        commit(() -> {
+            expressionRepository.save(expression(user1.getId(), "value1", "note1",
+                    new RepeatData(1, LocalDate.of(2022, 7, 7))));
+            expressionRepository.save(expression(user1.getId(), "value2", "note2",
+                    new RepeatData(3, LocalDate.of(2022, 7, 7))));
+            expressionRepository.save(expression(user1.getId(), "value3", "note3",
+                    new RepeatData(1, LocalDate.of(2022, 7, 10))));
+            expressionRepository.save(expression(user1.getId(), "value4", "note4",
+                    new RepeatData(10, LocalDate.of(2022, 7, 7))));
+        });
 
         long actual = expressionRepository.countForRepeat(
                 user1.getId(), LocalDate.of(2022, 7, 10)
@@ -299,7 +300,7 @@ class ExpressionRepositoryTest {
              => return 0
             """)
     public void countForRepeat2() {
-        User user1 = userRepository.save(user(1));
+        User user1 = commit(() -> userRepository.save(user(1)));
 
         long actual = expressionRepository.countForRepeat(
                 user1.getId(), LocalDate.of(2022, 7, 10)
@@ -315,15 +316,17 @@ class ExpressionRepositoryTest {
              => return 0
             """)
     public void countForRepeat3() {
-        User user1 = userRepository.save(user(1));
-        expressionRepository.save(expression(user1.getId(), "value1", "note1",
-                new RepeatData(1, LocalDate.of(2022, 7, 7))));
-        expressionRepository.save(expression(user1.getId(), "value2", "note2",
-                new RepeatData(3, LocalDate.of(2022, 7, 7))));
-        expressionRepository.save(expression(user1.getId(), "value3", "note3",
-                new RepeatData(1, LocalDate.of(2022, 7, 10))));
-        expressionRepository.save(expression(user1.getId(), "value4", "note4",
-                new RepeatData(10, LocalDate.of(2022, 7, 7))));
+        User user1 = commit(() -> userRepository.save(user(1)));
+        commit(() -> {
+            expressionRepository.save(expression(user1.getId(), "value1", "note1",
+                    new RepeatData(1, LocalDate.of(2022, 7, 7))));
+            expressionRepository.save(expression(user1.getId(), "value2", "note2",
+                    new RepeatData(3, LocalDate.of(2022, 7, 7))));
+            expressionRepository.save(expression(user1.getId(), "value3", "note3",
+                    new RepeatData(1, LocalDate.of(2022, 7, 10))));
+            expressionRepository.save(expression(user1.getId(), "value4", "note4",
+                    new RepeatData(10, LocalDate.of(2022, 7, 7))));
+        });
 
         long actual = expressionRepository.countForRepeat(
                 user1.getId(), LocalDate.of(2022, 7, 7)
@@ -339,7 +342,7 @@ class ExpressionRepositoryTest {
              => return empty page
             """)
     public void findByUserId1() {
-        User user1 = userRepository.save(user(1));
+        User user1 = commit(() -> userRepository.save(user(1)));
 
         Page<Expression> actual = expressionRepository.findByUserId(user1.getId(), PageRequest.of(0, 20));
 
@@ -354,9 +357,9 @@ class ExpressionRepositoryTest {
              => return correct result
             """)
     public void findByUserId2() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Expression> expressions = expressions(user.getId());
-        expressions.forEach(expression -> expressionRepository.save(expression));
+        commit(() -> expressions.forEach(expression -> expressionRepository.save(expression)));
 
         Page<Expression> actual = expressionRepository.findByUserId(user.getId(),
                 PageRequest.of(0, 20, Sort.by("value").descending()));
@@ -375,9 +378,9 @@ class ExpressionRepositoryTest {
              => return correct result
             """)
     public void findByUserId3() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Expression> expressions = expressions(user.getId());
-        expressions.forEach(expression -> expressionRepository.save(expression));
+        commit(() -> expressions.forEach(expression -> expressionRepository.save(expression)));
 
         Page<Expression> actual = expressionRepository.findByUserId(user.getId(),
                 PageRequest.of(0, 20, Sort.by("repeat_interval", "value")));
@@ -396,7 +399,7 @@ class ExpressionRepositoryTest {
              => return empty page
             """)
     public void findAllForRepeat1() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
 
         List<Expression> actual = expressionRepository.findAllForRepeat(
                 user.getId(),
@@ -415,7 +418,7 @@ class ExpressionRepositoryTest {
              => return empty page
             """)
     public void findAllForRepeat2() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Expression> expressions = expressions(user.getId());
         expressions.forEach(expression -> expressionRepository.save(expression));
 
@@ -436,9 +439,9 @@ class ExpressionRepositoryTest {
              => return correct result
             """)
     public void findAllForRepeat3() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Expression> words = expressions(user.getId());
-        words.forEach(word -> expressionRepository.save(word));
+        commit(() -> words.forEach(word -> expressionRepository.save(word)));
 
         LocalDate repeatDate = LocalDate.of(2022, 7, 10);
         List<Expression> actual = expressionRepository.findAllForRepeat(
@@ -462,11 +465,11 @@ class ExpressionRepositoryTest {
              => do nothing
             """)
     public void replaceRepeatInterval1() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Expression> expected = expressions(user.getId());
-        expected.forEach(expression -> expressionRepository.save(expression));
+        commit(() -> expected.forEach(expression -> expressionRepository.save(expression)));
 
-        expressionRepository.replaceRepeatInterval(user.getId(), 5, 10);
+        commit(() -> expressionRepository.replaceRepeatInterval(user.getId(), 5, 10));
 
         List<Expression> actual = expressionRepository.findByUserId(user.getId(),
                         PageRequest.of(0, 20, Sort.by("value").ascending())).
@@ -488,11 +491,11 @@ class ExpressionRepositoryTest {
              => replace them to newInterval
             """)
     public void replaceRepeatInterval2() {
-        User user = userRepository.save(user(1));
+        User user = commit(() -> userRepository.save(user(1)));
         List<Expression> expected = expressions(user.getId());
-        expected.forEach(word -> expressionRepository.save(word));
+        commit(() -> expected.forEach(word -> expressionRepository.save(word)));
 
-        expressionRepository.replaceRepeatInterval(user.getId(), 1, 10);
+        commit(() -> expressionRepository.replaceRepeatInterval(user.getId(), 1, 10));
 
         List<Expression> actual = expressionRepository.findByUserId(user.getId(),
                         PageRequest.of(0, 20, Sort.by("value").ascending())).
@@ -574,6 +577,31 @@ class ExpressionRepositoryTest {
 
     private RepeatData defaultRepeatData() {
         return new RepeatData(1, LocalDate.of(2022, 7, 7));
+    }
+
+    private void commit(Executable executable) {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        try {
+            executable.execute();
+            transactionManager.commit(status);
+        } catch(Throwable e) {
+            transactionManager.rollback(status);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private <T> T commit(Supplier<T> supplier) {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(def);
+        try {
+            T result = supplier.get();
+            transactionManager.commit(status);
+            return result;
+        } catch(Throwable e) {
+            transactionManager.rollback(status);
+            throw new RuntimeException(e);
+        }
     }
 
 }

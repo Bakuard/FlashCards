@@ -110,6 +110,36 @@ class ExpressionTest {
         Assertions.assertThat(actual.isEmpty()).isTrue();
     }
 
+    @Test
+    @DisplayName("""
+            create expression:
+             translates list is null,
+             examples list is null,
+             interpretations list is null
+             => fail validate
+            """)
+    public void createExpression3() {
+        Expression expression = new Expression(
+                toUUID(1),
+                toUUID(1),
+                "value",
+                "note",
+                null,
+                null,
+                null,
+                new RepeatData(1, LocalDate.now())
+        );
+
+        Set<ConstraintViolation<Expression>> actual = validator.validate(expression);
+
+        Assertions.assertThat(actual).
+                extracting(ConstraintViolation::getMessage).
+                containsExactlyInAnyOrder(
+                        "Expression.interpretations.allUnique",
+                        "Expression.examples.allUnique",
+                        "Expression.translations.allUnique");
+    }
+
 
     private UUID toUUID(int number) {
         return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));

@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-@Transactional(readOnly = true)
 public interface UserRepository extends PagingAndSortingRepository<User, UUID> {
 
     @Query("select * from users where email = :email")
