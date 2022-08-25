@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/dictionary/words")
 public class DictionaryOfWordsController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DictionaryOfWordsController.class.getName());
+
 
     private WordService wordService;
     private DtoMapper dtoMapper;
@@ -60,7 +65,10 @@ public class DictionaryOfWordsController {
     )
     @PostMapping
     public ResponseEntity<WordResponse> add(@RequestBody WordAddRequest dto) {
-        Word word = dtoMapper.toWord(dto, queryContext.getAndClearUserId());
+        UUID userId = queryContext.getAndClearUserId();
+        logger.info("user {} add word '{}'", userId, dto.getValue());
+
+        Word word = dtoMapper.toWord(dto, userId);
         word = wordService.save(word);
         return ResponseEntity.ok(dtoMapper.toWordResponse(word));
     }
@@ -80,7 +88,10 @@ public class DictionaryOfWordsController {
     )
     @PutMapping
     public ResponseEntity<WordResponse> update(@RequestBody WordUpdateRequest dto) {
-        Word word = dtoMapper.toWord(dto, queryContext.getAndClearUserId());
+        UUID userId = queryContext.getAndClearUserId();
+        logger.info("user {} update word '{}'", userId, dto.getValue());
+
+        Word word = dtoMapper.toWord(dto, userId);
         word = wordService.save(word);
         return ResponseEntity.ok(dtoMapper.toWordResponse(word));
     }
@@ -118,6 +129,8 @@ public class DictionaryOfWordsController {
                     ))
             String sort) {
         UUID userId = queryContext.getAndClearUserId();
+        logger.info("user {} get words by page={}, size={}, sort={}", userId, page, size, sort);
+
         Pageable pageable = dtoMapper.toPageableForDictionaryWords(page, size, sort);
 
         Page<WordForDictionaryListResponse> result = dtoMapper.toWordsForDictionaryListResponse(
@@ -146,6 +159,8 @@ public class DictionaryOfWordsController {
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
         UUID userId = queryContext.getAndClearUserId();
+        logger.info("user {} get word by id={}", userId, id);
+
         Word word = wordService.tryFindById(userId, id);
         return ResponseEntity.ok(dtoMapper.toWordResponse(word));
     }
@@ -169,6 +184,8 @@ public class DictionaryOfWordsController {
             @Parameter(description = "Значение слова. Не может быть null.", required = true)
             String value) {
         UUID userId = queryContext.getAndClearUserId();
+        logger.info("user {} find word by value {}", userId, value);
+
         Word word = wordService.tryFindByValue(userId, value);
         return ResponseEntity.ok(dtoMapper.toWordResponse(word));
     }
@@ -192,6 +209,8 @@ public class DictionaryOfWordsController {
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
         UUID userId = queryContext.getAndClearUserId();
+        logger.info("user {} delete word by id={}", userId, id);
+
         wordService.tryDeleteById(userId, id);
         return ResponseEntity.ok(messages.getMessage("dictionary.words.delete"));
     }
