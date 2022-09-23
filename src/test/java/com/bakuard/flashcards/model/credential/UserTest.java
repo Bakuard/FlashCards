@@ -1,10 +1,7 @@
 package com.bakuard.flashcards.model.credential;
 
 import com.bakuard.flashcards.config.SpringConfig;
-import com.bakuard.flashcards.model.credential.Credential;
-import com.bakuard.flashcards.model.credential.IncorrectCredentials;
-import com.bakuard.flashcards.model.credential.RawPassword;
-import com.bakuard.flashcards.model.credential.User;
+import com.bakuard.flashcards.validation.IncorrectCredentials;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

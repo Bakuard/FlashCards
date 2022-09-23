@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.model.credential;
+package com.bakuard.flashcards.validation;
 
 public class IncorrectCredentials extends RuntimeException {
 

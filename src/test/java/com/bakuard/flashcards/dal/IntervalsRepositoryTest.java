@@ -46,15 +46,8 @@ class IntervalsRepositoryTest {
 
     @BeforeEach
     public void beforeEach() {
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(def);
-        try {
-            JdbcTestUtils.deleteFromTables(jdbcTemplate, "expressions", "words", "intervals", "users");
-            transactionManager.commit(status);
-        } catch(RuntimeException e) {
-            transactionManager.rollback(status);
-            throw e;
-        }
+        commit(() -> JdbcTestUtils.deleteFromTables(jdbcTemplate,
+                "expressions", "words", "intervals", "users"));
     }
 
     @Test
