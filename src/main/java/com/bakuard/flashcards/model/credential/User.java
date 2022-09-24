@@ -1,6 +1,7 @@
 package com.bakuard.flashcards.model.credential;
 
 import com.bakuard.flashcards.model.Entity;
+import com.bakuard.flashcards.validation.IncorrectCredentials;
 import com.google.common.hash.Hashing;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
