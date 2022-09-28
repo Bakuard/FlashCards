@@ -2,15 +2,14 @@ package com.bakuard.flashcards.model.credential;
 
 import com.bakuard.flashcards.validation.Password;
 
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
-public class RawPassword {
+class RawPassword {
 
     @Password(message = "Password.format")
     private String password;
 
-    public RawPassword(String password) {
+    RawPassword(String password) {
         this.password = password;
     }
 

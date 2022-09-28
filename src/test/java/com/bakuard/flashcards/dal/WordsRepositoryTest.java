@@ -1,25 +1,28 @@
 package com.bakuard.flashcards.dal;
 
-import com.bakuard.flashcards.config.SpringConfig;
+import com.bakuard.flashcards.config.MutableClock;
+import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.credential.User;
 import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -28,9 +31,9 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Supplier;
 
-@SpringBootTest(classes = SpringConfig.class)
-@AutoConfigureDataJdbc
+@ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:application.properties")
+@Import(TestConfig.class)
 class WordsRepositoryTest {
 
     @Autowired
@@ -41,6 +44,10 @@ class WordsRepositoryTest {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private DataSourceTransactionManager transactionManager;
+    @Autowired
+    private ValidatorUtil validator;
+    @Autowired
+    private MutableClock clock;
 
     @BeforeEach
     public void beforeEach() {
@@ -49,6 +56,7 @@ class WordsRepositoryTest {
                         "words",
                         "intervals",
                         "users"));
+        clock.setDate(2022, 7, 7);
     }
 
     @Test
@@ -60,9 +68,7 @@ class WordsRepositoryTest {
     public void save() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Word expected = word(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
 
         commit(() -> wordsRepository.save(expected));
 
@@ -82,9 +88,7 @@ class WordsRepositoryTest {
     public void findById1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Word expected = word(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
         Optional<Word> actual = wordsRepository.findById(user.getId(), toUUID(1));
@@ -101,9 +105,7 @@ class WordsRepositoryTest {
     public void findById2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Word expected = word(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
         Word actual = wordsRepository.findById(user.getId(), expected.getId()).orElseThrow();
@@ -123,9 +125,7 @@ class WordsRepositoryTest {
     public void findByValue1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Word expected = word(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
         Optional<Word> actual = wordsRepository.findByValue(user.getId(), "Unknown value");
@@ -142,9 +142,7 @@ class WordsRepositoryTest {
     public void findByValue2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Word expected = word(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
         Word actual = wordsRepository.findByValue(user.getId(), "value 1").orElseThrow();
@@ -164,9 +162,7 @@ class WordsRepositoryTest {
     public void deleteById1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Word expected = word(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
         commit(() -> wordsRepository.deleteById(user.getId(), toUUID(1)));
@@ -183,9 +179,7 @@ class WordsRepositoryTest {
     public void deleteById2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Word expected = word(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
         commit(() -> wordsRepository.deleteById(user.getId(), expected.getId()));
@@ -202,9 +196,7 @@ class WordsRepositoryTest {
     public void existsById1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Word expected = word(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
         Assertions.assertFalse(wordsRepository.existsById(user.getId(), toUUID(1)));
@@ -219,9 +211,7 @@ class WordsRepositoryTest {
     public void existsById2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Word expected = word(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
         Assertions.assertTrue(wordsRepository.existsById(user.getId(), expected.getId()));
@@ -238,8 +228,8 @@ class WordsRepositoryTest {
         User user2 = commit(() -> userRepository.save(user(2)));
         User user3 = commit(() -> userRepository.save(user(3)));
         commit(() -> {
-            wordsRepository.save(word(user1.getId(), "value1", "note1", defaultRepeatData()));
-            wordsRepository.save(word(user2.getId(), "value2", "note2", defaultRepeatData()));
+            wordsRepository.save(word(user1.getId(), "value1", "note1", repeatData(1)));
+            wordsRepository.save(word(user2.getId(), "value2", "note2", repeatData(1)));
         });
 
         long actual = wordsRepository.count(user3.getId());
@@ -258,10 +248,10 @@ class WordsRepositoryTest {
         User user2 = commit(() -> userRepository.save(user(2)));
         User user3 = commit(() -> userRepository.save(user(3)));
         commit(() -> {
-            wordsRepository.save(word(user1.getId(), "value1", "note1", defaultRepeatData()));
-            wordsRepository.save(word(user2.getId(), "value2", "note2", defaultRepeatData()));
-            wordsRepository.save(word(user3.getId(), "value3", "note3", defaultRepeatData()));
-            wordsRepository.save(word(user3.getId(), "value4", "note4", defaultRepeatData()));
+            wordsRepository.save(word(user1.getId(), "value1", "note1", repeatData(1)));
+            wordsRepository.save(word(user2.getId(), "value2", "note2", repeatData(1)));
+            wordsRepository.save(word(user3.getId(), "value3", "note3", repeatData(1)));
+            wordsRepository.save(word(user3.getId(), "value4", "note4", repeatData(1)));
         });
 
         long actual = wordsRepository.count(user3.getId());
@@ -278,14 +268,22 @@ class WordsRepositoryTest {
     public void countForRepeat1() {
         User user1 = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            wordsRepository.save(word(user1.getId(), "value1", "note1",
-                    new RepeatData(1, LocalDate.of(2022, 7, 7))));
-            wordsRepository.save(word(user1.getId(), "value2", "note2",
-                    new RepeatData(3, LocalDate.of(2022, 7, 7))));
-            wordsRepository.save(word(user1.getId(), "value3", "note3",
-                    new RepeatData(1, LocalDate.of(2022, 7, 10))));
-            wordsRepository.save(word(user1.getId(), "value4", "note4",
-                    new RepeatData(10, LocalDate.of(2022, 7, 7))));
+            clock.setDate(2022, 7, 7);
+            wordsRepository.save(
+                    word(user1.getId(), "value1", "note1", repeatData(1))
+            );
+            clock.setDate(2022, 7, 7);
+            wordsRepository.save(
+                    word(user1.getId(), "value2", "note2", repeatData(3))
+            );
+            clock.setDate(2022, 7, 10);
+            wordsRepository.save(
+                    word(user1.getId(), "value3", "note3", repeatData(1))
+            );
+            clock.setDate(2022, 7, 7);
+            wordsRepository.save(
+                    word(user1.getId(), "value4", "note4", repeatData(10))
+            );
         });
 
         long actual = wordsRepository.countForRepeat(
@@ -320,14 +318,22 @@ class WordsRepositoryTest {
     public void countForRepeat3() {
         User user1 = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            wordsRepository.save(word(user1.getId(), "value1", "note1",
-                    new RepeatData(1, LocalDate.of(2022, 7, 7))));
-            wordsRepository.save(word(user1.getId(), "value2", "note2",
-                    new RepeatData(3, LocalDate.of(2022, 7, 7))));
-            wordsRepository.save(word(user1.getId(), "value3", "note3",
-                    new RepeatData(1, LocalDate.of(2022, 7, 10))));
-            wordsRepository.save(word(user1.getId(), "value4", "note4",
-                    new RepeatData(10, LocalDate.of(2022, 7, 7))));
+            clock.setDate(2022, 7, 7);
+            wordsRepository.save(
+                    word(user1.getId(), "value1", "note1", repeatData(1))
+            );
+            clock.setDate(2022, 7, 7);
+            wordsRepository.save(
+                    word(user1.getId(), "value2", "note2", repeatData(3))
+            );
+            clock.setDate(2022, 7, 10);
+            wordsRepository.save(
+                    word(user1.getId(), "value3", "note3", repeatData(1))
+            );
+            clock.setDate(2022, 7, 7);
+            wordsRepository.save(
+                    word(user1.getId(), "value4", "note4", repeatData(10))
+            );
         });
 
         long actual = wordsRepository.countForRepeat(
@@ -516,70 +522,88 @@ class WordsRepositoryTest {
     }
 
     private User user(int number) {
-        return new User(
-                null,
-                "password" + number,
-                "salt" + number,
-                "user" + number + "@gmail.com"
-        );
+        return User.newBuilder(validator).
+                setPassword("password" + number).
+                setEmail("me" + number + "@mail.com").
+                setOrGenerateSalt("salt" + number).
+                build();
     }
 
     private Word word(UUID userId,
                       String value,
                       String note,
                       RepeatData repeatData) {
-        return new Word(
-                null,
-                userId,
-                value,
-                note,
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
-                repeatData
-        );
+        return Word.newBuilder(validator).
+                setUserId(userId).
+                setValue(value).
+                setNote(note).
+                setRepeatData(repeatData).
+                build();
     }
 
     private List<Word> words(UUID userId) {
         ArrayList<Word> words = new ArrayList<>();
 
+        clock.setDate(2022, 7, 1);
         words.add(
-                word(userId, "wordA", "noteA",
-                        new RepeatData(1, LocalDate.of(2022, 7, 1))
-                )
+                Word.newBuilder(validator).
+                        setUserId(userId).
+                        setValue("wordA").
+                        setNote("noteA").
+                        setRepeatData(repeatData(1)).
+                        build()
         );
+        clock.setDate(2022, 7, 2);
         words.add(
-                word(userId, "wordB", "noteB",
-                        new RepeatData(1, LocalDate.of(2022, 7, 2))
-                )
+                Word.newBuilder(validator).
+                        setUserId(userId).
+                        setValue("wordB").
+                        setNote("noteB").
+                        setRepeatData(repeatData(1)).
+                        build()
         );
+        clock.setDate(2022, 7, 6);
         words.add(
-                word(userId, "wordC", "noteB",
-                        new RepeatData(3, LocalDate.of(2022, 7, 6))
-                )
+                Word.newBuilder(validator).
+                        setUserId(userId).
+                        setValue("wordC").
+                        setNote("noteB").
+                        setRepeatData(repeatData(3)).
+                        build()
         );
+        clock.setDate(2022, 7, 7);
         words.add(
-                word(userId, "wordD", "noteD",
-                        new RepeatData(3, LocalDate.of(2022, 7, 7))
-                )
+                Word.newBuilder(validator).
+                        setUserId(userId).
+                        setValue("wordD").
+                        setNote("noteD").
+                        setRepeatData(repeatData(3)).
+                        build()
         );
+        clock.setDate(2022, 7, 8);
         words.add(
-                word(userId, "wordE", "noteE",
-                        new RepeatData(3, LocalDate.of(2022, 7, 8))
-                )
+                Word.newBuilder(validator).
+                        setUserId(userId).
+                        setValue("wordE").
+                        setNote("noteE").
+                        setRepeatData(repeatData(3)).
+                        build()
         );
+        clock.setDate(2022, 7, 10);
         words.add(
-                word(userId, "wordF", "noteF",
-                        new RepeatData(1, LocalDate.of(2022, 7, 10))
-                )
+                Word.newBuilder(validator).
+                        setUserId(userId).
+                        setValue("wordF").
+                        setNote("noteF").
+                        setRepeatData(repeatData(1)).
+                        build()
         );
 
         return words;
     }
 
-    private RepeatData defaultRepeatData() {
-        return new RepeatData(1, LocalDate.of(2022, 7, 7));
+    private RepeatData repeatData(int interval) {
+        return new RepeatData(interval, LocalDate.now(clock));
     }
 
     private void commit(Executable executable) {

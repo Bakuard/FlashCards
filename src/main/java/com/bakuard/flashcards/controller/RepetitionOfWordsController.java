@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.controller;
 
-import com.bakuard.flashcards.config.security.QueryContext;
+import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.word.WordForRepetitionResponse;
@@ -25,15 +25,15 @@ public class RepetitionOfWordsController {
 
     private WordService wordService;
     private DtoMapper dtoMapper;
-    private QueryContext queryContext;
+    private RequestContext requestContext;
 
     @Autowired
     public RepetitionOfWordsController(WordService wordService,
                                        DtoMapper dtoMapper,
-                                       QueryContext queryContext) {
+                                       RequestContext requestContext) {
         this.wordService = wordService;
         this.dtoMapper = dtoMapper;
-        this.queryContext = queryContext;
+        this.requestContext = requestContext;
     }
 
     @Operation(summary = "Возвращает часть выборки слов доступных для повторения в текущую дату",

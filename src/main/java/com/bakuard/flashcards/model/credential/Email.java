@@ -3,13 +3,13 @@ package com.bakuard.flashcards.model.credential;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
-public class Email {
+class Email {
 
     @NotNull(message = "Email.notNull")
     @javax.validation.constraints.Email(message = "Email.format")
     private String email;
 
-    public Email(String email) {
+    Email(String email) {
         this.email = email;
     }
 

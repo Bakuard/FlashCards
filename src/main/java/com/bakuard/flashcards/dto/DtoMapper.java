@@ -10,6 +10,7 @@ import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.model.word.*;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.WordService;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,15 +26,18 @@ public class DtoMapper {
     private ExpressionService expressionService;
     private ConfigData configData;
     private SortRules sortRules;
+    private ValidatorUtil validator;
 
     public DtoMapper(WordService wordService,
                      ExpressionService expressionService,
                      ConfigData configData,
-                     SortRules sortRules) {
+                     SortRules sortRules,
+                     ValidatorUtil validator) {
         this.wordService = wordService;
         this.expressionService = expressionService;
         this.configData = configData;
         this.sortRules = sortRules;
+        this.validator = validator;
     }
 
     public WordResponse toWordResponse(Word word) {
@@ -79,24 +83,43 @@ public class DtoMapper {
     }
 
     public Word toWord(WordAddRequest dto, UUID userID) {
-        Word word = wordService.newWord(userID, dto.getValue(), dto.getNote());
-        toStream(dto.getTranscriptions()).forEach(t -> word.addTranscription(toWordTranscription(t)));
-        toStream(dto.getInterpretations()).forEach(i -> word.addInterpretation(toWordInterpretation(i)));
-        toStream(dto.getTranslates()).forEach(t -> word.addTranslation(toWordTranslation(t)));
-        toStream(dto.getExamples()).forEach(e -> word.addExample(toWordExample(e)));
-        return word;
+        return Word.newBuilder(validator).
+                setUserId(userID).
+                setValue(dto.getValue()).
+                setNote(dto.getNote()).
+                setTranscriptions(dto.getTranscriptions().stream().
+                        map(this::toWordTranscription).
+                        toList()).
+                setInterpretations(dto.getInterpretations().stream().
+                        map(this::toWordInterpretation).
+                        toList()).
+                setTranslations(dto.getTranslates().stream().
+                        map(this::toWordTranslation).
+                        toList()).
+                setExamples(dto.getExamples().stream().
+                        map(this::toWordExample).
+                        toList()).
+                setRepeatData(wordService.initialRepeatData(userID)).
+                build();
     }
 
     public Word toWord(WordUpdateRequest dto, UUID userID) {
-        Word word = wordService.tryFindById(userID, dto.getWordId());
-
-        word.setValue(dto.getValue()).setNote(dto.getNote());
-        toStream(dto.getTranscriptions()).forEach(t -> word.addTranscription(toWordTranscription(t)));
-        toStream(dto.getInterpretations()).forEach(i -> word.addInterpretation(toWordInterpretation(i)));
-        toStream(dto.getTranslates()).forEach(t -> word.addTranslation(toWordTranslation(t)));
-        toStream(dto.getExamples()).forEach(e -> word.addExample(toWordExample(e)));
-
-        return word;
+        return wordService.tryFindById(userID, dto.getWordId()).builder().
+                setValue(dto.getValue()).
+                setNote(dto.getNote()).
+                setTranscriptions(dto.getTranscriptions().stream().
+                        map(this::toWordTranscription).
+                        toList()).
+                setInterpretations(dto.getInterpretations().stream().
+                        map(this::toWordInterpretation).
+                        toList()).
+                setTranslations(dto.getTranslates().stream().
+                        map(this::toWordTranslation).
+                        toList()).
+                setExamples(dto.getExamples().stream().
+                        map(this::toWordExample).
+                        toList()).
+                build();
     }
 
     public Word toWord(WordRepeatRequest dto, UUID userID) {
@@ -153,11 +176,6 @@ public class DtoMapper {
 
     private WordExample toWordExample(ExampleRequestResponse dto) {
         return new WordExample(dto.getOrigin(), dto.getTranslate(), dto.getNote());
-    }
-
-
-    private <T> Stream<T> toStream(Collection<T> collection) {
-        return collection == null ? Stream.empty() : collection.stream();
     }
 
 }

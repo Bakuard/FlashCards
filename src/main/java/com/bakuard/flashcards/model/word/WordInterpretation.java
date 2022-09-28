@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.model.word;
 
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Table;
 
 import javax.validation.constraints.NotBlank;
@@ -11,6 +12,7 @@ public class WordInterpretation {
     @NotBlank(message = "WordInterpretation.value.notBlank")
     private String value;
 
+    @PersistenceCreator
     public WordInterpretation(String value) {
         this.value = value;
     }

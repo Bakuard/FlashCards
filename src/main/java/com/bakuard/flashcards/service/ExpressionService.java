@@ -31,13 +31,6 @@ public class ExpressionService {
         this.clock = clock;
     }
 
-    public Expression newExpression(UUID userId,
-                                    String value,
-                                    String note) {
-        List<Integer> intervals = intervalsRepository.findAll(userId);
-        return new Expression(userId, value, note, intervals.get(0), LocalDate.now(clock));
-    }
-
     public Expression save(Expression expression) {
         return expressionRepository.save(expression);
     }
@@ -102,7 +95,8 @@ public class ExpressionService {
     }
 
     public boolean isHotRepeat(Expression expression) {
-        return expression.isHotRepeat(intervalsRepository.findAll(expression.getUserId()));
+        List<Integer> intervals = intervalsRepository.findAll(expression.getUserId());
+        return expression.isHotRepeat(intervals.get(0));
     }
 
 }
