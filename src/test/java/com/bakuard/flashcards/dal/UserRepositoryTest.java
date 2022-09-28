@@ -1,18 +1,22 @@
 package com.bakuard.flashcards.dal;
 
-import com.bakuard.flashcards.config.SpringConfig;
+import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.credential.User;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -20,9 +24,9 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import java.util.Optional;
 import java.util.UUID;
 
-@SpringBootTest(classes = SpringConfig.class)
-@AutoConfigureDataJdbc
+@ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:application.properties")
+@Import(TestConfig.class)
 class UserRepositoryTest {
 
     @Autowired
@@ -31,6 +35,8 @@ class UserRepositoryTest {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private DataSourceTransactionManager transactionManager;
+    @Autowired
+    private ValidatorUtil validator;
 
     @BeforeEach
     public void beforeEach() {
@@ -89,12 +95,11 @@ class UserRepositoryTest {
     }
 
     private User user(int number) {
-        return new User(
-                null,
-                "password" + number,
-                "salt" + number,
-                toEmail(number)
-        );
+        return User.newBuilder(validator).
+                setPassword("password" + number).
+                setEmail(toEmail(number)).
+                setOrGenerateSalt("salt" + number).
+                build();
     }
 
     private void commit(Executable executable) {

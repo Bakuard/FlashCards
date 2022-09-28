@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.controller;
 
-import com.bakuard.flashcards.config.security.QueryContext;
+import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
@@ -36,17 +36,17 @@ public class DictionaryOfWordsController {
 
     private WordService wordService;
     private DtoMapper dtoMapper;
-    private QueryContext queryContext;
+    private RequestContext requestContext;
     private Messages messages;
 
     @Autowired
     public DictionaryOfWordsController(WordService wordService,
                                        DtoMapper dtoMapper,
-                                       QueryContext queryContext,
+                                       RequestContext requestContext,
                                        Messages messages) {
         this.wordService = wordService;
         this.dtoMapper = dtoMapper;
-        this.queryContext = queryContext;
+        this.requestContext = requestContext;
         this.messages = messages;
     }
 
@@ -65,7 +65,7 @@ public class DictionaryOfWordsController {
     )
     @PostMapping
     public ResponseEntity<WordResponse> add(@RequestBody WordAddRequest dto) {
-        UUID userId = queryContext.getAndClearUserId();
+        UUID userId = requestContext.getCurrentJwsBody();
         logger.info("user {} add word '{}'", userId, dto.getValue());
 
         Word word = dtoMapper.toWord(dto, userId);
@@ -88,7 +88,7 @@ public class DictionaryOfWordsController {
     )
     @PutMapping
     public ResponseEntity<WordResponse> update(@RequestBody WordUpdateRequest dto) {
-        UUID userId = queryContext.getAndClearUserId();
+        UUID userId = requestContext.getCurrentJwsBody();
         logger.info("user {} update word '{}'", userId, dto.getValue());
 
         Word word = dtoMapper.toWord(dto, userId);
@@ -128,7 +128,7 @@ public class DictionaryOfWordsController {
                             }
                     ))
             String sort) {
-        UUID userId = queryContext.getAndClearUserId();
+        UUID userId = requestContext.getCurrentJwsBody();
         logger.info("user {} get words by page={}, size={}, sort={}", userId, page, size, sort);
 
         Pageable pageable = dtoMapper.toPageableForDictionaryWords(page, size, sort);
@@ -158,7 +158,7 @@ public class DictionaryOfWordsController {
             @PathVariable
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = queryContext.getAndClearUserId();
+        UUID userId = requestContext.getCurrentJwsBody();
         logger.info("user {} get word by id={}", userId, id);
 
         Word word = wordService.tryFindById(userId, id);
@@ -183,7 +183,7 @@ public class DictionaryOfWordsController {
             @PathVariable
             @Parameter(description = "Значение слова. Не может быть null.", required = true)
             String value) {
-        UUID userId = queryContext.getAndClearUserId();
+        UUID userId = requestContext.getCurrentJwsBody();
         logger.info("user {} find word by value {}", userId, value);
 
         Word word = wordService.tryFindByValue(userId, value);
@@ -208,7 +208,7 @@ public class DictionaryOfWordsController {
             @PathVariable
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = queryContext.getAndClearUserId();
+        UUID userId = requestContext.getCurrentJwsBody();
         logger.info("user {} delete word by id={}", userId, id);
 
         wordService.tryDeleteById(userId, id);

@@ -1,25 +1,28 @@
 package com.bakuard.flashcards.dal;
 
-import com.bakuard.flashcards.config.SpringConfig;
-import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.config.MutableClock;
+import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.credential.User;
+import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -28,9 +31,9 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Supplier;
 
-@SpringBootTest(classes = SpringConfig.class)
-@AutoConfigureDataJdbc
+@ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:application.properties")
+@Import(TestConfig.class)
 class ExpressionRepositoryTest {
 
     @Autowired
@@ -41,13 +44,20 @@ class ExpressionRepositoryTest {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private DataSourceTransactionManager transactionManager;
+    @Autowired
+    private ValidatorUtil validator;
+    @Autowired
+    private MutableClock clock;
 
     @BeforeEach
     public void beforeEach() {
         commit(() -> JdbcTestUtils.deleteFromTables(jdbcTemplate,
-                "expressions", "words", "intervals", "users"));
+                "expressions",
+                "words",
+                "intervals",
+                "users"));
+        clock.setDate(2022, 7, 7);
     }
-
 
     @Test
     @DisplayName("""
@@ -58,9 +68,7 @@ class ExpressionRepositoryTest {
     public void save() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
 
         commit(() -> expressionRepository.save(expected));
 
@@ -80,9 +88,7 @@ class ExpressionRepositoryTest {
     public void findById1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
         Optional<Expression> actual = expressionRepository.findById(user.getId(), toUUID(1));
@@ -99,9 +105,7 @@ class ExpressionRepositoryTest {
     public void findById2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
         Expression actual = expressionRepository.findById(user.getId(), expected.getId()).orElseThrow();
@@ -121,9 +125,7 @@ class ExpressionRepositoryTest {
     public void findByValue1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
         Optional<Expression> actual = expressionRepository.findByValue(user.getId(), "Unknown value");
@@ -140,9 +142,7 @@ class ExpressionRepositoryTest {
     public void findByValue2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
         Expression actual = expressionRepository.findByValue(user.getId(), "value 1").orElseThrow();
@@ -162,9 +162,7 @@ class ExpressionRepositoryTest {
     public void deleteById1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
         commit(() -> expressionRepository.deleteById(user.getId(), toUUID(1)));
@@ -181,9 +179,7 @@ class ExpressionRepositoryTest {
     public void deleteById2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
         commit(() -> expressionRepository.deleteById(user.getId(), expected.getId()));
@@ -200,9 +196,7 @@ class ExpressionRepositoryTest {
     public void existsById1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
         Assertions.assertFalse(expressionRepository.existsById(user.getId(), toUUID(1)));
@@ -217,9 +211,7 @@ class ExpressionRepositoryTest {
     public void existsById2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(
-                user.getId(), "value 1", "note 1", new RepeatData(1, LocalDate.now())
-        );
+        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
         Assertions.assertTrue(expressionRepository.existsById(user.getId(), expected.getId()));
@@ -236,8 +228,8 @@ class ExpressionRepositoryTest {
         User user2 = commit(() -> userRepository.save(user(2)));
         User user3 = commit(() -> userRepository.save(user(3)));
         commit(() -> {
-            expressionRepository.save(expression(user1.getId(), "value1", "note1", defaultRepeatData()));
-            expressionRepository.save(expression(user2.getId(), "value2", "note2", defaultRepeatData()));
+            expressionRepository.save(expression(user1.getId(), "value1", "note1", repeatData(1)));
+            expressionRepository.save(expression(user2.getId(), "value2", "note2", repeatData(1)));
         });
 
         long actual = expressionRepository.count(user3.getId());
@@ -256,10 +248,10 @@ class ExpressionRepositoryTest {
         User user2 = commit(() -> userRepository.save(user(2)));
         User user3 = commit(() -> userRepository.save(user(3)));
         commit(() -> {
-            expressionRepository.save(expression(user1.getId(), "value1", "note1", defaultRepeatData()));
-            expressionRepository.save(expression(user2.getId(), "value2", "note2", defaultRepeatData()));
-            expressionRepository.save(expression(user3.getId(), "value3", "note3", defaultRepeatData()));
-            expressionRepository.save(expression(user3.getId(), "value4", "note4", defaultRepeatData()));
+            expressionRepository.save(expression(user1.getId(), "value1", "note1", repeatData(1)));
+            expressionRepository.save(expression(user2.getId(), "value2", "note2", repeatData(1)));
+            expressionRepository.save(expression(user3.getId(), "value3", "note3", repeatData(1)));
+            expressionRepository.save(expression(user3.getId(), "value4", "note4", repeatData(1)));
         });
 
         long actual = expressionRepository.count(user3.getId());
@@ -276,14 +268,22 @@ class ExpressionRepositoryTest {
     public void countForRepeat1() {
         User user1 = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            expressionRepository.save(expression(user1.getId(), "value1", "note1",
-                    new RepeatData(1, LocalDate.of(2022, 7, 7))));
-            expressionRepository.save(expression(user1.getId(), "value2", "note2",
-                    new RepeatData(3, LocalDate.of(2022, 7, 7))));
-            expressionRepository.save(expression(user1.getId(), "value3", "note3",
-                    new RepeatData(1, LocalDate.of(2022, 7, 10))));
-            expressionRepository.save(expression(user1.getId(), "value4", "note4",
-                    new RepeatData(10, LocalDate.of(2022, 7, 7))));
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value1", "note1", repeatData(1))
+            );
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value2", "note2", repeatData(3))
+            );
+            clock.setDate(2022, 7, 10);
+            expressionRepository.save(
+                    expression(user1.getId(), "value3", "note3", repeatData(1))
+            );
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value4", "note4", repeatData(10))
+            );
         });
 
         long actual = expressionRepository.countForRepeat(
@@ -318,14 +318,22 @@ class ExpressionRepositoryTest {
     public void countForRepeat3() {
         User user1 = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            expressionRepository.save(expression(user1.getId(), "value1", "note1",
-                    new RepeatData(1, LocalDate.of(2022, 7, 7))));
-            expressionRepository.save(expression(user1.getId(), "value2", "note2",
-                    new RepeatData(3, LocalDate.of(2022, 7, 7))));
-            expressionRepository.save(expression(user1.getId(), "value3", "note3",
-                    new RepeatData(1, LocalDate.of(2022, 7, 10))));
-            expressionRepository.save(expression(user1.getId(), "value4", "note4",
-                    new RepeatData(10, LocalDate.of(2022, 7, 7))));
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value1", "note1", repeatData(1))
+            );
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value2", "note2", repeatData(3))
+            );
+            clock.setDate(2022, 7, 10);
+            expressionRepository.save(
+                    expression(user1.getId(), "value3", "note3", repeatData(1))
+            );
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value4", "note4", repeatData(10))
+            );
         });
 
         long actual = expressionRepository.countForRepeat(
@@ -440,8 +448,8 @@ class ExpressionRepositoryTest {
             """)
     public void findAllForRepeat3() {
         User user = commit(() -> userRepository.save(user(1)));
-        List<Expression> words = expressions(user.getId());
-        commit(() -> words.forEach(word -> expressionRepository.save(word)));
+        List<Expression> expressions = expressions(user.getId());
+        commit(() -> expressions.forEach(word -> expressionRepository.save(word)));
 
         LocalDate repeatDate = LocalDate.of(2022, 7, 10);
         List<Expression> actual = expressionRepository.findAllForRepeat(
@@ -450,7 +458,7 @@ class ExpressionRepositoryTest {
                 2, 0
         );
 
-        List<Expression> expected = words.stream().
+        List<Expression> expected = expressions.stream().
                 sorted(Comparator.comparing((Expression e) -> e.getRepeatData().nextDateOfRepeat())).
                 filter(e -> e.getRepeatData().nextDateOfRepeat().compareTo(repeatDate) <= 0).
                 limit(2).
@@ -526,57 +534,47 @@ class ExpressionRepositoryTest {
                                   String value,
                                   String note,
                                   RepeatData repeatData) {
-        return new Expression(
-                null,
-                userId,
-                value,
-                note,
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(),
-                repeatData
-        );
+        return Expression.newBuilder(validator).
+                setUserId(userId).
+                setValue(value).
+                setNote(note).
+                setRepeatData(repeatData).
+                build();
     }
 
     private List<Expression> expressions(UUID userId) {
         ArrayList<Expression> expressions = new ArrayList<>();
 
+        clock.setDate(2022, 7, 1);
         expressions.add(
-                expression(userId, "expressionA", "noteA",
-                        new RepeatData(1, LocalDate.of(2022, 7, 1))
-                )
+                expression(userId, "expressionA", "noteA", repeatData(1))
         );
+        clock.setDate(2022, 7, 2);
         expressions.add(
-                expression(userId, "expressionB", "noteB",
-                        new RepeatData(1, LocalDate.of(2022, 7, 2))
-                )
+                expression(userId, "expressionB", "noteB", repeatData(1))
         );
+        clock.setDate(2022, 7, 6);
         expressions.add(
-                expression(userId, "expressionC", "noteB",
-                        new RepeatData(3, LocalDate.of(2022, 7, 6))
-                )
+                expression(userId, "expressionC", "noteB", repeatData(3))
         );
+        clock.setDate(2022, 7, 7);
         expressions.add(
-                expression(userId, "expressionD", "noteD",
-                        new RepeatData(3, LocalDate.of(2022, 7, 7))
-                )
+                expression(userId, "expressionD", "noteD", repeatData(3))
         );
+        clock.setDate(2022, 7, 8);
         expressions.add(
-                expression(userId, "expressionE", "noteE",
-                        new RepeatData(3, LocalDate.of(2022, 7, 8))
-                )
+                expression(userId, "expressionE", "noteE", repeatData(3))
         );
+        clock.setDate(2022, 7, 10);
         expressions.add(
-                expression(userId, "expressionF", "noteF",
-                        new RepeatData(1, LocalDate.of(2022, 7, 10))
-                )
+                expression(userId, "expressionF", "noteF", repeatData(1))
         );
 
         return expressions;
     }
 
-    private RepeatData defaultRepeatData() {
-        return new RepeatData(1, LocalDate.of(2022, 7, 7));
+    private RepeatData repeatData(int interval) {
+        return new RepeatData(interval, LocalDate.now(clock));
     }
 
     private void commit(Executable executable) {

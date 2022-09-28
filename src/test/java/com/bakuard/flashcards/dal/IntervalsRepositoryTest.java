@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.dal;
 
-import com.bakuard.flashcards.config.SpringConfig;
+import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
@@ -10,13 +10,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -26,9 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@SpringBootTest(classes = SpringConfig.class)
-@AutoConfigureDataJdbc
+@ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:application.properties")
+@Import(TestConfig.class)
 class IntervalsRepositoryTest {
 
     @Autowired

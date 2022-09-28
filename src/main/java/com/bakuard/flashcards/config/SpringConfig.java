@@ -1,7 +1,7 @@
 package com.bakuard.flashcards.config;
 
-import com.bakuard.flashcards.config.security.QueryContext;
-import com.bakuard.flashcards.config.security.QueryContextImpl;
+import com.bakuard.flashcards.config.security.RequestContext;
+import com.bakuard.flashcards.config.security.RequestContextImpl;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.controller.message.MessagesImpl;
 import com.bakuard.flashcards.dal.ExpressionRepository;
@@ -13,6 +13,7 @@ import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.WordService;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -21,12 +22,12 @@ import io.swagger.v3.oas.models.info.Info;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
+import org.springframework.data.relational.core.mapping.event.AfterConvertEvent;
 import org.springframework.data.relational.core.mapping.event.BeforeConvertEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -37,6 +38,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import javax.sql.DataSource;
+import javax.validation.Validator;
 import java.time.Clock;
 
 @SpringBootApplication(
@@ -88,7 +90,12 @@ public class SpringConfig implements WebMvcConfigurer {
 
         @Bean
         public Clock clock() {
-             return Clock.systemUTC();
+                return Clock.systemUTC();
+        }
+
+        @Bean
+        public ValidatorUtil validatorUtil(Validator validator) {
+                return new ValidatorUtil(validator);
         }
 
         @Bean
@@ -128,19 +135,31 @@ public class SpringConfig implements WebMvcConfigurer {
         public DtoMapper dtoMapper(WordService wordService,
                                    ExpressionService expressionService,
                                    ConfigData configData,
-                                   SortRules sortRules) {
-                return new DtoMapper(wordService, expressionService, configData, sortRules);
+                                   SortRules sortRules,
+                                   ValidatorUtil validator) {
+                return new DtoMapper(wordService, expressionService, configData, sortRules, validator);
         }
 
         @Bean
-        public QueryContext queryContext() {
-                return new QueryContextImpl();
+        public RequestContext queryContext() {
+                return new RequestContextImpl();
         }
 
         @Bean
-        public ApplicationListener<BeforeConvertEvent<?>> idGenerator() {
+        public ApplicationListener<BeforeConvertEvent<?>> entityCreator(final ValidatorUtil validator) {
                 return event -> {
-                       if(event.getEntity() instanceof Entity<?> entity) entity.generateIdIfAbsent();
+                       if(event.getEntity() instanceof Entity<?> entity) {
+                               entity.generateIdIfAbsent();
+                       }
+                };
+        }
+
+        @Bean
+        public ApplicationListener<AfterConvertEvent<?>> afterLoad(final ValidatorUtil validator) {
+                return event -> {
+                        if(event.getEntity() instanceof Entity<?> entity) {
+                                entity.setValidator(validator);
+                        }
                 };
         }
 

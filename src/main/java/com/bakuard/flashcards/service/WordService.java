@@ -2,6 +2,7 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
+import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.validation.UnknownEntityException;
 import com.google.common.collect.ImmutableList;
@@ -31,11 +32,9 @@ public class WordService {
         this.clock = clock;
     }
 
-    public Word newWord(UUID userId,
-                        String value,
-                        String note) {
+    public RepeatData initialRepeatData(UUID userId) {
         List<Integer> intervals = intervalsRepository.findAll(userId);
-        return new Word(userId, value, note, intervals.get(0), LocalDate.now(clock));
+        return new RepeatData(intervals.get(0), LocalDate.now(clock));
     }
 
     public Word save(Word word) {
@@ -122,7 +121,8 @@ public class WordService {
     }
 
     public boolean isHotRepeat(Word word) {
-        return word.isHotRepeat(intervalsRepository.findAll(word.getUserId()));
+        List<Integer> intervals = intervalsRepository.findAll(word.getUserId());
+        return word.isHotRepeat(intervals.get(0));
     }
 
 }
