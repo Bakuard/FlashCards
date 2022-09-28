@@ -2,6 +2,7 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
+import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.validation.UnknownEntityException;
 import com.google.common.collect.ImmutableList;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.rmi.server.UID;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
@@ -29,6 +31,11 @@ public class ExpressionService {
         this.expressionRepository = expressionRepository;
         this.intervalsRepository = intervalsRepository;
         this.clock = clock;
+    }
+
+    public RepeatData initialRepeatData(UUID userId) {
+        List<Integer> intervals = intervalsRepository.findAll(userId);
+        return new RepeatData(intervals.get(0), LocalDate.now(clock));
     }
 
     public Expression save(Expression expression) {
@@ -54,6 +61,26 @@ public class ExpressionService {
 
     public Optional<Expression> findByValue(UUID userId, String value) {
         return expressionRepository.findByValue(userId, value);
+    }
+
+    public Expression tryFindById(UUID userId, UUID expressionId) {
+        return findById(userId, expressionId).
+                orElseThrow(
+                        () -> new UnknownEntityException(
+                                "Unknown expression with id=" + expressionId + " userId=" + userId,
+                                "Expression.unknownId"
+                        )
+                );
+    }
+
+    public Expression tryFindByValue(UUID userId, String value) {
+        return findByValue(userId, value).
+                orElseThrow(
+                        () -> new UnknownEntityException(
+                                "Unknown expression with value=" + value + " userId=" + userId,
+                                "Expression.unknownValue"
+                        )
+                );
     }
 
     public long count(UUID userId) {

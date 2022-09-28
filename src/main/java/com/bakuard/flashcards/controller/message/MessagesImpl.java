@@ -13,7 +13,7 @@ public class MessagesImpl implements Messages {
 
     @Override
     public String getMessage(String key) {
-        return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
+        return messageSource.getMessage(key, null, key, LocaleContextHolder.getLocale());
     }
 
 }
