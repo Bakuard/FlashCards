@@ -35,17 +35,17 @@ public class DictionaryOfWordsController {
 
 
     private WordService wordService;
-    private DtoMapper dtoMapper;
+    private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
 
     @Autowired
     public DictionaryOfWordsController(WordService wordService,
-                                       DtoMapper dtoMapper,
+                                       DtoMapper mapper,
                                        RequestContext requestContext,
                                        Messages messages) {
         this.wordService = wordService;
-        this.dtoMapper = dtoMapper;
+        this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
     }
@@ -68,9 +68,9 @@ public class DictionaryOfWordsController {
         UUID userId = requestContext.getCurrentJwsBody();
         logger.info("user {} add word '{}'", userId, dto.getValue());
 
-        Word word = dtoMapper.toWord(dto, userId);
+        Word word = mapper.toWord(dto, userId);
         word = wordService.save(word);
-        return ResponseEntity.ok(dtoMapper.toWordResponse(word));
+        return ResponseEntity.ok(mapper.toWordResponse(word));
     }
 
     @Operation(summary = "Обновляет слово в словаре пользователя",
@@ -89,11 +89,11 @@ public class DictionaryOfWordsController {
     @PutMapping
     public ResponseEntity<WordResponse> update(@RequestBody WordUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} update word '{}'", userId, dto.getValue());
+        logger.info("user {} update word {}", userId, dto.getWordId());
 
-        Word word = dtoMapper.toWord(dto, userId);
+        Word word = mapper.toWord(dto, userId);
         word = wordService.save(word);
-        return ResponseEntity.ok(dtoMapper.toWordResponse(word));
+        return ResponseEntity.ok(mapper.toWordResponse(word));
     }
 
     @Operation(summary = "Возвращает часть выборки слов из словаря пользователя",
@@ -131,9 +131,9 @@ public class DictionaryOfWordsController {
         UUID userId = requestContext.getCurrentJwsBody();
         logger.info("user {} get words by page={}, size={}, sort={}", userId, page, size, sort);
 
-        Pageable pageable = dtoMapper.toPageableForDictionaryWords(page, size, sort);
+        Pageable pageable = mapper.toPageableForDictionaryWords(page, size, sort);
 
-        Page<WordForDictionaryListResponse> result = dtoMapper.toWordsForDictionaryListResponse(
+        Page<WordForDictionaryListResponse> result = mapper.toWordsForDictionaryListResponse(
                 wordService.findByUserId(userId, pageable)
         );
 
@@ -162,7 +162,7 @@ public class DictionaryOfWordsController {
         logger.info("user {} get word by id={}", userId, id);
 
         Word word = wordService.tryFindById(userId, id);
-        return ResponseEntity.ok(dtoMapper.toWordResponse(word));
+        return ResponseEntity.ok(mapper.toWordResponse(word));
     }
 
     @Operation(summary = "Возвращает слово из словаря пользователя по его значению",
@@ -184,10 +184,10 @@ public class DictionaryOfWordsController {
             @Parameter(description = "Значение слова. Не может быть null.", required = true)
             String value) {
         UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} find word by value {}", userId, value);
+        logger.info("user {} find word by value '{}'", userId, value);
 
         Word word = wordService.tryFindByValue(userId, value);
-        return ResponseEntity.ok(dtoMapper.toWordResponse(word));
+        return ResponseEntity.ok(mapper.toWordResponse(word));
     }
 
     @Operation(summary = "Удаляет слово из словаря пользователя пользователя",
