@@ -3,11 +3,11 @@ package com.bakuard.flashcards.controller;
 import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
-import com.bakuard.flashcards.dto.word.WordForRepetitionResponse;
-import com.bakuard.flashcards.dto.word.WordRepeatRequest;
-import com.bakuard.flashcards.dto.word.WordResponse;
-import com.bakuard.flashcards.model.word.Word;
-import com.bakuard.flashcards.service.WordService;
+import com.bakuard.flashcards.dto.expression.ExpressionForRepetitionResponse;
+import com.bakuard.flashcards.dto.expression.ExpressionRepeatRequest;
+import com.bakuard.flashcards.dto.expression.ExpressionResponse;
+import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.service.ExpressionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,28 +24,28 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-@Tag(name = "Повторение слов пользователя")
+@Tag(name = "Повторение устойчевых выражений пользователя")
 @RestController
 @RequestMapping("/repetition/words")
-public class RepetitionOfWordsController {
+public class RepetitionOfExpressionsController {
 
-    private static final Logger logger = LoggerFactory.getLogger(RepetitionOfWordsController.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RepetitionOfExpressionsController.class.getName());
 
 
-    private WordService wordService;
+    private ExpressionService expressionService;
     private DtoMapper mapper;
     private RequestContext requestContext;
 
     @Autowired
-    public RepetitionOfWordsController(WordService wordService,
-                                       DtoMapper mapper,
-                                       RequestContext requestContext) {
-        this.wordService = wordService;
+    public RepetitionOfExpressionsController(ExpressionService expressionService,
+                                             DtoMapper mapper,
+                                             RequestContext requestContext) {
+        this.expressionService = expressionService;
         this.mapper = mapper;
         this.requestContext = requestContext;
     }
 
-    @Operation(summary = "Возвращает часть выборки слов доступных для повторения в текущую дату",
+    @Operation(summary = "Возвращает часть выборки устойчевых выражений доступных для повторения в текущую дату",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -59,7 +59,7 @@ public class RepetitionOfWordsController {
             }
     )
     @GetMapping
-    public ResponseEntity<Page<WordForRepetitionResponse>> findAllBy(
+    public ResponseEntity<Page<ExpressionForRepetitionResponse>> findAllBy(
             @RequestParam("page")
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
@@ -67,15 +67,15 @@ public class RepetitionOfWordsController {
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
             int size) {
         UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} find all words for repeat by page={}, size={}", userId, page, size);
+        logger.info("user {} find all expressions for repeat by page={}, size={}", userId, page, size);
 
-        Pageable pageable = mapper.toPageableForDictionaryWords(page, size, "value.asc");
-        Page<Word> result = wordService.findAllForRepeat(userId, pageable);
+        Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, "value.asc");
+        Page<Expression> result = expressionService.findAllForRepeat(userId, pageable);
 
-        return ResponseEntity.ok(mapper.toWordsForRepetitionResponse(result));
+        return ResponseEntity.ok(mapper.toExpressionForRepetitionResponse(result));
     }
 
-    @Operation(summary = "Отмечает - помнит ли пользователь слово или нет.",
+    @Operation(summary = "Отмечает - помнит ли пользователь устойчевое выражение или нет.",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -89,13 +89,13 @@ public class RepetitionOfWordsController {
             }
     )
     @PutMapping
-    public ResponseEntity<WordResponse> repeat(@RequestBody WordRepeatRequest dto) {
+    public ResponseEntity<ExpressionResponse> repeat(@RequestBody ExpressionRepeatRequest dto) {
         UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} repeat word {}. remember is {}", userId, dto.getWordId(), dto.isRemember());
+        logger.info("user {} repeat expression {}. remember is {}", userId, dto.getExpressionId(), dto.isRemember());
 
-        Word word = wordService.repeat(userId, dto.getWordId(), dto.isRemember());
+        Expression expression = expressionService.repeat(userId, dto.getExpressionId(), dto.isRemember());
 
-        return ResponseEntity.ok(mapper.toWordResponse(word));
+        return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
 }
