@@ -127,10 +127,6 @@ public class DtoMapper {
                 build();
     }
 
-    public Word toWord(WordRepeatRequest dto, UUID userId) {
-        return wordService.tryFindById(userId, dto.getWordId());
-    }
-
     public Pageable toPageableForDictionaryWords(int page, int size, String sort) {
         size = Math.min(configData.maxPageSize(), size);
         size = Math.max(configData.minPageSize(), size);
@@ -214,10 +210,6 @@ public class DtoMapper {
                         map(this::toExpressionExample).
                         toList()).
                 build();
-    }
-
-    public Expression toExpression(ExpressionRepeatRequest dto, UUID userId) {
-        return expressionService.tryFindById(dto.getExpressionId(), userId);
     }
 
     public Pageable toPageableForDictionaryExpressions(int page, int size, String sort) {

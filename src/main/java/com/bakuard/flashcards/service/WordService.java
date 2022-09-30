@@ -104,8 +104,10 @@ public class WordService {
         );
     }
 
-    public void repeat(Word word, boolean isRemember) {
+    public Word repeat(UUID userId, UUID wordId, boolean isRemember) {
+        Word word = tryFindById(userId, wordId);
         word.repeat(isRemember, LocalDate.now(clock), intervalsRepository.findAll(word.getUserId()));
+        return word;
     }
 
     public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {

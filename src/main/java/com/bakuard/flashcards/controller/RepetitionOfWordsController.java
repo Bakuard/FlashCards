@@ -6,6 +6,7 @@ import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.word.WordForRepetitionResponse;
 import com.bakuard.flashcards.dto.word.WordRepeatRequest;
 import com.bakuard.flashcards.dto.word.WordResponse;
+import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.service.WordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,26 +14,34 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @Tag(name = "Повторение слов пользователя")
 @RestController
 @RequestMapping("/repetition/words")
 public class RepetitionOfWordsController {
 
+    private static final Logger logger = LoggerFactory.getLogger(RepetitionOfWordsController.class.getName());
+
+
     private WordService wordService;
-    private DtoMapper dtoMapper;
+    private DtoMapper mapper;
     private RequestContext requestContext;
 
     @Autowired
     public RepetitionOfWordsController(WordService wordService,
-                                       DtoMapper dtoMapper,
+                                       DtoMapper mapper,
                                        RequestContext requestContext) {
         this.wordService = wordService;
-        this.dtoMapper = dtoMapper;
+        this.mapper = mapper;
         this.requestContext = requestContext;
     }
 
@@ -57,7 +66,13 @@ public class RepetitionOfWordsController {
             @RequestParam(value = "size", required = false)
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
             int size) {
-        return ResponseEntity.ok(null);
+        UUID userId = requestContext.getCurrentJwsBody();
+        logger.info("user {} find all words for repeat by page={}, size={}", userId, page, size);
+
+        Pageable pageable = mapper.toPageableForDictionaryWords(page, size, "value.asc");
+        Page<Word> result = wordService.findAllForRepeat(userId, pageable);
+
+        return ResponseEntity.ok(mapper.toWordsForRepetitionResponse(result));
     }
 
     @Operation(summary = "Отмечает - помнит ли пользователь слово или нет.",
@@ -75,7 +90,12 @@ public class RepetitionOfWordsController {
     )
     @PutMapping
     public ResponseEntity<WordResponse> repeat(@RequestBody WordRepeatRequest dto) {
-        return ResponseEntity.ok(null);
+        UUID userId = requestContext.getCurrentJwsBody();
+        logger.info("user {} repeat word {}", userId, dto.getWordId());
+
+        Word word = wordService.repeat(userId, dto.getWordId(), dto.isRemember());
+
+        return ResponseEntity.ok(mapper.toWordResponse(word));
     }
 
 }
