@@ -104,8 +104,10 @@ public class ExpressionService {
         );
     }
 
-    public void repeat(Expression expression, boolean isRemember) {
+    public Expression repeat(UUID userId, UUID expressionId, boolean isRemember) {
+        Expression expression = tryFindById(userId, expressionId);
         expression.repeat(isRemember, LocalDate.now(clock), intervalsRepository.findAll(expression.getUserId()));
+        return expression;
     }
 
     public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
