@@ -10,7 +10,7 @@ public class WordRepeatRequest {
 
     @Schema(description = """
             Уникальный идентификатор слова. <br/>
-            Не должен быть null.
+            Огрничения: не должен быть null.
             """)
     private UUID wordId;
     @Schema(description = """

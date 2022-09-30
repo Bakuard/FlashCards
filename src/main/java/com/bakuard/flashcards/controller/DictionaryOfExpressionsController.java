@@ -4,12 +4,12 @@ import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
-import com.bakuard.flashcards.dto.word.WordAddRequest;
-import com.bakuard.flashcards.dto.word.WordForDictionaryListResponse;
-import com.bakuard.flashcards.dto.word.WordResponse;
-import com.bakuard.flashcards.dto.word.WordUpdateRequest;
-import com.bakuard.flashcards.model.word.Word;
-import com.bakuard.flashcards.service.WordService;
+import com.bakuard.flashcards.dto.expression.ExpressionAddRequest;
+import com.bakuard.flashcards.dto.expression.ExpressionForDictionaryListResponse;
+import com.bakuard.flashcards.dto.expression.ExpressionResponse;
+import com.bakuard.flashcards.dto.expression.ExpressionUpdateRequest;
+import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.service.ExpressionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,31 +26,31 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-@Tag(name = "Словарь слов пользователя")
+@Tag(name = "Словарь устойчевых выражений пользователя")
 @RestController
-@RequestMapping("/dictionary/words")
-public class DictionaryOfWordsController {
+@RequestMapping("/dictionary/expressions")
+public class DictionaryOfExpressionsController {
 
-    private static final Logger logger = LoggerFactory.getLogger(DictionaryOfWordsController.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(DictionaryOfExpressionsController.class.getName());
 
 
-    private WordService wordService;
+    private ExpressionService expressionService;
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
 
     @Autowired
-    public DictionaryOfWordsController(WordService wordService,
-                                       DtoMapper mapper,
-                                       RequestContext requestContext,
-                                       Messages messages) {
-        this.wordService = wordService;
+    public DictionaryOfExpressionsController(ExpressionService expressionService,
+                                             DtoMapper mapper,
+                                             RequestContext requestContext,
+                                             Messages messages) {
+        this.expressionService = expressionService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
     }
 
-    @Operation(summary = "Добавляет новое слово в словарь пользователя",
+    @Operation(summary = "Добавляет новое устойчевое выражение в словарь пользователя",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -61,19 +61,18 @@ public class DictionaryOfWordsController {
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+            })
     @PostMapping
-    public ResponseEntity<WordResponse> add(@RequestBody WordAddRequest dto) {
+    public ResponseEntity<ExpressionResponse> add(@RequestBody ExpressionAddRequest dto) {
         UUID userId = requestContext.getCurrentJwsBody();
         logger.info("user {} add word '{}'", userId, dto.getValue());
 
-        Word word = mapper.toWord(dto, userId);
-        word = wordService.save(word);
-        return ResponseEntity.ok(mapper.toWordResponse(word));
+        Expression expression = mapper.toExpression(dto, userId);
+        expression = expressionService.save(expression);
+        return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
-    @Operation(summary = "Обновляет слово в словаре пользователя",
+    @Operation(summary = "Обновляет устойчевое выражение в словаре пользователя",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -87,16 +86,16 @@ public class DictionaryOfWordsController {
             }
     )
     @PutMapping
-    public ResponseEntity<WordResponse> update(@RequestBody WordUpdateRequest dto) {
+    public ResponseEntity<ExpressionResponse> update(@RequestBody ExpressionUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} update word {}", userId, dto.getWordId());
+        logger.info("user {} update word {}", userId, dto.getExpressionId());
 
-        Word word = mapper.toWord(dto, userId);
-        word = wordService.save(word);
-        return ResponseEntity.ok(mapper.toWordResponse(word));
+        Expression expression = mapper.toExpression(dto, userId);
+        expression = expressionService.save(expression);
+        return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
-    @Operation(summary = "Возвращает часть выборки слов из словаря пользователя",
+    @Operation(summary = "Возвращает часть выборки устойчевых выражений из словаря пользователя",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -110,14 +109,14 @@ public class DictionaryOfWordsController {
             }
     )
     @GetMapping
-    public ResponseEntity<Page<WordForDictionaryListResponse>> findAllBy(
-            @RequestParam("page")
+    public ResponseEntity<Page<ExpressionForDictionaryListResponse>> findAllBy(
+            @RequestParam
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
-            @RequestParam(value = "size", required = false)
+            @RequestBody(required = false)
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
             int size,
-            @RequestParam(value = "sort", required = false)
+            @RequestParam(required = false)
             @Parameter(description = "Порядок сортировки.",
                     schema = @Schema(
                             defaultValue = "value.asc (Сортировка по значению в порядке возрастания).",
@@ -129,18 +128,17 @@ public class DictionaryOfWordsController {
                     ))
             String sort) {
         UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} get words by page={}, size={}, sort={}", userId, page, size, sort);
+        logger.info("user {} get expressions by page={}, size={}, sort={}", page, size, sort);
 
-        Pageable pageable = mapper.toPageableForDictionaryWords(page, size, sort);
-
-        Page<WordForDictionaryListResponse> result = mapper.toWordsForDictionaryListResponse(
-                wordService.findByUserId(userId, pageable)
+        Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, sort);
+        Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionForDictionaryListResponse(
+                expressionService.findByUserId(userId, pageable)
         );
 
         return ResponseEntity.ok(result);
     }
 
-    @Operation(summary = "Возвращает слово из словаря пользователя по его идентификатору",
+    @Operation(summary = "Возвращает устойчевое выражение из словаря пользователя по его идентификатору",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -154,18 +152,18 @@ public class DictionaryOfWordsController {
             }
     )
     @GetMapping("/{id}")
-    public ResponseEntity<WordResponse> findById(
+    public ResponseEntity<ExpressionResponse> findById(
             @PathVariable
-            @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
+            @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
             UUID id) {
         UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} get word by id={}", userId, id);
+        logger.info("user {} get expression by id={}", userId, id);
 
-        Word word = wordService.tryFindById(userId, id);
-        return ResponseEntity.ok(mapper.toWordResponse(word));
+        Expression expression = expressionService.tryFindById(userId, id);
+        return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
-    @Operation(summary = "Возвращает слово из словаря пользователя по его значению",
+    @Operation(summary = "Возвращает устойчевое выражение из словаря пользователя по его значению",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -179,18 +177,18 @@ public class DictionaryOfWordsController {
             }
     )
     @GetMapping("/value/{value}")
-    public ResponseEntity<WordResponse> findByValue(
+    public ResponseEntity<ExpressionResponse> findByValue(
             @PathVariable
-            @Parameter(description = "Значение слова. Не может быть null.", required = true)
+            @Parameter(description = "Значение устойчевого выражения. Не может быть null.", required = true)
             String value) {
         UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} find word by value '{}'", userId, value);
+        logger.info("user {} get expression by value '{}'", userId, value);
 
-        Word word = wordService.tryFindByValue(userId, value);
-        return ResponseEntity.ok(mapper.toWordResponse(word));
+        Expression expression = expressionService.tryFindByValue(userId, value);
+        return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
-    @Operation(summary = "Удаляет слово из словаря пользователя пользователя",
+    @Operation(summary = "Удаляет устойчевое выражение из словаря пользователя пользователя",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -206,13 +204,13 @@ public class DictionaryOfWordsController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(
             @PathVariable
-            @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
+            @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
             UUID id) {
         UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} delete word by id={}", userId, id);
+        logger.info("user {} delete expression by id={}", userId, id);
 
-        wordService.tryDeleteById(userId, id);
-        return ResponseEntity.ok(messages.getMessage("dictionary.words.delete"));
+        expressionService.tryDeleteById(userId, id);
+        return ResponseEntity.ok(messages.getMessage("dictionary.expressions.delete"));
     }
 
 }
