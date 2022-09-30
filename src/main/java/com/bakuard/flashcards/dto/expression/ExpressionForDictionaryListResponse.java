@@ -1,13 +1,24 @@
 package com.bakuard.flashcards.dto.expression;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Данные устойчевого выражения для списка устойчевых выражений в словаре.")
 public class ExpressionForDictionaryListResponse {
 
+    @Schema(description = "Уникальный идентификатор устойчевого выражения.")
     private UUID expressionId;
+    @Schema(description = "Уникальный идентификатор пользователя, к словарю которого относится это устойчевое выражение.")
     private UUID userId;
+    @Schema(description = "Значение устойчевого выражения.")
     private String value;
+    @Schema(description = """
+            Указывает - помнит ли пользователь это устойчевое выражение или нет. <br/>
+            Значение true указывает, что пользователь не смог вспомнить это устойчевое выражение во время повторения,
+            или оно является новым.
+            """)
     private boolean isHotRepeat;
 
     public ExpressionForDictionaryListResponse() {

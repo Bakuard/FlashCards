@@ -3,18 +3,53 @@ package com.bakuard.flashcards.dto.expression;
 import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
 import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
 import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Данные обновляемого устойчевого выражения.")
 public class ExpressionUpdateRequest {
 
+    @Schema(description = """
+            Уникальный идентификатор устойчевого выражения. <br/>
+            Ограничения: не должен быть null.
+            """)
     private UUID expressionId;
+    @Schema(description = """
+            Значение устойчевого выражения. <br/>
+            Должно представлять собой не пустую строку.
+            """)
     private String value;
+    @Schema(description = """
+            Примечание к устойчевого выражения. <br/>
+            Ограничения: не должно быть пустой строкой или должно быть null.
+            """)
     private String note;
+    @Schema(description = """
+            Список интерпретаций устойчевого выражения. <br/>
+            Ограничения: <br/>
+            1. Не должен содержать null <br/>
+            2. Не должен содержать дубликатов <br/>
+            Сам список может принимать значение null.
+            """)
     private List<InterpretationRequestResponse> interpretations;
+    @Schema(description = """
+            Список переводов устойчевого выражения. <br/>
+            Ограничения: <br/>
+            1. Не должен содержать null <br/>
+            2. Не должен содержать дубликатов <br/>
+            Сам список может принимать значение null.
+            """)
     private List<TranslateRequestResponse> translates;
+    @Schema(description = """
+            Список примеров устойчевого выражения. <br/>
+            Ограничения: <br/>
+            1. Не должен содержать null <br/>
+            2. Не должен содержать дубликатов <br/>
+            Сам список может принимать значение null.
+            """)
     private List<ExampleRequestResponse> examples;
 
     public ExpressionUpdateRequest() {

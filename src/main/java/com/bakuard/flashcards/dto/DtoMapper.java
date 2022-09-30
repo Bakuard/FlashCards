@@ -21,7 +21,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 public class DtoMapper {
 
@@ -90,16 +92,16 @@ public class DtoMapper {
                 setUserId(userId).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
-                setTranscriptions(dto.getTranscriptions().stream().
+                setTranscriptions(toStream(dto.getTranscriptions()).
                         map(this::toWordTranscription).
                         toList()).
-                setInterpretations(dto.getInterpretations().stream().
+                setInterpretations(toStream(dto.getInterpretations()).
                         map(this::toWordInterpretation).
                         toList()).
-                setTranslations(dto.getTranslates().stream().
+                setTranslations(toStream(dto.getTranslates()).
                         map(this::toWordTranslation).
                         toList()).
-                setExamples(dto.getExamples().stream().
+                setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
                         toList()).
                 setRepeatData(wordService.initialRepeatData(userId)).
@@ -110,16 +112,16 @@ public class DtoMapper {
         return wordService.tryFindById(userId, dto.getWordId()).builder().
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
-                setTranscriptions(dto.getTranscriptions().stream().
+                setTranscriptions(toStream(dto.getTranscriptions()).
                         map(this::toWordTranscription).
                         toList()).
-                setInterpretations(dto.getInterpretations().stream().
+                setInterpretations(toStream(dto.getInterpretations()).
                         map(this::toWordInterpretation).
                         toList()).
-                setTranslations(dto.getTranslates().stream().
+                setTranslations(toStream(dto.getTranslates()).
                         map(this::toWordTranslation).
                         toList()).
-                setExamples(dto.getExamples().stream().
+                setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
                         toList()).
                 build();
@@ -131,6 +133,7 @@ public class DtoMapper {
 
     public Pageable toPageableForDictionaryWords(int page, int size, String sort) {
         size = Math.min(configData.maxPageSize(), size);
+        size = Math.max(configData.minPageSize(), size);
 
         return PageRequest.of(
                 page,
@@ -184,13 +187,13 @@ public class DtoMapper {
                 setUserId(userId).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
-                setInterpretations(dto.getInterpretations().stream().
+                setInterpretations(toStream(dto.getInterpretations()).
                         map(this::toExpressionInterpretation).
                         toList()).
-                setTranslations(dto.getTranslates().stream().
+                setTranslations(toStream(dto.getTranslates()).
                         map(this::toExpressionTranslation).
                         toList()).
-                setExamples(dto.getExamples().stream().
+                setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
                         toList()).
                 setRepeatData(expressionService.initialRepeatData(userId)).
@@ -201,13 +204,13 @@ public class DtoMapper {
         return expressionService.tryFindById(dto.getExpressionId(), userId).builder().
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
-                setInterpretations(dto.getInterpretations().stream().
+                setInterpretations(toStream(dto.getInterpretations()).
                         map(this::toExpressionInterpretation).
                         toList()).
-                setTranslations(dto.getTranslates().stream().
+                setTranslations(toStream(dto.getTranslates()).
                         map(this::toExpressionTranslation).
                         toList()).
-                setExamples(dto.getExamples().stream().
+                setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
                         toList()).
                 build();
@@ -219,6 +222,7 @@ public class DtoMapper {
 
     public Pageable toPageableForDictionaryExpressions(int page, int size, String sort) {
         size = Math.min(configData.maxPageSize(), size);
+        size = Math.max(configData.minPageSize(), size);
 
         return PageRequest.of(
                 page,
@@ -299,6 +303,11 @@ public class DtoMapper {
 
     private ExpressionExample toExpressionExample(ExampleRequestResponse dto) {
         return new ExpressionExample(dto.getOrigin(), dto.getTranslate(), dto.getNote());
+    }
+
+
+    private <T> Stream<T> toStream(Collection<T> collection) {
+        return collection == null ? Stream.empty() : collection.stream();
     }
 
 }

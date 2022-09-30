@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 @ConstructorBinding
 @ConfigurationProperties("conf")
 public record ConfigData(int maxPageSize,
+                         int minPageSize,
                          String databaseName,
                          String databaseUser,
                          String databasePassword) {}

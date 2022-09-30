@@ -1,11 +1,21 @@
 package com.bakuard.flashcards.dto.expression;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Запрос на повторение устойчевого выражения.")
 public class ExpressionRepeatRequest {
 
+    @Schema(description = """
+            Уникальный идентификатор устойчевого выражения. <br/>
+            Огрничения: не должен быть null.
+            """)
     private UUID expressionId;
+    @Schema(description = """
+            Указывает - помнит ли пользователь данное устойчевое выражение или нет.
+            """)
     private boolean isRemember;
 
     public ExpressionRepeatRequest() {

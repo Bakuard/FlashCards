@@ -15,7 +15,7 @@ public class WordUpdateRequest {
 
     @Schema(description = """
             Уникальный идентификатор слова. <br/>
-            Не должен быть null.
+            Ограничения: не должен быть null.
             """)
     private UUID wordId;
     @Schema(description = """
@@ -25,27 +25,39 @@ public class WordUpdateRequest {
     private String value;
     @Schema(description = """
             Примечание к слову. <br/>
-            Должно представлять собой не пустую строку или иметь значение null.
+            Ограничения: не должно быть пустой строкой или должно быть null.
             """)
     private String note;
     @Schema(description = """
             Список транскрипций слова. <br/>
-            Список транскрипций слова не должен содержать дубликатов. Сам список может иметь значение null.
+            Ограничения: <br/>
+            1. Не должен содержать null <br/>
+            2. Не должен содержать дубликатов <br/>
+            Сам список может принимать значение null.
             """)
     private List<TranscriptionRequestResponse> transcriptions;
     @Schema(description = """
             Список интерпретаций слова. <br/>
-            Список интерпретаций слова не должен содержать дубликатов. Сам список может иметь значение null.
+            Ограничения: <br/>
+            1. Не должен содержать null <br/>
+            2. Не должен содержать дубликатов <br/>
+            Сам список может принимать значение null.
             """)
     private List<InterpretationRequestResponse> interpretations;
     @Schema(description = """
             Список переводов слова. <br/>
-            Список переводов слова не должен содержать дубликатов. Сам список может иметь значение null.
+            Ограничения: <br/>
+            1. Не должен содержать null <br/>
+            2. Не должен содержать дубликатов <br/>
+            Сам список может принимать значение null.
             """)
     private List<TranslateRequestResponse> translates;
     @Schema(description = """
             Список примеров слова. <br/>
-            Список примеров слова не должен содержать дубликатов. Сам список может иметь значение null.
+            Ограничения: <br/>
+            1. Не должен содержать null <br/>
+            2. Не должен содержать дубликатов <br/>
+            Сам список может принимать значение null.
             """)
     private List<ExampleRequestResponse> examples;
 

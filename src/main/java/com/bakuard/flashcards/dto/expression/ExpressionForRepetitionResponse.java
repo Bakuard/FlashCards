@@ -1,14 +1,21 @@
 package com.bakuard.flashcards.dto.expression;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Данные устойчевого выражения для списка повторяемых устойчевых выражений.")
 public class ExpressionForRepetitionResponse {
 
+    @Schema(description = "Уникальный идентификатор устойчевого выражения.")
     private UUID expressionId;
+    @Schema(description = "Уникальный идентификатор пользователя, к словарю которого относится это устойчевое выражение.")
     private UUID userId;
+    @Schema(description = "Значение устойчевого выражения.")
     private String value;
+    @Schema(description = "Список примеров устойчевого выражения.")
     private List<String> examples;
 
     public ExpressionForRepetitionResponse() {

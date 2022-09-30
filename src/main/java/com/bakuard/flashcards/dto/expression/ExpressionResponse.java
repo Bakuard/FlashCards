@@ -3,19 +3,28 @@ package com.bakuard.flashcards.dto.expression;
 import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
 import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
 import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Подробные данные об одном устойчевом выражении.")
 public class ExpressionResponse {
 
+    @Schema(description = "Уникальный идентификатор устойчевого выражения.")
     private UUID expressionId;
+    @Schema(description = "Уникальный идентификатор пользователя, к словарю которого относится это устойчевое выражение.")
     private UUID userId;
+    @Schema(description = "Значение устойчевого выражения.")
     private String value;
+    @Schema(description = "Примечание к устойчевому выражению.")
     private String note;
+    @Schema(description = "Список толкований устойчевого выражения.")
     private List<InterpretationRequestResponse> interpretations;
+    @Schema(description = "Список переводов устойчевого выражения.")
     private List<TranslateRequestResponse> translates;
+    @Schema(description = "Список примеров устойчевого выражения.")
     private List<ExampleRequestResponse> examples;
 
     public ExpressionResponse() {
