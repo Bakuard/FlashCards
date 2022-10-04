@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Table("expressions")
-public class Expression implements Entity<Expression> {
+public class Expression implements Entity {
 
     public static Builder newBuilder(ValidatorUtil validator) {
         return new Builder(validator);

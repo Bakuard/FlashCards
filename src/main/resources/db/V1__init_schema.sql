@@ -8,6 +8,14 @@ CREATE TABLE users (
     UNIQUE(salt)
 );
 
+CREATE TABLE roles (
+    user_id UUID NOT NULL,
+    name VARCHAR(64) NOT NULL,
+    index INT NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE(user_id, name)
+);
+
 CREATE TABLE intervals (
     user_id UUID NOT NULL,
     number_days INT NOT NULL,

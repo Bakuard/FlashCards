@@ -2,8 +2,9 @@ package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.TestConfig;
+import com.bakuard.flashcards.dal.auth.UserRepository;
 import com.bakuard.flashcards.model.RepeatData;
-import com.bakuard.flashcards.model.credential.User;
+import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.SoftAssertions;
@@ -522,12 +523,14 @@ class ExpressionRepositoryTest {
     }
 
     private User user(int number) {
-        return new User(
-                null,
-                "password" + number,
-                "salt" + number,
-                "user" + number + "@gmail.com"
-        );
+        return User.newBuilder(validator).
+                setPassword("password" + number).
+                setOrGenerateSalt("salt" + number).
+                setEmail("me" + number + "@mail.com").
+                addRole("role1").
+                addRole("role2").
+                addRole("role3").
+                build();
     }
 
     private Expression expression(UUID userId,

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Table("words")
-public class Word implements Entity<Word> {
+public class Word implements Entity {
 
     public static Builder newBuilder(ValidatorUtil validator) {
         return new Builder(validator);

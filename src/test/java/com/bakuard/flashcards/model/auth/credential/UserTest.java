@@ -1,6 +1,8 @@
-package com.bakuard.flashcards.model.credential;
+package com.bakuard.flashcards.model.auth.credential;
 
 import com.bakuard.flashcards.config.TestConfig;
+import com.bakuard.flashcards.model.auth.credential.PasswordChangeData;
+import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.IncorrectCredentials;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
@@ -9,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -41,7 +42,7 @@ class UserTest {
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format", "Email.notNull");
+                containsExactlyInAnyOrder("Password.format", "User.email.notNull");
     }
 
     @Test
@@ -62,7 +63,7 @@ class UserTest {
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format", "Email.format");
+                containsExactlyInAnyOrder("Password.format", "User.email.format");
     }
 
     @Test
@@ -83,7 +84,7 @@ class UserTest {
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format", "Email.format");
+                containsExactlyInAnyOrder("Password.format", "User.email.format");
     }
 
     @Test
@@ -121,7 +122,7 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.checkPassword(null)).
+                isThrownBy(() -> user.assertCurrentPassword(null)).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
@@ -143,7 +144,7 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.checkPassword("       ")).
+                isThrownBy(() -> user.assertCurrentPassword("       ")).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
@@ -165,7 +166,7 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.checkPassword("1234567")).
+                isThrownBy(() -> user.assertCurrentPassword("1234567")).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
@@ -188,7 +189,7 @@ class UserTest {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
                 isThrownBy(() ->
-                        user.checkPassword("012345678901234567890123456789012345678901234567891")).
+                        user.assertCurrentPassword("012345678901234567890123456789012345678901234567891")).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
@@ -209,17 +210,17 @@ class UserTest {
                 build();
 
         Assertions.
-                assertThatCode(() -> user.checkPassword("password")).
+                assertThatCode(() -> user.assertCurrentPassword("password")).
                 doesNotThrowAnyException();
     }
 
     @Test
     @DisplayName("""
-            setPassword(currentPassword, newPassword):
+            changePassword:
              newPassword is null
              => exception
             """)
-    public void setPassword1() {
+    public void changePassword1() {
         User user = User.newBuilder(validator).
                 setEmail("me@gmail.com").
                 setPassword("password").
@@ -227,21 +228,23 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.setPassword("password", null)).
+                isThrownBy(() -> user.builder().
+                        changePassword(new PasswordChangeData("password", null)).
+                        build()).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("Password.format");
+                containsOnly("NewPassword.format");
     }
 
     @Test
     @DisplayName("""
-            setPassword(currentPassword, newPassword):
+            changePassword:
              newPassword is blank
              => exception
             """)
-    public void setPassword2() {
+    public void changePassword2() {
         User user = User.newBuilder(validator).
                 setEmail("me@gmail.com").
                 setPassword("password").
@@ -249,21 +252,23 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.setPassword("password", "     ")).
+                isThrownBy(() -> user.builder().
+                        changePassword(new PasswordChangeData("password", "     ")).
+                        build()).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("Password.format");
+                containsOnly("NewPassword.format");
     }
 
     @Test
     @DisplayName("""
-            setPassword(currentPassword, newPassword):
+            changePassword:
              newPassword less than 8
              => exception
             """)
-    public void setPassword3() {
+    public void changePassword3() {
         User user = User.newBuilder(validator).
                 setEmail("me@gmail.com").
                 setPassword("password").
@@ -271,21 +276,23 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.setPassword("password", "1234567")).
+                isThrownBy(() -> user.builder().
+                        changePassword(new PasswordChangeData("password", "1234567")).
+                        build()).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("Password.format");
+                containsOnly("NewPassword.format");
     }
 
     @Test
     @DisplayName("""
-            setPassword(currentPassword, newPassword):
+            changePassword:
              newPassword greater than 50
              => exception
             """)
-    public void setPassword4() {
+    public void changePassword4() {
         User user = User.newBuilder(validator).
                 setEmail("me@gmail.com").
                 setPassword("password").
@@ -293,22 +300,27 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() ->
-                        user.setPassword("password", "012345678901234567890123456789012345678901234567891")).
+                isThrownBy(() -> user.builder().
+                                changePassword(
+                                        new PasswordChangeData(
+                                                "password",
+                                                "01234567890123456789012345678901234567890123456789X")
+                                ).
+                                build()).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("Password.format");
+                containsOnly("NewPassword.format");
     }
 
     @Test
     @DisplayName("""
-            setPassword(currentPassword, newPassword):
+            changePassword:
              currentPassword is wrong, newPassword is correct
              => exception
             """)
-    public void setPassword5() {
+    public void changePassword5() {
         User user = User.newBuilder(validator).
                 setEmail("me@gmail.com").
                 setPassword("password").
@@ -316,25 +328,29 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(IncorrectCredentials.class).
-                isThrownBy(() -> user.setPassword("unknown pass", "12345678"));
+                isThrownBy(() -> user.builder().
+                        changePassword(new PasswordChangeData("unknown pass", "12345678")).
+                        build());
     }
 
     @Test
     @DisplayName("""
-            setPassword(currentPassword, newPassword):
+            changePassword:
              currentPassword is correct, newPassword is correct
              => exception
             """)
-    public void setPassword6() {
+    public void changePassword6() {
         User user = User.newBuilder(validator).
                 setEmail("me@gmail.com").
                 setPassword("password").
                 build();
 
-        user.setPassword("password", "12345678");
+        User expected = user.builder().
+                changePassword(new PasswordChangeData("password", "12345678")).
+                build();
 
         Assertions.
-                assertThatCode(() -> user.checkPassword("12345678")).
+                assertThatCode(() -> expected.assertCurrentPassword("12345678")).
                 doesNotThrowAnyException();
     }
 

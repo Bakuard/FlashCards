@@ -148,7 +148,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public ApplicationListener<BeforeConvertEvent<?>> entityCreator(final ValidatorUtil validator) {
                 return event -> {
-                       if(event.getEntity() instanceof Entity<?> entity) {
+                       if(event.getEntity() instanceof Entity entity) {
                                entity.generateIdIfAbsent();
                        }
                 };
@@ -157,7 +157,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public ApplicationListener<AfterConvertEvent<?>> afterLoad(final ValidatorUtil validator) {
                 return event -> {
-                        if(event.getEntity() instanceof Entity<?> entity) {
+                        if(event.getEntity() instanceof Entity entity) {
                                 entity.setValidator(validator);
                         }
                 };

@@ -4,7 +4,7 @@ import com.bakuard.flashcards.validation.ValidatorUtil;
 
 import java.util.UUID;
 
-public interface Entity<T> {
+public interface Entity {
 
     public UUID getId();
 

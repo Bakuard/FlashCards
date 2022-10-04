@@ -1,10 +1,12 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.TestConfig;
+import com.bakuard.flashcards.dal.auth.UserRepository;
 import com.bakuard.flashcards.model.RepeatData;
-import com.bakuard.flashcards.model.credential.User;
+import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,8 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,6 +46,8 @@ class IntervalsRepositoryTest {
     private JdbcTemplate jdbcTemplate;
     @Autowired
     private DataSourceTransactionManager transactionManager;
+    @Autowired
+    private ValidatorUtil validator;
 
     @BeforeEach
     public void beforeEach() {
@@ -162,12 +164,14 @@ class IntervalsRepositoryTest {
 
 
     private User user(int number) {
-        return new User(
-                null,
-                "password" + number,
-                "salt" + number,
-                "user" + number + "@gmail.com"
-        );
+        return User.newBuilder(validator).
+                setPassword("password" + number).
+                setOrGenerateSalt("salt" + number).
+                setEmail("me" + number + "@mail.com").
+                addRole("role1").
+                addRole("role2").
+                addRole("role3").
+                build();
     }
 
     private Word word(UUID userId,
