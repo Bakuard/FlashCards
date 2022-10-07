@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.service;
 
-import com.bakuard.flashcards.dal.auth.UserRepository;
+import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.UnknownEntityException;
 import org.springframework.data.domain.Page;

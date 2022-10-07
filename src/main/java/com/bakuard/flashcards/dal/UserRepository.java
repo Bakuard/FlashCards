@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.dal.auth;
+package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.model.auth.credential.User;
 import org.springframework.data.jdbc.repository.query.Query;

@@ -2,7 +2,6 @@ package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.dal.auth.UserRepository;
 import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.word.Word;

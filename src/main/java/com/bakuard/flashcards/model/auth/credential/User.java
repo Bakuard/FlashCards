@@ -38,9 +38,8 @@ public class User implements Entity {
     @Column("salt")
     private final String salt;
     @MappedCollection(idColumn = "user_id", keyColumn = "index")
-    @NotNull(message = "User.roles.notNull", groups = Groups.C.class)
-    @NotContainsNull(message = "User.roles.notContainsNull", groups = Groups.D.class)
-    @AllUnique(message = "User.roles.allUnique", nameOfGetterMethod = "name", groups = Groups.E.class)
+    @NotContainsNull(message = "User.roles.notContainsNull", groups = Groups.C.class)
+    @AllUnique(message = "User.roles.allUnique", nameOfGetterMethod = "name", groups = Groups.D.class)
     private final List<@Valid Role> roles;
     @Transient
     private ValidatorUtil validator;
@@ -69,7 +68,7 @@ public class User implements Entity {
         validator.assertAllEmpty(this,
                 validator.check(new RawPassword(password), Default.class),
                 validator.check(this, Groups.A.class, Groups.B.class),
-                validator.check(this, Groups.C.class, Groups.D.class, Groups.E.class, Default.class)
+                validator.check(this, Groups.C.class, Groups.D.class, Default.class)
         );
         this.passwordHash = calculatePasswordHash(password, salt);
     }
@@ -92,13 +91,13 @@ public class User implements Entity {
             validator.assertAllEmpty(this,
                     validator.check(passwordChangeData, Default.class),
                     validator.check(this, Groups.A.class, Groups.B.class),
-                    validator.check(this, Groups.C.class, Groups.D.class, Groups.E.class, Default.class)
+                    validator.check(this, Groups.C.class, Groups.D.class, Default.class)
             );
             changePassword(passwordChangeData);
         } else {
             validator.assertAllEmpty(this,
                     validator.check(this, Groups.A.class, Groups.B.class),
-                    validator.check(this, Groups.C.class, Groups.D.class, Groups.E.class, Default.class)
+                    validator.check(this, Groups.C.class, Groups.D.class, Default.class)
             );
         }
     }
@@ -222,7 +221,10 @@ public class User implements Entity {
         }
 
         public BuilderCreator setRoles(List<Role> roles) {
-            this.roles = roles == null ? null : new ArrayList<>(roles);
+            if(roles != null) {
+                this.roles.clear();
+                this.roles.addAll(roles);
+            }
             return this;
         }
 
@@ -264,6 +266,7 @@ public class User implements Entity {
             this.userID = userID;
             this.passwordHash = passwordHash;
             this.salt = salt;
+            this.roles = new ArrayList<>();
             this.validator = validator;
         }
 
@@ -278,7 +281,10 @@ public class User implements Entity {
         }
 
         public BuilderUpdater setRoles(List<Role> roles) {
-            this.roles = roles == null ? null : new ArrayList<>(roles);
+            if(roles != null) {
+                this.roles.clear();
+                this.roles.addAll(roles);
+            }
             return this;
         }
 

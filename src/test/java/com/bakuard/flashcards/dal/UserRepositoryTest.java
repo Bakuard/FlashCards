@@ -1,6 +1,7 @@
-package com.bakuard.flashcards.dal.auth;
+package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.TestConfig;
+import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.junit.jupiter.api.Assertions;
@@ -97,6 +98,9 @@ class UserRepositoryTest {
                 setPassword("password" + number).
                 setEmail(toEmail(number)).
                 setOrGenerateSalt("salt" + number).
+                addRole("role1").
+                addRole("role2").
+                addRole("role3").
                 build();
     }
 

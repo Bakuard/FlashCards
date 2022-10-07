@@ -31,25 +31,34 @@ class UserTest {
     @DisplayName("""
             new User:
              email is null,
-             password is null
+             password is null,
+             roles contians null
              => exception
             """)
     public void newUser1() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> User.newBuilder(validator).setEmail(null).setPassword(null).build()).
+                isThrownBy(() -> User.newBuilder(validator).
+                        setEmail(null).
+                        setPassword(null).
+                        addRole((Role) null).
+                        addRole("role1").
+                        build()).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format", "User.email.notNull");
+                containsExactlyInAnyOrder("Password.format",
+                        "User.email.notNull",
+                        "User.roles.notContainsNull");
     }
 
     @Test
     @DisplayName("""
             new User:
              email string is not email format,
-             password is blank
+             password is blank,
+             roles contains duplicates
              => exception
             """)
     public void newUser2() {
@@ -58,19 +67,24 @@ class UserTest {
                 isThrownBy(() -> User.newBuilder(validator).
                         setEmail("asdf").
                         setPassword("      ").
+                        addRole("role1").
+                        addRole("role1").
                         build()).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format", "User.email.format");
+                containsExactlyInAnyOrder("Password.format",
+                        "User.email.format",
+                        "User.roles.allUnique");
     }
 
     @Test
     @DisplayName("""
             new User:
              email is blank,
-             password length < 8
+             password length < 8,
+             some role is blank
              => exception
             """)
     public void newUser3() {
@@ -79,12 +93,16 @@ class UserTest {
                 isThrownBy(() -> User.newBuilder(validator).
                         setEmail("       ").
                         setPassword("1234567").
+                        addRole("role1").
+                        addRole("      ").
                         build()).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format", "User.email.format");
+                containsExactlyInAnyOrder("Password.format",
+                        "User.email.format",
+                        "Role.name.notBlank");
     }
 
     @Test
