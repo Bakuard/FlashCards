@@ -27,40 +27,19 @@ public class SortRules {
 
     private String checkParameter(String parameter, SortedEntity sortedEntity) {
         switch(sortedEntity) {
-            case EXPRESSION -> {
-                return checkExpressionParameter(parameter);
-            }
-            case WORD -> {
-                return checkWordParameter(parameter);
-            }
+            case EXPRESSION, WORD -> assertParameterIsOneOf(parameter,
+                    "value", "repeat_interval", "last_date_of_repeat");
+            case USER -> assertParameterIsOneOf(parameter,
+                    "user_id", "email");
             default -> throw new IllegalArgumentException("Unsupported sorted entity = " + sortedEntity);
         }
-    }
-
-    private String checkWordParameter(String parameter) {
-        if(!"value".equalsIgnoreCase(parameter) &&
-                !"repeat_interval".equalsIgnoreCase(parameter) &&
-                !"last_date_of_repeat".equalsIgnoreCase(parameter)) {
-            throw new InvalidParameter(
-                    "Invalid word sort parameter = " + parameter,
-                    "Word.invalidSortParameter"
-            );
-        }
-
         return parameter;
     }
 
-    private String checkExpressionParameter(String parameter) {
-        if(!"value".equalsIgnoreCase(parameter) &&
-                !"repeat_interval".equalsIgnoreCase(parameter) &&
-                !"last_date_of_repeat".equalsIgnoreCase(parameter)) {
-            throw new InvalidParameter(
-                    "Invalid expression sort parameter = " + parameter,
-                    "Expression.invalidSortParameter"
-            );
+    private void assertParameterIsOneOf(String parameter, String... values) {
+        if(Arrays.stream(values).anyMatch(p -> p.equalsIgnoreCase(parameter))) {
+            throw new InvalidParameter("Invalid sort parameter = " + parameter);
         }
-
-        return parameter;
     }
 
 }
