@@ -16,6 +16,8 @@ CREATE TABLE roles (
     UNIQUE(user_id, name)
 );
 
+------------------------------------------------------------------------------------------
+
 CREATE TABLE intervals (
     user_id UUID NOT NULL,
     number_days INT NOT NULL,
