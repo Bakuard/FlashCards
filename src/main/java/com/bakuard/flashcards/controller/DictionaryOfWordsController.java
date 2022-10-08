@@ -65,7 +65,7 @@ public class DictionaryOfWordsController {
     )
     @PostMapping
     public ResponseEntity<WordResponse> add(@RequestBody WordAddRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} add word '{}'", userId, dto.getValue());
 
         Word word = mapper.toWord(dto, userId);
@@ -88,7 +88,7 @@ public class DictionaryOfWordsController {
     )
     @PutMapping
     public ResponseEntity<WordResponse> update(@RequestBody WordUpdateRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} update word {}", userId, dto.getWordId());
 
         Word word = mapper.toWord(dto, userId);
@@ -128,7 +128,7 @@ public class DictionaryOfWordsController {
                             }
                     ))
             String sort) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} get words by page={}, size={}, sort={}", userId, page, size, sort);
 
         Pageable pageable = mapper.toPageableForDictionaryWords(page, size, sort);
@@ -158,7 +158,7 @@ public class DictionaryOfWordsController {
             @PathVariable
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} get word by id={}", userId, id);
 
         Word word = wordService.tryFindById(userId, id);
@@ -183,7 +183,7 @@ public class DictionaryOfWordsController {
             @PathVariable
             @Parameter(description = "Значение слова. Не может быть null.", required = true)
             String value) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} find word by value '{}'", userId, value);
 
         Word word = wordService.tryFindByValue(userId, value);
@@ -208,7 +208,7 @@ public class DictionaryOfWordsController {
             @PathVariable
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} delete word by id={}", userId, id);
 
         wordService.tryDeleteById(userId, id);

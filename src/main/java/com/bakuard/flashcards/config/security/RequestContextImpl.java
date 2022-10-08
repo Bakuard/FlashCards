@@ -1,7 +1,5 @@
 package com.bakuard.flashcards.config.security;
 
-import java.util.UUID;
-
 public class RequestContextImpl implements RequestContext {
 
     public RequestContextImpl() {
@@ -9,7 +7,7 @@ public class RequestContextImpl implements RequestContext {
     }
 
     @Override
-    public UUID getCurrentJwsBody() {
+    public <T> T getCurrentJwsBody(Class<T> jwsBodyType) {
         return null;
     }
 

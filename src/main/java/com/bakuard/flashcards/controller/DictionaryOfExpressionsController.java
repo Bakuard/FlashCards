@@ -64,7 +64,7 @@ public class DictionaryOfExpressionsController {
             })
     @PostMapping
     public ResponseEntity<ExpressionResponse> add(@RequestBody ExpressionAddRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} add word '{}'", userId, dto.getValue());
 
         Expression expression = mapper.toExpression(dto, userId);
@@ -87,7 +87,7 @@ public class DictionaryOfExpressionsController {
     )
     @PutMapping
     public ResponseEntity<ExpressionResponse> update(@RequestBody ExpressionUpdateRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} update word {}", userId, dto.getExpressionId());
 
         Expression expression = mapper.toExpression(dto, userId);
@@ -127,7 +127,7 @@ public class DictionaryOfExpressionsController {
                             }
                     ))
             String sort) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} get expressions by page={}, size={}, sort={}", page, size, sort);
 
         Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, sort);
@@ -156,7 +156,7 @@ public class DictionaryOfExpressionsController {
             @PathVariable
             @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} get expression by id={}", userId, id);
 
         Expression expression = expressionService.tryFindById(userId, id);
@@ -181,7 +181,7 @@ public class DictionaryOfExpressionsController {
             @PathVariable
             @Parameter(description = "Значение устойчевого выражения. Не может быть null.", required = true)
             String value) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} get expression by value '{}'", userId, value);
 
         Expression expression = expressionService.tryFindByValue(userId, value);
@@ -206,7 +206,7 @@ public class DictionaryOfExpressionsController {
             @PathVariable
             @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} delete expression by id={}", userId, id);
 
         expressionService.tryDeleteById(userId, id);

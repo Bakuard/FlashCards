@@ -11,11 +11,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Transactional
-public class UserService {
+public class AuthService {
 
     private UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

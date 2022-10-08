@@ -66,7 +66,7 @@ public class RepetitionOfExpressionsController {
             @RequestParam(value = "size", required = false)
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
             int size) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} find all expressions for repeat by page={}, size={}", userId, page, size);
 
         Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, "value.asc");
@@ -90,7 +90,7 @@ public class RepetitionOfExpressionsController {
     )
     @PutMapping
     public ResponseEntity<ExpressionResponse> repeat(@RequestBody ExpressionRepeatRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody();
+        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
         logger.info("user {} repeat expression {}. remember is {}", userId, dto.getExpressionId(), dto.isRemember());
 
         Expression expression = expressionService.repeat(userId, dto.getExpressionId(), dto.isRemember());
