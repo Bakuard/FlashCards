@@ -5,6 +5,8 @@ import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
 import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
 import com.bakuard.flashcards.dto.common.TranscriptionRequestResponse;
 import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.exceptions.ExceptionReasonResponse;
+import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.expression.*;
 import com.bakuard.flashcards.dto.word.*;
 import com.bakuard.flashcards.model.expression.Expression;
@@ -20,7 +22,11 @@ import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 
+import javax.validation.ConstraintViolationException;
+import java.time.Clock;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -32,17 +38,20 @@ public class DtoMapper {
     private ConfigData configData;
     private SortRules sortRules;
     private ValidatorUtil validator;
+    private Clock clock;
 
     public DtoMapper(WordService wordService,
                      ExpressionService expressionService,
                      ConfigData configData,
                      SortRules sortRules,
-                     ValidatorUtil validator) {
+                     ValidatorUtil validator,
+                     Clock clock) {
         this.wordService = wordService;
         this.expressionService = expressionService;
         this.configData = configData;
         this.sortRules = sortRules;
         this.validator = validator;
+        this.clock = clock;
     }
 
     public WordResponse toWordResponse(Word word) {
@@ -221,6 +230,20 @@ public class DtoMapper {
                 size,
                 sortRules.toSort(sort, SortedEntity.EXPRESSION)
         );
+    }
+
+
+    public ExceptionResponse toExceptionResponse(HttpStatus httpStatus, String... messageKeys) {
+        ExceptionResponse response = new ExceptionResponse(httpStatus, clock);
+        Arrays.stream(messageKeys).forEach(message -> response.addReason(new ExceptionReasonResponse(message)));
+        return response;
+    }
+
+    public ExceptionResponse toExceptionResponse(HttpStatus httpStatus, ConstraintViolationException exception) {
+        ExceptionResponse response = new ExceptionResponse(httpStatus, clock);
+        exception.getConstraintViolations().
+                forEach(constraint -> response.addReason(new ExceptionReasonResponse(constraint.getMessage())));
+        return response;
     }
 
 

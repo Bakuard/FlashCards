@@ -66,7 +66,7 @@ public class RepetitionOfWordsController {
             @RequestParam(value = "size", required = false)
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
             int size) {
-        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find all words for repeat by page={}, size={}", userId, page, size);
 
         Pageable pageable = mapper.toPageableForDictionaryWords(page, size, "value.asc");
@@ -90,7 +90,7 @@ public class RepetitionOfWordsController {
     )
     @PutMapping
     public ResponseEntity<WordResponse> repeat(@RequestBody WordRepeatRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody(UUID.class);
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} repeat word {}. remember is {}", userId, dto.getWordId(), dto.isRemember());
 
         Word word = wordService.repeat(userId, dto.getWordId(), dto.isRemember());

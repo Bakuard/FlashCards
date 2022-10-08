@@ -77,7 +77,7 @@ public class JwsService {
 
 
     private Claims parseJws(String jws, KeyPair keyPair) {
-        jws = jws.replaceFirst("Bearer ", "");
+        if(jws.startsWith("Bearer ")) jws = jws.substring(7);
 
         return Jwts.parserBuilder().
                 setSigningKey(keyPair.getPublic()).

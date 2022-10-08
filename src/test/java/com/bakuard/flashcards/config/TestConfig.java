@@ -137,8 +137,9 @@ public class TestConfig {
                                ExpressionService expressionService,
                                ConfigData configData,
                                SortRules sortRules,
-                               ValidatorUtil validator) {
-        return new DtoMapper(wordService, expressionService, configData, sortRules, validator);
+                               ValidatorUtil validator,
+                               Clock clock) {
+        return new DtoMapper(wordService, expressionService, configData, sortRules, validator, clock);
     }
 
     @Bean

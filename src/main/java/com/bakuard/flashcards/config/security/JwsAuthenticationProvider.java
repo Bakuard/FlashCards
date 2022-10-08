@@ -23,7 +23,11 @@ public class JwsAuthenticationProvider implements AuthenticationProvider {
 
         String jws = request.getJws();
 
-        UUID jwsBody = jwsService.parseJws(jws, UUID.class);
+        Object jwsBody = jwsService.parseJws(jws, bodyTypeName -> {
+            Class<?> bodyType = null;
+            if(bodyTypeName.equals(UUID.class.getName())) bodyType = UUID.class;
+            return bodyType;
+        }).orElseThrow();
 
         JwsAuthentication response = new JwsAuthentication(jws, jwsBody);
         response.setAuthenticated(true);

@@ -12,6 +12,7 @@ import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.ExpressionService;
+import com.bakuard.flashcards.service.JwsService;
 import com.bakuard.flashcards.service.WordService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.zaxxer.hikari.HikariConfig;
@@ -113,6 +114,11 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
+        public JwsService jwsService(ConfigData configData, Clock clock) {
+             return new JwsService(configData, clock);
+        }
+
+        @Bean
         public LocaleResolver localeResolver() {
                 return new AcceptHeaderLocaleResolver();
         }
@@ -136,8 +142,9 @@ public class SpringConfig implements WebMvcConfigurer {
                                    ExpressionService expressionService,
                                    ConfigData configData,
                                    SortRules sortRules,
-                                   ValidatorUtil validator) {
-                return new DtoMapper(wordService, expressionService, configData, sortRules, validator);
+                                   ValidatorUtil validator,
+                                   Clock clock) {
+                return new DtoMapper(wordService, expressionService, configData, sortRules, validator, clock);
         }
 
         @Bean
