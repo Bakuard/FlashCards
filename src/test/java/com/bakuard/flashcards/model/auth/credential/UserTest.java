@@ -20,7 +20,7 @@ import javax.validation.ConstraintViolationException;
 import java.util.stream.Collectors;
 
 @ExtendWith(SpringExtension.class)
-@TestPropertySource(locations = "classpath:application.properties")
+@TestPropertySource(locations = "classpath:test.properties")
 @Import(TestConfig.class)
 class UserTest {
 

@@ -32,7 +32,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
-@TestPropertySource(locations = "classpath:application.properties")
+@TestPropertySource(locations = "classpath:test.properties")
 @Import(TestConfig.class)
 class ExpressionRepositoryTest {
 

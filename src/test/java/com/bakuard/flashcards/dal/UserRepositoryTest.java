@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @ExtendWith(SpringExtension.class)
-@TestPropertySource(locations = "classpath:application.properties")
+@TestPropertySource(locations = "classpath:test.properties")
 @Import(TestConfig.class)
 class UserRepositoryTest {
 

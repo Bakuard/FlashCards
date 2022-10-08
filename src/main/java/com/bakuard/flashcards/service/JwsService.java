@@ -15,7 +15,9 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 public class JwsService {
 
@@ -39,6 +41,7 @@ public class JwsService {
         return Jwts.builder().
                 setExpiration(Date.from(expiration.atZone(ZoneId.systemDefault()).toInstant())).
                 claim("body", json).
+                claim("bodyType", jwsBody.getClass().getName()).
                 signWith(keyPair.getPrivate()).
                 compact();
     }
@@ -47,6 +50,14 @@ public class JwsService {
         Claims claims = parseJws(jws, keyPair);
         String json = claims.get("body", String.class);
         return tryCatch(() -> objectMapper.readValue(json, jwsBodyType));
+    }
+
+    public <T> Optional<T> parseJws(String jws, Function<String, Class<T>> jwsBodyTypeMapper) {
+        Claims claims = parseJws(jws, keyPair);
+        String json = claims.get("body", String.class);
+        Class<T> bodyType = jwsBodyTypeMapper.apply(claims.get("bodyType", String.class));
+        T body = bodyType == null ? null : tryCatch(() -> objectMapper.readValue(json, bodyType));
+        return Optional.ofNullable(body);
     }
 
     public PublicKey getPublicKey() {
