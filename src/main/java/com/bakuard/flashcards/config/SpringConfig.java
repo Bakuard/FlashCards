@@ -6,11 +6,13 @@ import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.controller.message.MessagesImpl;
 import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
+import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
 import com.bakuard.flashcards.dal.impl.IntervalsRepositoryImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
+import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.JwsService;
 import com.bakuard.flashcards.service.WordService;
@@ -111,6 +113,13 @@ public class SpringConfig implements WebMvcConfigurer {
                                                    IntervalsRepository intervalsRepository,
                                                    Clock clock) {
                 return new ExpressionService(expressionRepository, intervalsRepository, clock);
+        }
+
+        @Bean
+        public AuthService authService(UserRepository userRepository,
+                                       JwsService jwsService,
+                                       ConfigData configData) {
+             return new AuthService(userRepository, jwsService, configData);
         }
 
         @Bean

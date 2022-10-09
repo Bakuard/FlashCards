@@ -111,6 +111,9 @@ public class DictionaryOfWordsController {
     )
     @GetMapping
     public ResponseEntity<Page<WordForDictionaryListResponse>> findAllBy(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из слов которого делается выборка", required = true)
+            UUID userId,
             @RequestParam("page")
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
@@ -128,8 +131,9 @@ public class DictionaryOfWordsController {
                             }
                     ))
             String sort) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} get words by page={}, size={}, sort={}", userId, page, size, sort);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get words of user {} by page={}, size={}, sort={}",
+                jwsUserId, userId, page, size, sort);
 
         Pageable pageable = mapper.toPageableForDictionaryWords(page, size, sort);
 
@@ -155,11 +159,14 @@ public class DictionaryOfWordsController {
     )
     @GetMapping("/{id}")
     public ResponseEntity<WordResponse> findById(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, слово которого запрашивается", required = true)
+            UUID userId,
             @PathVariable
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} get word by id={}", userId, id);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get word of user {} by id={}", jwsUserId, userId, id);
 
         Word word = wordService.tryFindById(userId, id);
         return ResponseEntity.ok(mapper.toWordResponse(word));
@@ -180,11 +187,14 @@ public class DictionaryOfWordsController {
     )
     @GetMapping("/value/{value}")
     public ResponseEntity<WordResponse> findByValue(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, слово которого запрашивается", required = true)
+            UUID userId,
             @PathVariable
             @Parameter(description = "Значение слова. Не может быть null.", required = true)
             String value) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} find word by value '{}'", userId, value);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get word of user {} by value '{}'", jwsUserId, userId, value);
 
         Word word = wordService.tryFindByValue(userId, value);
         return ResponseEntity.ok(mapper.toWordResponse(word));
@@ -205,11 +215,14 @@ public class DictionaryOfWordsController {
     )
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, слово которого удаляется", required = true)
+            UUID userId,
             @PathVariable
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} delete word by id={}", userId, id);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} delete word of user {} by id={}", jwsUserId, userId, id);
 
         wordService.tryDeleteById(userId, id);
         return ResponseEntity.ok(messages.getMessage("dictionary.words.delete"));

@@ -111,6 +111,9 @@ public class DictionaryOfExpressionsController {
     @GetMapping
     public ResponseEntity<Page<ExpressionForDictionaryListResponse>> findAllBy(
             @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из выражений которого делается выборка", required = true)
+            UUID userId,
+            @RequestParam
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
             @RequestBody(required = false)
@@ -127,8 +130,9 @@ public class DictionaryOfExpressionsController {
                             }
                     ))
             String sort) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} get expressions by page={}, size={}, sort={}", page, size, sort);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get expressions of user {} by page={}, size={}, sort={}",
+                jwsUserId, userId, page, size, sort);
 
         Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, sort);
         Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionForDictionaryListResponse(
@@ -151,13 +155,16 @@ public class DictionaryOfExpressionsController {
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @GetMapping("/{id}")
+    @GetMapping("/id")
     public ResponseEntity<ExpressionResponse> findById(
-            @PathVariable
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, выражение которого запрашивается", required = true)
+            UUID userId,
+            @RequestParam
             @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} get expression by id={}", userId, id);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get expression of user {} by id={}", jwsUserId, userId, id);
 
         Expression expression = expressionService.tryFindById(userId, id);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
@@ -176,13 +183,16 @@ public class DictionaryOfExpressionsController {
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @GetMapping("/value/{value}")
+    @GetMapping("/value")
     public ResponseEntity<ExpressionResponse> findByValue(
-            @PathVariable
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, выражение которого запрашивается", required = true)
+            UUID userId,
+            @RequestParam
             @Parameter(description = "Значение устойчевого выражения. Не может быть null.", required = true)
             String value) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} get expression by value '{}'", userId, value);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get expression of user {} by value '{}'", jwsUserId, userId, value);
 
         Expression expression = expressionService.tryFindByValue(userId, value);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
@@ -203,11 +213,14 @@ public class DictionaryOfExpressionsController {
     )
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, выражение которого удаляется", required = true)
+            UUID userId,
             @PathVariable
             @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} delete expression by id={}", userId, id);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} delete expression of user {} by id={}", jwsUserId, userId, id);
 
         expressionService.tryDeleteById(userId, id);
         return ResponseEntity.ok(messages.getMessage("dictionary.expressions.delete"));

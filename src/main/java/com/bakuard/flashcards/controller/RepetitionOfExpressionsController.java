@@ -60,14 +60,18 @@ public class RepetitionOfExpressionsController {
     )
     @GetMapping
     public ResponseEntity<Page<ExpressionForRepetitionResponse>> findAllBy(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из выражений которого формируется выборка для повторения.", required = true)
+            UUID userId,
             @RequestParam("page")
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
             @RequestParam(value = "size", required = false)
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
             int size) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} find all expressions for repeat by page={}, size={}", userId, page, size);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find all expressions of user {} for repeat by page={}, size={}",
+                jwsUserId, userId, page, size);
 
         Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, "value.asc");
         Page<Expression> result = expressionService.findAllForRepeat(userId, pageable);

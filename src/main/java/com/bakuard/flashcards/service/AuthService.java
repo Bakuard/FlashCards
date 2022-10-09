@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.service;
 
+import com.bakuard.flashcards.config.ConfigData;
 import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.UnknownEntityException;
@@ -14,9 +15,13 @@ import java.util.UUID;
 public class AuthService {
 
     private UserRepository userRepository;
+    private JwsService jwsService;
+    private ConfigData configData;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, JwsService jwsService, ConfigData configData) {
         this.userRepository = userRepository;
+        this.jwsService = jwsService;
+        this.configData = configData;
     }
 
     public User save(User user) {

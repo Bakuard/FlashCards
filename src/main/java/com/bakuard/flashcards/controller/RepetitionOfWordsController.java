@@ -60,14 +60,18 @@ public class RepetitionOfWordsController {
     )
     @GetMapping
     public ResponseEntity<Page<WordForRepetitionResponse>> findAllBy(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из слов которого формируется выборка для повторения.", required = true)
+            UUID userId,
             @RequestParam("page")
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
             @RequestParam(value = "size", required = false)
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
             int size) {
-        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} find all words for repeat by page={}, size={}", userId, page, size);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find all words of user {} for repeat by page={}, size={}",
+                jwsUserId, userId, page, size);
 
         Pageable pageable = mapper.toPageableForDictionaryWords(page, size, "value.asc");
         Page<Word> result = wordService.findAllForRepeat(userId, pageable);
