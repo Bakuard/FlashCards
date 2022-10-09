@@ -65,9 +65,9 @@ public class DictionaryOfExpressionsController {
     @PostMapping
     public ResponseEntity<ExpressionResponse> add(@RequestBody ExpressionAddRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} add word '{}'", userId, dto.getValue());
+        logger.info("user {} add word '{}' fro user {}", userId, dto.getValue(), dto.getUserID());
 
-        Expression expression = mapper.toExpression(dto, userId);
+        Expression expression = mapper.toExpression(dto);
         expression = expressionService.save(expression);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
@@ -88,9 +88,9 @@ public class DictionaryOfExpressionsController {
     @PutMapping
     public ResponseEntity<ExpressionResponse> update(@RequestBody ExpressionUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} update word {}", userId, dto.getExpressionId());
+        logger.info("user {} update word {} for user {}", userId, dto.getExpressionId(), dto.getUserId());
 
-        Expression expression = mapper.toExpression(dto, userId);
+        Expression expression = mapper.toExpression(dto);
         expression = expressionService.save(expression);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }

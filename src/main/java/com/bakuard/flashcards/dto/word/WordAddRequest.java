@@ -8,10 +8,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Schema(description = "Данные добавляемого слова.")
 public class WordAddRequest {
 
+    @Schema(description = """
+            Идентификатор пользователя, в словарь которого будет добавленно слово. <br/>
+            Ограничения: не должно быть null.
+            """)
+    private UUID userID;
     @Schema(description = """
             Значение слова. <br/>
             Должно представлять собой не пустую строку.
@@ -57,6 +63,15 @@ public class WordAddRequest {
 
     public WordAddRequest() {
 
+    }
+
+    public UUID getUserID() {
+        return userID;
+    }
+
+    public WordAddRequest setUserID(UUID userID) {
+        this.userID = userID;
+        return this;
     }
 
     public String getValue() {
@@ -118,7 +133,8 @@ public class WordAddRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WordAddRequest that = (WordAddRequest) o;
-        return Objects.equals(value, that.value) &&
+        return Objects.equals(userID, that.userID) &&
+                Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
                 Objects.equals(transcriptions, that.transcriptions) &&
                 Objects.equals(interpretations, that.interpretations) &&
@@ -128,12 +144,13 @@ public class WordAddRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note, transcriptions, interpretations, translates, examples);
+        return Objects.hash(userID, value, note, transcriptions, interpretations, translates, examples);
     }
 
     @Override
     public String toString() {
         return "WordAddRequest{" +
+                "userID=" + userID +
                 ", value='" + value + '\'' +
                 ", note='" + note + '\'' +
                 ", transcriptions=" + transcriptions +

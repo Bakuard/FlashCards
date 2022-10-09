@@ -9,6 +9,11 @@ import java.util.UUID;
 public class ExpressionRepeatRequest {
 
     @Schema(description = """
+            Идентификатор пользователя, с которым связано указанное устойчевое выражение. <br/>
+            Ограничения: не должно быть null.
+            """)
+    private UUID userId;
+    @Schema(description = """
             Уникальный идентификатор устойчевого выражения. <br/>
             Огрничения: не должен быть null.
             """)
@@ -20,6 +25,15 @@ public class ExpressionRepeatRequest {
 
     public ExpressionRepeatRequest() {
 
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public ExpressionRepeatRequest setUserId(UUID userId) {
+        this.userId = userId;
+        return this;
     }
 
     public UUID getExpressionId() {
@@ -46,18 +60,20 @@ public class ExpressionRepeatRequest {
         if (o == null || getClass() != o.getClass()) return false;
         ExpressionRepeatRequest that = (ExpressionRepeatRequest) o;
         return isRemember == that.isRemember &&
+                Objects.equals(userId, that.userId) &&
                 Objects.equals(expressionId, that.expressionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(expressionId, isRemember);
+        return Objects.hash(userId, expressionId, isRemember);
     }
 
     @Override
     public String toString() {
         return "ExpressionRepeatRequest{" +
-                "expressionId=" + expressionId +
+                "userId=" + userId +
+                ", expressionId=" + expressionId +
                 ", isRemember=" + isRemember +
                 '}';
     }

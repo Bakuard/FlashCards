@@ -91,9 +91,10 @@ public class RepetitionOfExpressionsController {
     @PutMapping
     public ResponseEntity<ExpressionResponse> repeat(@RequestBody ExpressionRepeatRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} repeat expression {}. remember is {}", userId, dto.getExpressionId(), dto.isRemember());
+        logger.info("user {} repeat expression {} as user {}. remember is {}",
+                userId, dto.getExpressionId(), dto.getUserId(), dto.isRemember());
 
-        Expression expression = expressionService.repeat(userId, dto.getExpressionId(), dto.isRemember());
+        Expression expression = expressionService.repeat(dto.getUserId(), dto.getExpressionId(), dto.isRemember());
 
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }

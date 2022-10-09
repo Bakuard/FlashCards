@@ -96,9 +96,9 @@ public class DtoMapper {
         );
     }
 
-    public Word toWord(WordAddRequest dto, UUID userId) {
+    public Word toWord(WordAddRequest dto) {
         return Word.newBuilder(validator).
-                setUserId(userId).
+                setUserId(dto.getUserID()).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
@@ -113,12 +113,12 @@ public class DtoMapper {
                 setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
                         toList()).
-                setRepeatData(wordService.initialRepeatData(userId)).
+                setRepeatData(wordService.initialRepeatData(dto.getUserID())).
                 build();
     }
 
-    public Word toWord(WordUpdateRequest dto, UUID userId) {
-        return wordService.tryFindById(userId, dto.getWordId()).builder().
+    public Word toWord(WordUpdateRequest dto) {
+        return wordService.tryFindById(dto.getUserId(), dto.getWordId()).builder().
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
@@ -187,9 +187,9 @@ public class DtoMapper {
         );
     }
 
-    public Expression toExpression(ExpressionAddRequest dto, UUID userId) {
+    public Expression toExpression(ExpressionAddRequest dto) {
         return Expression.newBuilder(validator).
-                setUserId(userId).
+                setUserId(dto.getUserID()).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setInterpretations(toStream(dto.getInterpretations()).
@@ -201,12 +201,12 @@ public class DtoMapper {
                 setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
                         toList()).
-                setRepeatData(expressionService.initialRepeatData(userId)).
+                setRepeatData(expressionService.initialRepeatData(dto.getUserID())).
                 build();
     }
 
-    public Expression toExpression(ExpressionUpdateRequest dto, UUID userId) {
-        return expressionService.tryFindById(dto.getExpressionId(), userId).builder().
+    public Expression toExpression(ExpressionUpdateRequest dto) {
+        return expressionService.tryFindById(dto.getUserId(), dto.getExpressionId()).builder().
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setInterpretations(toStream(dto.getInterpretations()).

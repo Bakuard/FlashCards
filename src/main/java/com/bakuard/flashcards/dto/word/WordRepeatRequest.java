@@ -9,6 +9,11 @@ import java.util.UUID;
 public class WordRepeatRequest {
 
     @Schema(description = """
+            Идентификатор пользователя, с которым связано указанное слово. <br/>
+            Ограничения: не должно быть null.
+            """)
+    private UUID userId;
+    @Schema(description = """
             Уникальный идентификатор слова. <br/>
             Огрничения: не должен быть null.
             """)
@@ -19,6 +24,16 @@ public class WordRepeatRequest {
     private boolean isRemember;
 
     public WordRepeatRequest() {
+
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public WordRepeatRequest setUserId(UUID userId) {
+        this.userId = userId;
+        return this;
     }
 
     public UUID getWordId() {
@@ -45,18 +60,20 @@ public class WordRepeatRequest {
         if (o == null || getClass() != o.getClass()) return false;
         WordRepeatRequest that = (WordRepeatRequest) o;
         return isRemember == that.isRemember &&
+                Objects.equals(userId, that.userId) &&
                 Objects.equals(wordId, that.wordId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(wordId, isRemember);
+        return Objects.hash(userId, wordId, isRemember);
     }
 
     @Override
     public String toString() {
         return "WordRepeatRequest{" +
-                "wordId=" + wordId +
+                "userId=" + userId +
+                ", wordId=" + wordId +
                 ", isRemember=" + isRemember +
                 '}';
     }

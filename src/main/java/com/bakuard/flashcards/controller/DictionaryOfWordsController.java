@@ -66,9 +66,9 @@ public class DictionaryOfWordsController {
     @PostMapping
     public ResponseEntity<WordResponse> add(@RequestBody WordAddRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} add word '{}'", userId, dto.getValue());
+        logger.info("user {} add word '{}' for user {}", userId, dto.getValue(), dto.getUserID());
 
-        Word word = mapper.toWord(dto, userId);
+        Word word = mapper.toWord(dto);
         word = wordService.save(word);
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
@@ -89,9 +89,9 @@ public class DictionaryOfWordsController {
     @PutMapping
     public ResponseEntity<WordResponse> update(@RequestBody WordUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} update word {}", userId, dto.getWordId());
+        logger.info("user {} update word {} for user {}", userId, dto.getWordId(), dto.getUserId());
 
-        Word word = mapper.toWord(dto, userId);
+        Word word = mapper.toWord(dto);
         word = wordService.save(word);
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }

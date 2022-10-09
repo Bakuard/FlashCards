@@ -91,9 +91,10 @@ public class RepetitionOfWordsController {
     @PutMapping
     public ResponseEntity<WordResponse> repeat(@RequestBody WordRepeatRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} repeat word {}. remember is {}", userId, dto.getWordId(), dto.isRemember());
+        logger.info("user {} repeat word {} as user {}. remember is {}",
+                userId, dto.getWordId(), dto.getUserId(), dto.isRemember());
 
-        Word word = wordService.repeat(userId, dto.getWordId(), dto.isRemember());
+        Word word = wordService.repeat(dto.getUserId(), dto.getWordId(), dto.isRemember());
 
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
