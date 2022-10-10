@@ -1,10 +1,27 @@
 package com.bakuard.flashcards.dto.credential;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 
+@Schema(description = "Данные запроса на востановление учетных данных пользователя.")
 public class PasswordRestoreRequest {
 
+    @Schema(description = """
+            Адрес электроной почты пользователя. <br/>
+             Ограничения: <br/>
+             1. не должен быть null. <br/>
+             2. заданное значение должно представлять корректный адрес электронной почты.
+            """)
     private String email;
+    @Schema(description = """
+            Новый пароль пользователя. <br/>
+             Ограничения: <br/>
+             1. Не должен быть null. <br/>
+             2. Должен содержать минимум 8 символов. <br/>
+             3. Должен содержать хотя бы один отображаемый символ. <br/>
+             4. Не должен превышать по длине 50 символов.
+            """)
     private String newPassword;
 
     public PasswordRestoreRequest() {

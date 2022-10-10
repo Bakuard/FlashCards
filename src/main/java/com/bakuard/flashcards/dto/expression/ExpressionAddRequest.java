@@ -14,7 +14,7 @@ public class ExpressionAddRequest {
 
     @Schema(description = """
             Идентификатор пользователя, в словарь которого будет добавленно устойчевое выражение. <br/>
-            Ограничения: не должно быть null.
+            Ограничения: не должен быть null.
             """)
     private UUID userID;
     @Schema(description = """

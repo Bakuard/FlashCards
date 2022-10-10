@@ -1,14 +1,35 @@
 package com.bakuard.flashcards.dto.credential;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Данные запроса на обновление данных пользователя.")
 public class UserUpdateRequest {
 
+    @Schema(description = """
+            Униклаьный идентификатор пользователя. <br/>
+             Ограничения: не должен быть null.
+            """)
     private UUID userId;
+    @Schema(description = """
+            Уникальный идентификатор пользователя. <br/>
+             Ограничения: <br/>
+             1. не должен быть null. <br/>
+             2. заданное значение должно представлять корректный адрес электронной почты.
+            """)
     private String email;
-    private List<UserRoleResponse> roles;
+    @Schema(description = """
+            Роли пользователя. Может принимать значение null. <br/>
+             Ограничения: <br/>
+             1. Не должно содержать значений null. <br/>
+             2. Не должно содержать дубликатов. <br/>
+             3. Наименование каждой роли должно содержать хотя бы один отображаемый символ.
+            """)
+    private List<UserRoleRequestResponse> roles;
+    @Schema(description = "Запрос на изменение пароля. Если равен null - пароль пользователя не меняется.")
     private PasswordChangeRequest passwordChangeRequest;
 
     public UserUpdateRequest() {
@@ -33,11 +54,11 @@ public class UserUpdateRequest {
         return this;
     }
 
-    public List<UserRoleResponse> getRoles() {
+    public List<UserRoleRequestResponse> getRoles() {
         return roles;
     }
 
-    public UserUpdateRequest setRoles(List<UserRoleResponse> roles) {
+    public UserUpdateRequest setRoles(List<UserRoleRequestResponse> roles) {
         this.roles = roles;
         return this;
     }

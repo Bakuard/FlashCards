@@ -1,14 +1,20 @@
 package com.bakuard.flashcards.dto.credential;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Schema(description = "Возвращаемые учетные данные пользователя.")
 public class UserResponse {
 
+    @Schema(description = "Уникальный идентификатор поьзователя.")
     private UUID userId;
+    @Schema(description = "Адрес электронной почты пользователя.")
     private String email;
-    private List<UserRoleResponse> roles;
+    @Schema(description = "Роли пользователя.")
+    private List<UserRoleRequestResponse> roles;
 
     public UserResponse() {
 
@@ -32,11 +38,11 @@ public class UserResponse {
         return this;
     }
 
-    public List<UserRoleResponse> getRoles() {
+    public List<UserRoleRequestResponse> getRoles() {
         return roles;
     }
 
-    public UserResponse setRoles(List<UserRoleResponse> roles) {
+    public UserResponse setRoles(List<UserRoleRequestResponse> roles) {
         this.roles = roles;
         return this;
     }

@@ -1,10 +1,23 @@
 package com.bakuard.flashcards.dto.credential;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 
+@Schema(description = "Учетные данные пользвоателя для входа.")
 public class UserEnterRequest {
 
+    @Schema(description = """
+            Адрес электроной почты пользователя. <br/>
+             Ограничения: <br/>
+             1. не должен быть null. <br/>
+             2. заданное значение должно представлять корректный адрес электронной почты.
+            """)
     private String email;
+    @Schema(description = """
+            Пароль пользователя. <br/>
+             Ограничения: не должен быть null.
+            """)
     private String password;
 
     public UserEnterRequest() {

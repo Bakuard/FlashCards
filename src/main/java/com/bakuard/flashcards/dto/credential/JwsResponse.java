@@ -1,10 +1,15 @@
 package com.bakuard.flashcards.dto.credential;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 
+@Schema(description = "Вовращаемый токен доступа.")
 public class JwsResponse {
 
+    @Schema(description = "Токен доступа.")
     private String jws;
+    @Schema(description = "Пользователь, над данными которого выполянется операция.")
     private UserResponse user;
 
     public JwsResponse() {

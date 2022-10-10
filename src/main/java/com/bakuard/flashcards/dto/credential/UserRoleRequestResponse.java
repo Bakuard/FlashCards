@@ -1,12 +1,16 @@
 package com.bakuard.flashcards.dto.credential;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.Objects;
 
-public class UserRoleResponse {
+@Schema(description = "Данные об одной конкретной роли некотоого пользователя.")
+public class UserRoleRequestResponse {
 
+    @Schema(description = "Наименование роли.")
     private String name;
 
-    public UserRoleResponse() {
+    public UserRoleRequestResponse() {
 
     }
 
@@ -14,7 +18,7 @@ public class UserRoleResponse {
         return name;
     }
 
-    public UserRoleResponse setName(String name) {
+    public UserRoleRequestResponse setName(String name) {
         this.name = name;
         return this;
     }
@@ -23,7 +27,7 @@ public class UserRoleResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UserRoleResponse that = (UserRoleResponse) o;
+        UserRoleRequestResponse that = (UserRoleRequestResponse) o;
         return Objects.equals(name, that.name);
     }
 
