@@ -12,10 +12,7 @@ import com.bakuard.flashcards.dal.impl.IntervalsRepositoryImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
-import com.bakuard.flashcards.service.AuthService;
-import com.bakuard.flashcards.service.ExpressionService;
-import com.bakuard.flashcards.service.JwsService;
-import com.bakuard.flashcards.service.WordService;
+import com.bakuard.flashcards.service.*;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -125,6 +122,11 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public JwsService jwsService(ConfigData configData, Clock clock) {
              return new JwsService(configData, clock);
+        }
+
+        @Bean
+        public EmailService emailService(ConfigData configData) {
+                return new EmailService(configData);
         }
 
         @Bean

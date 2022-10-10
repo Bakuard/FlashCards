@@ -10,4 +10,9 @@ public record ConfigData(int maxPageSize,
                          long jwsLifeTimeInDays,
                          String databaseName,
                          String databaseUser,
-                         String databasePassword) {}
+                         String databasePassword,
+                         String gmailService,
+                         String gmailPassword,
+                         String pathToGmailLetterForRegistration,
+                         String pathToGmailLetterForRestorePass,
+                         String gmailLetterReturnAddress) {}
