@@ -55,6 +55,10 @@ public class RepetitionOfExpressionsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти пользователя с указанным идентификатором.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
@@ -88,6 +92,10 @@ public class RepetitionOfExpressionsController {
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }

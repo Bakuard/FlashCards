@@ -9,6 +9,7 @@ import com.bakuard.flashcards.dto.expression.ExpressionForDictionaryListResponse
 import com.bakuard.flashcards.dto.expression.ExpressionResponse;
 import com.bakuard.flashcards.dto.expression.ExpressionUpdateRequest;
 import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,16 +36,19 @@ public class DictionaryOfExpressionsController {
 
 
     private ExpressionService expressionService;
+    private AuthService authService;
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
 
     @Autowired
     public DictionaryOfExpressionsController(ExpressionService expressionService,
+                                             AuthService authService,
                                              DtoMapper mapper,
                                              RequestContext requestContext,
                                              Messages messages) {
         this.expressionService = expressionService;
+        this.authService = authService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
@@ -82,6 +86,10 @@ public class DictionaryOfExpressionsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
@@ -104,6 +112,10 @@ public class DictionaryOfExpressionsController {
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти пользователя с указанным идентификатором.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -134,6 +146,7 @@ public class DictionaryOfExpressionsController {
         logger.info("user {} get expressions of user {} by page={}, size={}, sort={}",
                 jwsUserId, userId, page, size, sort);
 
+        authService.assertExists(userId);
         Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, sort);
         Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionForDictionaryListResponse(
                 expressionService.findByUserId(userId, pageable)
@@ -151,6 +164,10 @@ public class DictionaryOfExpressionsController {
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -180,6 +197,10 @@ public class DictionaryOfExpressionsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение по указанныму id пользователя и значению выражения.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
@@ -208,10 +229,14 @@ public class DictionaryOfExpressionsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id")
     public ResponseEntity<String> delete(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, выражение которого удаляется", required = true)

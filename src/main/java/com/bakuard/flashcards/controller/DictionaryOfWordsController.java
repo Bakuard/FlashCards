@@ -9,6 +9,7 @@ import com.bakuard.flashcards.dto.word.WordForDictionaryListResponse;
 import com.bakuard.flashcards.dto.word.WordResponse;
 import com.bakuard.flashcards.dto.word.WordUpdateRequest;
 import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.WordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,16 +36,19 @@ public class DictionaryOfWordsController {
 
 
     private WordService wordService;
+    private AuthService authService;
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
 
     @Autowired
     public DictionaryOfWordsController(WordService wordService,
+                                       AuthService authService,
                                        DtoMapper mapper,
                                        RequestContext requestContext,
                                        Messages messages) {
         this.wordService = wordService;
+        this.authService = authService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
@@ -83,6 +87,10 @@ public class DictionaryOfWordsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
@@ -105,6 +113,10 @@ public class DictionaryOfWordsController {
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти пользователя с указанным идентификатором.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -135,8 +147,8 @@ public class DictionaryOfWordsController {
         logger.info("user {} get words of user {} by page={}, size={}, sort={}",
                 jwsUserId, userId, page, size, sort);
 
+        authService.assertExists(userId);
         Pageable pageable = mapper.toPageableForDictionaryWords(page, size, sort);
-
         Page<WordForDictionaryListResponse> result = mapper.toWordsForDictionaryListResponse(
                 wordService.findByUserId(userId, pageable)
         );
@@ -154,10 +166,14 @@ public class DictionaryOfWordsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @GetMapping("/{id}")
+    @GetMapping("/id")
     public ResponseEntity<WordResponse> findById(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, слово которого запрашивается", required = true)
@@ -182,10 +198,14 @@ public class DictionaryOfWordsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово по указанныму id пользователя и значению слова.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @GetMapping("/value/{value}")
+    @GetMapping("/value")
     public ResponseEntity<WordResponse> findByValue(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, слово которого запрашивается", required = true)
@@ -210,10 +230,14 @@ public class DictionaryOfWordsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id")
     public ResponseEntity<String> delete(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, слово которого удаляется", required = true)

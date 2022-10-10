@@ -41,12 +41,39 @@ public class AuthService {
         return userRepository.existsById(userId);
     }
 
+    public void assertExists(UUID userId) {
+        if(!existsById(userId)) {
+            throw new UnknownEntityException(
+                    "Unknown user with id=" + userId,
+                    "User.unknownId"
+            );
+        }
+    }
+
     public Optional<User> findById(UUID userId) {
         return userRepository.findById(userId);
     }
 
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public User tryFindById(UUID userId) {
+        return findById(userId).orElseThrow(
+                () -> new UnknownEntityException(
+                        "Unknown user with id=" + userId,
+                        "User.unknownId"
+                )
+        );
+    }
+
+    public User tryFindByEmail(String email) {
+        return findByEmail(email).orElseThrow(
+                () -> new UnknownEntityException(
+                        "Unknown user with email=" + email,
+                        "User.unknownEmail"
+                )
+        );
     }
 
     public long count() {
