@@ -15,4 +15,5 @@ public record ConfigData(int maxPageSize,
                          String gmailPassword,
                          String pathToGmailLetterForRegistration,
                          String pathToGmailLetterForRestorePass,
+                         String pathToGmailLetterForDeletion,
                          String gmailLetterReturnAddress) {}

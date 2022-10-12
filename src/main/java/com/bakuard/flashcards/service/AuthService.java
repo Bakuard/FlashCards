@@ -2,9 +2,11 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.config.ConfigData;
 import com.bakuard.flashcards.dal.UserRepository;
+import com.bakuard.flashcards.model.auth.JwsWithUser;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,35 +20,60 @@ public class AuthService {
     private JwsService jwsService;
     private EmailService emailService;
     private ConfigData configData;
+    private ValidatorUtil validator;
 
     public AuthService(UserRepository userRepository,
                        JwsService jwsService,
                        EmailService emailService,
-                       ConfigData configData) {
+                       ConfigData configData,
+                       ValidatorUtil validator) {
         this.userRepository = userRepository;
         this.jwsService = jwsService;
         this.emailService = emailService;
         this.configData = configData;
+        this.validator = validator;
     }
 
-    public String enter() {
-        return null;
+    @Transactional
+    public JwsWithUser enter(Credential credential) {
+        validator.assertValid(credential);
+        User user = tryFindByEmail(credential.email());
+        user.assertCurrentPassword(credential.password());
+        String jws = jwsService.generateJws(user.getId(), "common");
+        return new JwsWithUser(user, jws);
     }
 
+    @Transactional(readOnly = true)
     public void registerFirstStep(Credential credential) {
-
+        validator.assertValid(credential);
+        String jws = jwsService.generateJws(credential, "register");
+        emailService.confirmEmailForRegistration(jws, credential.email());
     }
 
-    public String registerFinalStep(Credential jwsBody) {
-        return null;
+    @Transactional
+    public JwsWithUser registerFinalStep(Credential jwsBody) {
+        User user = save(User.newBuilder(validator).
+                setCredential(jwsBody).
+                build());
+        String jws = jwsService.generateJws(user.getId(), "register");
+        return new JwsWithUser(user, jws);
     }
 
+    @Transactional(readOnly = true)
     public void restorePasswordFirstStep(Credential credential) {
-
+        validator.assertValid(credential);
+        String jws = jwsService.generateJws(credential, "restorePassword");
+        emailService.confirmEmailForRestorePass(jws, credential.email());
     }
 
-    public String restorePasswordFinalStep(Credential jwsBody) {
-        return null;
+    @Transactional
+    public JwsWithUser restorePasswordFinalStep(Credential jwsBody) {
+        validator.assertValid(jwsBody);
+        User user = tryFindByEmail(jwsBody.email());
+        user.setCredential(jwsBody);
+        user = save(user);
+        String jws = jwsService.generateJws(user.getId(), "restorePassword");
+        return new JwsWithUser(user, jws);
     }
 
     @Transactional
@@ -54,13 +81,16 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
+    public void deletionFirstStep(UUID userId, String email) {
+        assertExists(userId);
+        assertExists(email);
+        String jws = jwsService.generateJws(userId, "deleteUser");
+        emailService.confirmEmailForDeletion(jws, email);
+    }
+
     @Transactional
-    public void tryDeleteById(UUID userId) {
-        if(!existsById(userId)) {
-            throw new UnknownEntityException(
-                    "Unknown user with id=" + userId,
-                    "User.unknown");
-        }
+    public void deletionFinalStep(UUID userId) {
         userRepository.deleteById(userId);
     }
 
@@ -75,6 +105,21 @@ public class AuthService {
             throw new UnknownEntityException(
                     "Unknown user with id=" + userId,
                     "User.unknownId"
+            );
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Transactional(readOnly = true)
+    public void assertExists(String email) {
+        if(!existsByEmail(email)) {
+            throw new UnknownEntityException(
+                    "Unknown user with email=" + email,
+                    "User.unknownEmail"
             );
         }
     }

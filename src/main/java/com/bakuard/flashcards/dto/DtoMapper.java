@@ -5,10 +5,15 @@ import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
 import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
 import com.bakuard.flashcards.dto.common.TranscriptionRequestResponse;
 import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.credential.*;
 import com.bakuard.flashcards.dto.exceptions.ExceptionReasonResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.expression.*;
 import com.bakuard.flashcards.dto.word.*;
+import com.bakuard.flashcards.model.auth.JwsWithUser;
+import com.bakuard.flashcards.model.auth.credential.Credential;
+import com.bakuard.flashcards.model.auth.credential.Role;
+import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.expression.ExpressionExample;
 import com.bakuard.flashcards.model.expression.ExpressionInterpretation;
@@ -16,6 +21,7 @@ import com.bakuard.flashcards.model.expression.ExpressionTranslation;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.model.filter.SortedEntity;
 import com.bakuard.flashcards.model.word.*;
+import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.WordService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
@@ -28,13 +34,13 @@ import javax.validation.ConstraintViolationException;
 import java.time.Clock;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 public class DtoMapper {
 
     private WordService wordService;
     private ExpressionService expressionService;
+    private AuthService authService;
     private ConfigData configData;
     private SortRules sortRules;
     private ValidatorUtil validator;
@@ -42,6 +48,7 @@ public class DtoMapper {
 
     public DtoMapper(WordService wordService,
                      ExpressionService expressionService,
+                     AuthService authService,
                      ConfigData configData,
                      SortRules sortRules,
                      ValidatorUtil validator,
@@ -165,7 +172,7 @@ public class DtoMapper {
                         toList());
     }
 
-    public Page<ExpressionForDictionaryListResponse> toExpressionForDictionaryListResponse(Page<Expression> expressions) {
+    public Page<ExpressionForDictionaryListResponse> toExpressionsForDictionaryListResponse(Page<Expression> expressions) {
         return expressions.map(
                 expression -> new ExpressionForDictionaryListResponse().
                         setUserId(expression.getUserId()).
@@ -175,7 +182,7 @@ public class DtoMapper {
         );
     }
 
-    public Page<ExpressionForRepetitionResponse> toExpressionForRepetitionResponse(Page<Expression> expressions) {
+    public Page<ExpressionForRepetitionResponse> toExpressionsForRepetitionResponse(Page<Expression> expressions) {
         return expressions.map(
                 expression -> new ExpressionForRepetitionResponse().
                         setExpressionId(expression.getId()).
@@ -233,6 +240,58 @@ public class DtoMapper {
     }
 
 
+    public Credential toCredential(UserEnterRequest dto) {
+        return new Credential(dto.getEmail(), dto.getPassword());
+    }
+
+    public Credential toCredential(UserAddRequest dto) {
+        return new Credential(dto.getEmail(), dto.getPassword());
+    }
+
+    public Credential toCredential(PasswordRestoreRequest dto) {
+        return new Credential(dto.getEmail(), dto.getNewPassword());
+    }
+
+    public JwsResponse toJwsResponse(JwsWithUser jws) {
+        JwsResponse response = new JwsResponse();
+        response.setJws(jws.jws());
+        response.setUser(toUserResponse(jws.user()));
+        return response;
+    }
+
+    public User toUser(UserUpdateRequest dto) {
+        User user = authService.tryFindById(dto.getUserId());
+        user.setEmail(dto.getEmail());
+        user.changePassword(dto.getPasswordChangeRequest().getCurrentPassword(),
+                dto.getPasswordChangeRequest().getNewPassword());
+        user.setRoles(dto.getRoles().stream().map(this::toRole).toList());
+        return user;
+    }
+
+    public UserResponse toUserResponse(User user) {
+        UserResponse response = new UserResponse();
+        response.setUserId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setRoles(user.getRoles().stream().map(this::toUserRoleRequestResponse).toList());
+        return response;
+    }
+
+    public Page<UserResponse> toUsersResponse(Page<User> users) {
+        return users.map(this::toUserResponse);
+    }
+
+    public Pageable toPageableForAuth(int page, int size, String sort) {
+        size = Math.min(configData.maxPageSize(), size);
+        size = Math.max(configData.minPageSize(), size);
+
+        return PageRequest.of(
+                page,
+                size,
+                sortRules.toSort(sort, SortedEntity.USER)
+        );
+    }
+
+
     public ExceptionResponse toExceptionResponse(HttpStatus httpStatus, String... messageKeys) {
         ExceptionResponse response = new ExceptionResponse(httpStatus, clock);
         Arrays.stream(messageKeys).forEach(message -> response.addReason(new ExceptionReasonResponse(message)));
@@ -243,6 +302,14 @@ public class DtoMapper {
         ExceptionResponse response = new ExceptionResponse(httpStatus, clock);
         exception.getConstraintViolations().
                 forEach(constraint -> response.addReason(new ExceptionReasonResponse(constraint.getMessage())));
+        return response;
+    }
+
+
+    public <T> ResponseMessage<T> toResponseMessage(String message, T body) {
+        ResponseMessage<T> response = new ResponseMessage<>();
+        response.setMessage(message);
+        response.setPayload(body);
         return response;
     }
 
@@ -318,6 +385,17 @@ public class DtoMapper {
 
     private ExpressionExample toExpressionExample(ExampleRequestResponse dto) {
         return new ExpressionExample(dto.getOrigin(), dto.getTranslate(), dto.getNote());
+    }
+
+
+    private UserRoleRequestResponse toUserRoleRequestResponse(Role role) {
+        UserRoleRequestResponse response = new UserRoleRequestResponse();
+        response.setName(role.name());
+        return response;
+    }
+
+    private Role toRole(UserRoleRequestResponse dto) {
+        return new Role(dto.getName());
     }
 
 

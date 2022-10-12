@@ -148,7 +148,7 @@ public class DictionaryOfExpressionsController {
 
         authService.assertExists(userId);
         Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, sort);
-        Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionForDictionaryListResponse(
+        Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionsForDictionaryListResponse(
                 expressionService.findByUserId(userId, pageable)
         );
 

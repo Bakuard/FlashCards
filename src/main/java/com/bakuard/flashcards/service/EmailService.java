@@ -43,6 +43,18 @@ public class EmailService {
         }
     }
 
+    public void confirmEmailForDeletion(String jws, String email) {
+        try {
+            sendEmail(
+                    configData.pathToGmailLetterForDeletion(),
+                    configData.gmailLetterReturnAddress() + '/' + jws,
+                    email
+            );
+        } catch(MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     private void sendEmail(String htmlFileName, String endpoint, String email) throws MessagingException {
         Properties properties = new Properties();

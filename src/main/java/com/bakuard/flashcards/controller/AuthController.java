@@ -5,6 +5,9 @@ import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.credential.*;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
+import com.bakuard.flashcards.model.auth.JwsWithUser;
+import com.bakuard.flashcards.model.auth.credential.Credential;
+import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,7 +59,12 @@ public class AuthController {
     )
     @PostMapping("/enter")
     public ResponseEntity<JwsResponse> enter(@RequestBody UserEnterRequest dto) {
-        return ResponseEntity.ok(null);
+        logger.info("enter user with email '{}'", dto.getEmail());
+
+        Credential credential = mapper.toCredential(dto);
+        JwsWithUser jws = authService.enter(credential);
+
+        return ResponseEntity.ok(mapper.toJwsResponse(jws));
     }
 
     @Operation(
@@ -79,7 +87,11 @@ public class AuthController {
     )
     @PostMapping("/registration/firstStep")
     public ResponseEntity<String> registerFirstStep(@RequestBody UserAddRequest dto) {
-        return ResponseEntity.ok(null);
+        logger.info("register new user with email '{}'. first step.", dto.getEmail());
+
+        authService.registerFirstStep(mapper.toCredential(dto));
+
+        return ResponseEntity.ok(messages.getMessage("auth.registration.firstStep"));
     }
 
     @Operation(
@@ -95,7 +107,12 @@ public class AuthController {
     )
     @PostMapping("/registration/finalStep")
     public ResponseEntity<JwsResponse> registerFinalStep() {
-        return ResponseEntity.ok(null);
+        Credential credential = requestContext.getCurrentJwsBodyAs(Credential.class);
+        logger.info("register new user with email '{}'. final step.", credential.email());
+
+        JwsWithUser jws = authService.registerFinalStep(credential);
+
+        return ResponseEntity.ok(mapper.toJwsResponse(jws));
     }
 
     @Operation(
@@ -118,7 +135,11 @@ public class AuthController {
     )
     @PostMapping("/restorePassword/firstStep")
     public ResponseEntity<String> restorePasswordFirstStep(@RequestBody PasswordRestoreRequest dto) {
-        return ResponseEntity.ok(null);
+        logger.info("restore password for user with email '{}'. first step.", dto.getEmail());
+
+        authService.restorePasswordFirstStep(mapper.toCredential(dto));
+
+        return ResponseEntity.ok(messages.getMessage("auth.restorePassword.firstStep"));
     }
 
     @Operation(
@@ -134,7 +155,12 @@ public class AuthController {
     )
     @PostMapping("/restorePassword/finalStep")
     public ResponseEntity<JwsResponse> restorePasswordFinalStep() {
-        return ResponseEntity.ok(null);
+        Credential credential = requestContext.getCurrentJwsBodyAs(Credential.class);
+        logger.info("restore password for user with email '{}'. final step.", credential.email());
+
+        JwsWithUser jws = authService.restorePasswordFinalStep(credential);
+
+        return ResponseEntity.ok(mapper.toJwsResponse(jws));
     }
 
     @Operation(summary = "Изменяет учетные данные пользователя.",
@@ -156,7 +182,13 @@ public class AuthController {
     )
     @PutMapping
     public ResponseEntity<UserResponse> update(@RequestBody UserUpdateRequest dto) {
-        return ResponseEntity.ok(null);
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} update user with id={}", userId, dto.getUserId());
+
+        User user = mapper.toUser(dto);
+        authService.save(user);
+
+        return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 
     @Operation(
@@ -171,7 +203,12 @@ public class AuthController {
     )
     @GetMapping("/jws")
     public ResponseEntity<UserResponse> getUserByJws() {
-        return ResponseEntity.ok(null);
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("get user by jws where user id={}", userId);
+
+        User user = authService.tryFindById(userId);
+
+        return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 
     @Operation(
@@ -193,7 +230,12 @@ public class AuthController {
             @RequestParam
             @Parameter(description = "Уникальный идентификатор искомого пользователя.", required = true)
             UUID userId) {
-        return ResponseEntity.ok(null);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get user with id={}", jwsUserId, userId);
+
+        User user = authService.tryFindById(userId);
+
+        return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 
     @Operation(summary = "Возвращает часть учетных данных пользователей.",
@@ -227,7 +269,12 @@ public class AuthController {
                             }
                     ))
             String sort) {
-        return ResponseEntity.ok(null);
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find users by page={}, size={}, sort={}", userId, page, size, sort);
+
+        Page<User> users = authService.findAll(mapper.toPageableForAuth(page, size, sort));
+
+        return ResponseEntity.ok(mapper.toUsersResponse(users));
     }
 
     @Operation(
@@ -248,14 +295,25 @@ public class AuthController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти пользователя с указанным идентификатором.",
+                            description = "Если не удалось найти пользователя с указанным идентификатором или почтой",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
     @DeleteMapping("/deletion/firstStep")
-    public ResponseEntity<ResponseMessage<JwsResponse>> deleteFirstStep(@RequestParam UUID userId) {
-        return ResponseEntity.ok(null);
+    public ResponseEntity<String> deleteFirstStep(
+            @RequestParam
+            @Parameter(description = "Уникальный идентификатор удаляемого пользователя.", required = true)
+            UUID userId,
+            @RequestParam
+            @Parameter(description = "Почта удаляемого пользователя.", required = true)
+            String email) {
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} delete user with id={} and email={}. First step.", jwsUserId, userId, email);
+
+        authService.deletionFirstStep(userId, email);
+
+        return ResponseEntity.ok(messages.getMessage("auth.deleteUser.firstStep"));
     }
 
     @Operation(
@@ -274,7 +332,12 @@ public class AuthController {
     )
     @DeleteMapping("/deletion/finalStep")
     public ResponseEntity<String> deleteFinalStep() {
-        return ResponseEntity.ok(null);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("delete user with id={}. Final step.", jwsUserId);
+
+        authService.deletionFinalStep(jwsUserId);
+
+        return ResponseEntity.ok(messages.getMessage("auth.deleteUser.finalStep"));
     }
 
 }

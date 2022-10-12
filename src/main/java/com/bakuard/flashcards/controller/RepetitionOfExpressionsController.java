@@ -80,7 +80,7 @@ public class RepetitionOfExpressionsController {
         Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, "value.asc");
         Page<Expression> result = expressionService.findAllForRepeat(userId, pageable);
 
-        return ResponseEntity.ok(mapper.toExpressionForRepetitionResponse(result));
+        return ResponseEntity.ok(mapper.toExpressionsForRepetitionResponse(result));
     }
 
     @Operation(summary = "Отмечает - помнит ли пользователь устойчевое выражение или нет.",

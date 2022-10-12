@@ -1,10 +1,9 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.ValidatorUtil;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,7 +58,7 @@ class UserRepositoryTest {
 
         User actual = userRepository.findByEmail(toEmail(1)).orElseThrow();
 
-        org.assertj.core.api.Assertions.
+        Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
                 isEqualTo(actual);
@@ -72,6 +71,24 @@ class UserRepositoryTest {
              => return empty Optional
             """)
     public void findByEmail2() {
+        commit(() -> {
+            userRepository.save(user(1));
+            userRepository.save(user(2));
+            userRepository.save(user(3));
+        });
+
+        Optional<User> actual = userRepository.findByEmail(toEmail(1000));
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            existsByEmail(email):
+             exists user with such email
+             => return true
+            """)
+    public void existsByEmail1() {
         User expected = user(1);
         commit(() -> {
             userRepository.save(expected);
@@ -79,9 +96,27 @@ class UserRepositoryTest {
             userRepository.save(user(3));
         });
 
-        Optional<User> actual = userRepository.findByEmail(toEmail(1000));
+        boolean actual = userRepository.existsByEmail(expected.getEmail());
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isTrue();
+    }
+
+    @Test
+    @DisplayName("""
+            existsByEmail(email):
+             not exists user with such email
+             => return false
+            """)
+    public void existsByEmail2() {
+        commit(() -> {
+            userRepository.save(user(1));
+            userRepository.save(user(2));
+            userRepository.save(user(3));
+        });
+
+        boolean actual = userRepository.existsByEmail(toEmail(1000));
+
+        Assertions.assertThat(actual).isFalse();
     }
 
 

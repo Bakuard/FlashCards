@@ -119,8 +119,9 @@ public class TestConfig {
     public AuthService authService(UserRepository userRepository,
                                    JwsService jwsService,
                                    EmailService emailService,
-                                   ConfigData configData) {
-        return new AuthService(userRepository, jwsService, emailService, configData);
+                                   ConfigData configData,
+                                   ValidatorUtil validator) {
+        return new AuthService(userRepository, jwsService, emailService, configData, validator);
     }
 
     @Bean
@@ -155,11 +156,12 @@ public class TestConfig {
     @Bean
     public DtoMapper dtoMapper(WordService wordService,
                                ExpressionService expressionService,
+                               AuthService authService,
                                ConfigData configData,
                                SortRules sortRules,
                                ValidatorUtil validator,
                                Clock clock) {
-        return new DtoMapper(wordService, expressionService, configData, sortRules, validator, clock);
+        return new DtoMapper(wordService, expressionService, authService, configData, sortRules, validator, clock);
     }
 
     @Bean

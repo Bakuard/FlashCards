@@ -36,7 +36,7 @@ class JwsServiceTest {
         UUID expected = toUUID(1);
         JwsService jwsService = new JwsService(configData, clock);
 
-        String jws = jwsService.generateJws(expected);
+        String jws = jwsService.generateJws(expected, "keyName");
         UUID actual = jwsService.parseJws(jws, UUID.class);
 
         Assertions.assertThat(actual).isEqualTo(expected);
@@ -53,7 +53,7 @@ class JwsServiceTest {
         UUID expected = toUUID(1);
         JwsService jwsService = new JwsService(configData, clock);
 
-        String jws = jwsService.generateJws(expected);
+        String jws = jwsService.generateJws(expected, "keyName");
         Optional<UUID> actual = jwsService.parseJws(jws,
                 typeName -> typeName.equals(UUID.class.getName()) ? UUID.class : null);
 
@@ -74,10 +74,31 @@ class JwsServiceTest {
         UUID expected = toUUID(1);
         JwsService jwsService = new JwsService(configData, clock);
 
-        String jws = jwsService.generateJws(expected);
+        String jws = jwsService.generateJws(expected, "keyName");
         Optional<UUID> actual = jwsService.parseJws(jws, typeName -> null);
 
         Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            generate and parse token:
+             Jws body is correct,
+             use several keys with different names
+             => parser must return the same Jws body
+            """)
+    public void generateAndParse4() {
+        JwsService jwsService = new JwsService(configData, clock);
+        String jws1 = jwsService.generateJws(toUUID(1), "keyName1");
+        String jws2 = jwsService.generateJws(toUUID(2), "keyName2");
+
+        UUID actual1 = jwsService.parseJws(jws1, UUID.class);
+        Optional<UUID> actual2 = jwsService.parseJws(jws2, typeName -> UUID.class);
+
+        Assertions.assertThat(actual1).isEqualTo(toUUID(1));
+        Assertions.assertThat(actual2).
+                isPresent().
+                contains(toUUID(2));
     }
 
 

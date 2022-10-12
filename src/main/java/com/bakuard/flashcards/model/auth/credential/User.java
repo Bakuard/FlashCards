@@ -99,6 +99,12 @@ public class User implements Entity {
         if(id == null) id = UUID.randomUUID();
     }
 
+    public void setEmail(String email) {
+        validator.assertValid(new Email(email));
+
+        this.email = email;
+    }
+
     public void assertCurrentPassword(String currentPassword) {
         validator.assertValid(new RawPassword(currentPassword));
 
@@ -122,6 +128,13 @@ public class User implements Entity {
 
         this.email = credential.email();
         this.passwordHash = calculatePasswordHash(credential.password(), salt);
+    }
+
+    public void setRoles(List<Role> roles) {
+        if(roles != null) {
+            this.roles.clear();
+            this.roles.addAll(roles);
+        }
     }
 
     @Override
@@ -181,6 +194,11 @@ public class User implements Entity {
 
         public Builder setPassword(String password) {
             this.credential = new Credential(credential.email(), password);
+            return this;
+        }
+
+        public Builder setCredential(Credential credential) {
+            if(credential != null) this.credential = credential;
             return this;
         }
 

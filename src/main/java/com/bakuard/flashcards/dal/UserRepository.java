@@ -14,4 +14,7 @@ public interface UserRepository extends PagingAndSortingRepository<User, UUID> {
     @Query("select * from users where email = :email")
     Optional<User> findByEmail(String email);
 
+    @Query("select count(*) > 0 as existsColumn from users where email = :email;")
+    boolean existsByEmail(String email);
+
 }
