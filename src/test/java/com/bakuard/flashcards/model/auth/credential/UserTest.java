@@ -1,8 +1,6 @@
 package com.bakuard.flashcards.model.auth.credential;
 
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.auth.credential.PasswordChangeData;
-import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.IncorrectCredentials;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
@@ -48,8 +46,8 @@ class UserTest {
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format",
-                        "User.email.notNull",
+                containsExactlyInAnyOrder("Credential.password.format",
+                        "Credential.email.notNull",
                         "User.roles.notContainsNull");
     }
 
@@ -74,8 +72,8 @@ class UserTest {
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format",
-                        "User.email.format",
+                containsExactlyInAnyOrder("Credential.password.format",
+                        "Credential.email.format",
                         "User.roles.allUnique");
     }
 
@@ -100,8 +98,8 @@ class UserTest {
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format",
-                        "User.email.format",
+                containsExactlyInAnyOrder("Credential.password.format",
+                        "Credential.email.format",
                         "Role.name.notBlank");
     }
 
@@ -123,7 +121,7 @@ class UserTest {
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
-                containsExactlyInAnyOrder("Password.format");
+                containsExactlyInAnyOrder("Credential.password.format");
     }
 
     @Test
@@ -246,9 +244,7 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.builder().
-                        changePassword(new PasswordChangeData("password", null)).
-                        build()).
+                isThrownBy(() -> user.changePassword("password", null)).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
@@ -270,9 +266,7 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.builder().
-                        changePassword(new PasswordChangeData("password", "     ")).
-                        build()).
+                isThrownBy(() -> user.changePassword("password", "     ")).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
@@ -294,9 +288,7 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.builder().
-                        changePassword(new PasswordChangeData("password", "1234567")).
-                        build()).
+                isThrownBy(() -> user.changePassword("password", "1234567")).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
@@ -318,13 +310,8 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> user.builder().
-                                changePassword(
-                                        new PasswordChangeData(
-                                                "password",
-                                                "01234567890123456789012345678901234567890123456789X")
-                                ).
-                                build()).
+                isThrownBy(() -> user.changePassword("password",
+                                "01234567890123456789012345678901234567890123456789X")).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toSet()),
@@ -346,9 +333,7 @@ class UserTest {
 
         Assertions.
                 assertThatExceptionOfType(IncorrectCredentials.class).
-                isThrownBy(() -> user.builder().
-                        changePassword(new PasswordChangeData("unknown pass", "12345678")).
-                        build());
+                isThrownBy(() -> user.changePassword("unknown pass", "12345678"));
     }
 
     @Test
@@ -363,12 +348,10 @@ class UserTest {
                 setPassword("password").
                 build();
 
-        User expected = user.builder().
-                changePassword(new PasswordChangeData("password", "12345678")).
-                build();
+        user.changePassword("password", "12345678");
 
         Assertions.
-                assertThatCode(() -> expected.assertCurrentPassword("12345678")).
+                assertThatCode(() -> user.assertCurrentPassword("12345678")).
                 doesNotThrowAnyException();
     }
 

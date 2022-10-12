@@ -125,6 +125,11 @@ public class Word implements Entity {
     }
 
     @Override
+    public boolean isNew() {
+        return id == null;
+    }
+
+    @Override
     public void setValidator(ValidatorUtil validator) {
         this.validator = validator;
     }

@@ -253,7 +253,7 @@ public class AuthController {
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @DeleteMapping
+    @DeleteMapping("/deletion/firstStep")
     public ResponseEntity<ResponseMessage<JwsResponse>> deleteFirstStep(@RequestParam UUID userId) {
         return ResponseEntity.ok(null);
     }
@@ -272,7 +272,7 @@ public class AuthController {
                                     schema = @Schema(implementation = ExceptionResponse.class))),
             }
     )
-    @DeleteMapping
+    @DeleteMapping("/deletion/finalStep")
     public ResponseEntity<String> deleteFinalStep() {
         return ResponseEntity.ok(null);
     }

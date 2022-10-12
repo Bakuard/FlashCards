@@ -8,6 +8,8 @@ public interface Entity {
 
     public UUID getId();
 
+    public boolean isNew();
+
     public void generateIdIfAbsent();
 
     public void setValidator(ValidatorUtil validator);

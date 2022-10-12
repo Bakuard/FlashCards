@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.config.security;
 
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.service.JwsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -26,6 +27,7 @@ public class JwsAuthenticationProvider implements AuthenticationProvider {
         Object jwsBody = jwsService.parseJws(jws, bodyTypeName -> {
             Class<?> bodyType = null;
             if(bodyTypeName.equals(UUID.class.getName())) bodyType = UUID.class;
+            else if(bodyTypeName.equals(Credential.class.getName())) bodyType = Credential.class;
             return bodyType;
         }).orElseThrow();
 

@@ -115,8 +115,9 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public AuthService authService(UserRepository userRepository,
                                        JwsService jwsService,
+                                       EmailService emailService,
                                        ConfigData configData) {
-             return new AuthService(userRepository, jwsService, configData);
+             return new AuthService(userRepository, jwsService, emailService, configData);
         }
 
         @Bean

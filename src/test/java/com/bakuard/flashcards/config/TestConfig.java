@@ -6,13 +6,13 @@ import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.controller.message.MessagesImpl;
 import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
+import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
 import com.bakuard.flashcards.dal.impl.IntervalsRepositoryImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
-import com.bakuard.flashcards.service.ExpressionService;
-import com.bakuard.flashcards.service.WordService;
+import com.bakuard.flashcards.service.*;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -30,6 +30,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.data.relational.core.mapping.event.AfterConvertEvent;
@@ -39,6 +40,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import javax.sql.DataSource;
@@ -114,6 +116,24 @@ public class TestConfig {
     }
 
     @Bean
+    public AuthService authService(UserRepository userRepository,
+                                   JwsService jwsService,
+                                   EmailService emailService,
+                                   ConfigData configData) {
+        return new AuthService(userRepository, jwsService, emailService, configData);
+    }
+
+    @Bean
+    public JwsService jwsService(ConfigData configData, Clock clock) {
+        return new JwsService(configData, clock);
+    }
+
+    @Bean
+    public EmailService emailService(ConfigData configData) {
+        return new EmailService(configData);
+    }
+
+    @Bean
     public LocaleResolver localeResolver() {
         return new AcceptHeaderLocaleResolver();
     }
@@ -163,6 +183,11 @@ public class TestConfig {
                 entity.setValidator(validator);
             }
         };
+    }
+
+    @Bean(name = "mvcHandlerMappingIntrospector")
+    public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
+        return new HandlerMappingIntrospector();
     }
 
 
