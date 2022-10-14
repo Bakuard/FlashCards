@@ -71,13 +71,14 @@ public class RepetitionOfExpressionsController {
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
             @RequestParam(value = "size", required = false)
-            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
             int size) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find all expressions of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
 
-        Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, "value.asc");
+        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort("value.asc"));
         Page<Expression> result = expressionService.findAllForRepeat(userId, pageable);
 
         return ResponseEntity.ok(mapper.toExpressionsForRepetitionResponse(result));

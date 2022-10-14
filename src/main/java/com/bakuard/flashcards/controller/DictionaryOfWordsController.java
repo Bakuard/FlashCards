@@ -130,7 +130,8 @@ public class DictionaryOfWordsController {
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
             @RequestParam(value = "size", required = false)
-            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
             int size,
             @RequestParam(value = "sort", required = false)
             @Parameter(description = "Порядок сортировки.",
@@ -148,7 +149,7 @@ public class DictionaryOfWordsController {
                 jwsUserId, userId, page, size, sort);
 
         authService.assertExists(userId);
-        Pageable pageable = mapper.toPageableForDictionaryWords(page, size, sort);
+        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(sort));
         Page<WordForDictionaryListResponse> result = mapper.toWordsForDictionaryListResponse(
                 wordService.findByUserId(userId, pageable)
         );
@@ -188,7 +189,11 @@ public class DictionaryOfWordsController {
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
 
-    @Operation(summary = "Возвращает слово из словаря пользователя по его значению",
+    @Operation(summary = """
+            Возвращает слово и/или наиболее похожие по написанию к нему слова. Все слова будут отсортирвоанны
+             в порядке возрастания редакционного расстояние между искомым словом, а затем в лексеграфиечском
+             порядке.
+            """,
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -200,24 +205,39 @@ public class DictionaryOfWordsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти слово по указанныму id пользователя и значению слова.",
+                            description = "Если пользователя с указанным id не существует.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
     @GetMapping("/value")
-    public ResponseEntity<WordResponse> findByValue(
+    public ResponseEntity<Page<WordForDictionaryListResponse>> findByValue(
             @RequestParam
-            @Parameter(description = "Идентификатор пользователя, слово которого запрашивается", required = true)
+            @Parameter(description = "Идентификатор пользователя, из слов которого делается выборка", required = true)
             UUID userId,
             @PathVariable
-            @Parameter(description = "Значение слова. Не может быть null.", required = true)
-            String value) {
+            @Parameter(description = "Значение искомого слова. Не может быть null.", required = true)
+            String value,
+            @RequestParam
+            @Parameter(description = """
+                    максимальное реадкциооное растояние относительно искомого слова.
+                     Диапозон допустимых значений [1, 6].
+                    """, schema = @Schema(defaultValue = "6"))
+            int maxDistance,
+            @RequestParam("page")
+            @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
+            int page,
+            @RequestParam(value = "size", required = false)
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
+            int size) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} get word of user {} by value '{}'", jwsUserId, userId, value);
+        logger.info("user {} get words of user {} by value '{}', levenshtein_distance {}, page {}, size {}",
+                jwsUserId, userId, value, maxDistance, page, size);
 
-        Word word = wordService.tryFindByValue(userId, value);
-        return ResponseEntity.ok(mapper.toWordResponse(word));
+        Pageable pageable = mapper.toPageable(page, size);
+        Page<Word> words = wordService.findByValue(userId, value, maxDistance, pageable);
+        return ResponseEntity.ok(mapper.toWordsForDictionaryListResponse(words));
     }
 
     @Operation(summary = "Удаляет слово из словаря пользователя пользователя",

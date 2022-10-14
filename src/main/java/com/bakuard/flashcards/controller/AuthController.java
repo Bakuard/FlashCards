@@ -272,7 +272,7 @@ public class AuthController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find users by page={}, size={}, sort={}", userId, page, size, sort);
 
-        Page<User> users = authService.findAll(mapper.toPageableForAuth(page, size, sort));
+        Page<User> users = authService.findAll(mapper.toPageable(page, size, mapper.toUserSort(sort)));
 
         return ResponseEntity.ok(mapper.toUsersResponse(users));
     }

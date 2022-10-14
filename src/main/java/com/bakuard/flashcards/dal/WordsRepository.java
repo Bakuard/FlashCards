@@ -7,7 +7,6 @@ import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,8 +19,11 @@ public interface WordsRepository extends PagingAndSortingRepository<Word, UUID> 
     @Query("select * from words where user_id = :userId and word_id = :wordId;")
     public Optional<Word> findById(UUID userId, UUID wordId);
 
-    @Query("select * from words where user_id = :userId and value = :value;")
-    public Optional<Word> findByValue(UUID userId, String value);
+    @Query("""
+            select * from words
+                where user_id = :userId and distance(:value, value, :maxDistance) != -1;
+            """)
+    public List<Word> findByValue(UUID userId, String value, int maxDistance, int limit, int offset);
 
     @Modifying
     @Query("delete from words where user_id = :userId and word_id = :wordId;")
@@ -38,6 +40,15 @@ public interface WordsRepository extends PagingAndSortingRepository<Word, UUID> 
              where user_id = :userId and (last_date_of_repeat + repeat_interval) <= :date;
             """)
     public long countForRepeat(UUID userId, LocalDate date);
+
+    @Query("""
+            select count(*) from (
+               select value
+                   from words
+                   where user_id = :userId and distance(:value, value, :maxDistance) != -1
+            )
+            """)
+    public long countForValue(UUID userId, String value, int maxDistance);
 
     public Page<Word> findByUserId(UUID userId, Pageable pageable);
 

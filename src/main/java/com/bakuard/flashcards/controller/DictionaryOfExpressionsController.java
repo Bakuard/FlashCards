@@ -129,7 +129,8 @@ public class DictionaryOfExpressionsController {
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
             @RequestBody(required = false)
-            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
             int size,
             @RequestParam(required = false)
             @Parameter(description = "Порядок сортировки.",
@@ -147,7 +148,7 @@ public class DictionaryOfExpressionsController {
                 jwsUserId, userId, page, size, sort);
 
         authService.assertExists(userId);
-        Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, sort);
+        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(sort));
         Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionsForDictionaryListResponse(
                 expressionService.findByUserId(userId, pageable)
         );

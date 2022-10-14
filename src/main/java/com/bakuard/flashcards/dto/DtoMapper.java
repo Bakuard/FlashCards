@@ -28,6 +28,7 @@ import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 
 import javax.validation.ConstraintViolationException;
@@ -143,15 +144,8 @@ public class DtoMapper {
                 build();
     }
 
-    public Pageable toPageableForDictionaryWords(int page, int size, String sort) {
-        size = Math.min(configData.maxPageSize(), size);
-        size = Math.max(configData.minPageSize(), size);
-
-        return PageRequest.of(
-                page,
-                size,
-                sortRules.toSort(sort, SortedEntity.WORD)
-        );
+    public Sort toWordSort(String sortRule) {
+        return sortRules.toSort(sortRule, SortedEntity.WORD);
     }
 
 
@@ -228,15 +222,8 @@ public class DtoMapper {
                 build();
     }
 
-    public Pageable toPageableForDictionaryExpressions(int page, int size, String sort) {
-        size = Math.min(configData.maxPageSize(), size);
-        size = Math.max(configData.minPageSize(), size);
-
-        return PageRequest.of(
-                page,
-                size,
-                sortRules.toSort(sort, SortedEntity.EXPRESSION)
-        );
+    public Sort toExpressionSort(String sortRule) {
+        return sortRules.toSort(sortRule, SortedEntity.EXPRESSION);
     }
 
 
@@ -280,15 +267,8 @@ public class DtoMapper {
         return users.map(this::toUserResponse);
     }
 
-    public Pageable toPageableForAuth(int page, int size, String sort) {
-        size = Math.min(configData.maxPageSize(), size);
-        size = Math.max(configData.minPageSize(), size);
-
-        return PageRequest.of(
-                page,
-                size,
-                sortRules.toSort(sort, SortedEntity.USER)
-        );
+    public Sort toUserSort(String sortRule) {
+        return sortRules.toSort(sortRule, SortedEntity.USER);
     }
 
 
@@ -311,6 +291,22 @@ public class DtoMapper {
         response.setMessage(message);
         response.setPayload(body);
         return response;
+    }
+
+    public Pageable toPageable(int page, int size) {
+        size = Math.min(size, configData.maxPageSize());
+        if(size == 0) size = configData.defaultPageSize();
+        size = Math.max(configData.minPageSize(), size);
+
+        return PageRequest.of(page, size);
+    }
+
+    public Pageable toPageable(int page, int size, Sort sort) {
+        size = Math.min(size, configData.maxPageSize());
+        if(size == 0) size = configData.defaultPageSize();
+        size = Math.max(configData.minPageSize(), size);
+
+        return PageRequest.of(page, size, sort);
     }
 
 

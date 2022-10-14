@@ -6,9 +6,9 @@ import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.validation.ValidatorUtil;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -93,7 +93,7 @@ class WordsRepositoryTest {
 
         Optional<Word> actual = wordsRepository.findById(user.getId(), toUUID(1));
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -118,39 +118,138 @@ class WordsRepositoryTest {
 
     @Test
     @DisplayName("""
-            findByValue(userId, value):
-             there is not word with such value
-             => return empty optional
+            countForValue(userId, value, maxDistance):
+             user with userId hasn't any words
+             => return 0
             """)
-    public void findByValue1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
-        commit(() -> wordsRepository.save(expected));
+    public void countForValue1() {
+        commit(() -> userRepository.save(user(1)));
 
-        Optional<Word> actual = wordsRepository.findByValue(user.getId(), "Unknown value");
+        long actual = wordsRepository.countForValue(toUUID(1), "value", 2);
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
     @DisplayName("""
-            findByValue(userId, value):
-             there is word with such value
-             => return correct word
+            countForValue(userId, value, maxDistance):
+             user has some words,
+             there are not words with maxDistance <= 2
+             => return 0
+            """)
+    public void countForValue2() {
+        User user = commit(() -> {
+            User temp = userRepository.save(user(1));
+            wordsRepository.save(word(temp.getId(), "value", "note", repeatData(1)));
+            wordsRepository.save(word(temp.getId(), "cock", "note", repeatData(3)));
+            wordsRepository.save(word(temp.getId(), "rise", "note", repeatData(5)));
+            wordsRepository.save(word(temp.getId(), "value1234", "note", repeatData(10)));
+            return temp;
+        });
+
+        long actual = wordsRepository.countForValue(user.getId(), "cockroach", 2);
+
+        Assertions.assertThat(actual).isZero();
+    }
+
+    @Test
+    @DisplayName("""
+            countForValue(userId, value, maxDistance):
+             user has some words,
+             there are words with maxDistance <= 2
+             => return correct result
+            """)
+    public void countForValue3() {
+        User user = commit(() -> {
+            User temp = userRepository.save(user(1));
+            wordsRepository.save(word(temp.getId(), "frog", "note", repeatData(1)));
+            wordsRepository.save(word(temp.getId(), "frog1", "note", repeatData(3)));
+            wordsRepository.save(word(temp.getId(), "broom", "note", repeatData(5)));
+            wordsRepository.save(word(temp.getId(), "distance", "note", repeatData(10)));
+            return temp;
+        });
+
+        long actual = wordsRepository.countForValue(user.getId(), "frog", 2);
+
+        Assertions.assertThat(actual).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("""
+            findByValue(userId, value, maxDistance, limit, offset):
+             user with userId hasn't any words
+             return empty list
+            """)
+    public void findByValue1() {
+        User user = commit(() -> userRepository.save(user(1)));
+
+        List<Word> actual = wordsRepository.findByValue(
+                user.getId(),
+                "cockroach",
+                2,
+                10,
+                0
+        );
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findByValue(userId, value, maxDistance, limit, offset):
+             user has some words,
+             there are not words with maxDistance <= 2
+             return empty list
             """)
     public void findByValue2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
-        commit(() -> wordsRepository.save(expected));
+        User user = commit(() -> {
+            User temp = userRepository.save(user(1));
+            wordsRepository.save(word(temp.getId(), "value", "note", repeatData(1)));
+            wordsRepository.save(word(temp.getId(), "cock", "note", repeatData(3)));
+            wordsRepository.save(word(temp.getId(), "rise", "note", repeatData(5)));
+            wordsRepository.save(word(temp.getId(), "value1234", "note", repeatData(10)));
+            return temp;
+        });
 
-        Word actual = wordsRepository.findByValue(user.getId(), "value 1").orElseThrow();
+        List<Word> actual = wordsRepository.findByValue(
+                user.getId(),
+                "cockroach",
+                2,
+                10,
+                0
+        );
 
-        org.assertj.core.api.Assertions.
-                assertThat(expected).
-                usingRecursiveComparison().
-                isEqualTo(actual);
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findByValue(userId, value, maxDistance, limit, offset):
+             user has some words,
+             there are words with maxDistance <= 2
+             => return correct result
+            """)
+    public void findByValue3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        List<Word> words = List.of(
+                word(user.getId(), "frog", "note", repeatData(1)),
+                word(user.getId(), "frog1", "note", repeatData(3)),
+                word(user.getId(), "broom", "note", repeatData(5)),
+                word(user.getId(), "distance", "note", repeatData(10))
+        );
+        commit(() -> words.forEach(word -> wordsRepository.save(word)));
+
+        List<Word> actual = wordsRepository.findByValue(
+                user.getId(),
+                "frog",
+                2,
+                10,
+                0
+        );
+
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                containsExactly(words.get(0), words.get(1));
     }
 
     @Test
@@ -167,7 +266,7 @@ class WordsRepositoryTest {
 
         commit(() -> wordsRepository.deleteById(user.getId(), toUUID(1)));
 
-        Assertions.assertTrue(wordsRepository.existsById(expected.getId()));
+        Assertions.assertThat(wordsRepository.existsById(expected.getId())).isTrue();
     }
 
     @Test
@@ -184,7 +283,7 @@ class WordsRepositoryTest {
 
         commit(() -> wordsRepository.deleteById(user.getId(), expected.getId()));
 
-        Assertions.assertFalse(wordsRepository.existsById(expected.getId()));
+        Assertions.assertThat(wordsRepository.existsById(expected.getId())).isFalse();
     }
 
     @Test
@@ -199,7 +298,7 @@ class WordsRepositoryTest {
         Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
-        Assertions.assertFalse(wordsRepository.existsById(user.getId(), toUUID(1)));
+        Assertions.assertThat(wordsRepository.existsById(user.getId(), toUUID(1))).isFalse();
     }
 
     @Test
@@ -214,7 +313,7 @@ class WordsRepositoryTest {
         Word expected = word(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> wordsRepository.save(expected));
 
-        Assertions.assertTrue(wordsRepository.existsById(user.getId(), expected.getId()));
+        Assertions.assertThat(wordsRepository.existsById(user.getId(), expected.getId())).isTrue();
     }
 
     @Test
@@ -234,7 +333,7 @@ class WordsRepositoryTest {
 
         long actual = wordsRepository.count(user3.getId());
 
-        Assertions.assertEquals(0, actual);
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
@@ -256,7 +355,7 @@ class WordsRepositoryTest {
 
         long actual = wordsRepository.count(user3.getId());
 
-        Assertions.assertEquals(2, actual);
+        Assertions.assertThat(actual).isEqualTo(2);
     }
 
     @Test
@@ -290,7 +389,7 @@ class WordsRepositoryTest {
                 user1.getId(), LocalDate.of(2022, 7, 10)
         );
 
-        Assertions.assertEquals(2, actual);
+        Assertions.assertThat(actual).isEqualTo(2);
     }
 
     @Test
@@ -306,7 +405,7 @@ class WordsRepositoryTest {
                 user1.getId(), LocalDate.of(2022, 7, 10)
         );
 
-        Assertions.assertEquals(0, actual);
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
@@ -340,7 +439,7 @@ class WordsRepositoryTest {
                 user1.getId(), LocalDate.of(2022, 7, 7)
         );
 
-        Assertions.assertEquals(0, actual);
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
@@ -354,7 +453,7 @@ class WordsRepositoryTest {
 
         Page<Word> actual = wordsRepository.findByUserId(user1.getId(), PageRequest.of(0, 20));
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -375,7 +474,9 @@ class WordsRepositoryTest {
         List<Word> expected = words.stream().
                 sorted(Comparator.comparing(Word::getValue).reversed()).
                 toList();
-        Assertions.assertEquals(expected, actual.getContent());
+        Assertions.assertThat(actual.getContent()).
+                usingRecursiveFieldByFieldElementComparator().
+                isEqualTo(expected);
     }
 
     @Test
@@ -397,7 +498,9 @@ class WordsRepositoryTest {
                 sorted(Comparator.comparing((Word w) -> w.getRepeatData().getInterval()).
                         thenComparing(Word::getValue)).
                 toList();
-        Assertions.assertEquals(expected, actual.getContent());
+        Assertions.assertThat(actual.getContent()).
+                usingRecursiveFieldByFieldElementComparator().
+                isEqualTo(expected);
     }
 
     @Test
@@ -415,7 +518,7 @@ class WordsRepositoryTest {
                 20, 0
         );
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -436,7 +539,7 @@ class WordsRepositoryTest {
                 20, 0
         );
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -463,7 +566,9 @@ class WordsRepositoryTest {
                 filter(w -> w.getRepeatData().nextDateOfRepeat().compareTo(repeatDate) <= 0).
                 limit(2).
                 toList();
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                isEqualTo(expected);
     }
 
     @Test

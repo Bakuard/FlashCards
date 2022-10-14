@@ -111,3 +111,5 @@ CREATE TABLE expressions_examples (
     UNIQUE(origin, translate),
     FOREIGN KEY(expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE
 );
+
+CREATE ALIAS distance FOR 'com.bakuard.flashcards.dal.impl.StoredProcedures.levenshteinDistance';

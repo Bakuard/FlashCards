@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.service;
 
+import com.bakuard.flashcards.config.ConfigData;
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
 import com.bakuard.flashcards.model.RepeatData;
@@ -23,10 +24,12 @@ public class WordService {
     private WordsRepository wordsRepository;
     private IntervalsRepository intervalsRepository;
     private Clock clock;
+    private ConfigData configData;
 
     public WordService(WordsRepository wordsRepository,
                        IntervalsRepository intervalsRepository,
-                       Clock clock) {
+                       Clock clock,
+                       ConfigData configData) {
         this.wordsRepository = wordsRepository;
         this.intervalsRepository = intervalsRepository;
         this.clock = clock;
@@ -58,8 +61,16 @@ public class WordService {
         return wordsRepository.findById(userId, wordId);
     }
 
-    public Optional<Word> findByValue(UUID userId, String value) {
-        return wordsRepository.findByValue(userId, value);
+    public Page<Word> findByValue(UUID userId, String value, int maxDistance, Pageable pageable) {
+        maxDistance = Math.max(maxDistance, 1);
+        maxDistance = Math.min(configData.levenshteinMaxDistance(), maxDistance);
+        final int distance = maxDistance;
+
+        return PageableExecutionUtils.getPage(
+                wordsRepository.findByValue(userId, value, maxDistance, pageable.getPageSize(), pageable.getPageNumber()),
+                pageable,
+                () -> wordsRepository.countForValue(userId, value, distance)
+        );
     }
 
     public Word tryFindById(UUID userId, UUID wordId) {
@@ -68,16 +79,6 @@ public class WordService {
                         () -> new UnknownEntityException(
                                 "Unknown word with id=" + wordId + " userId=" + userId,
                                 "Word.unknownId"
-                        )
-                );
-    }
-
-    public Word tryFindByValue(UUID userId, String value) {
-        return findByValue(userId, value).
-                orElseThrow(
-                        () -> new UnknownEntityException(
-                                "Unknown word with value=" + value + " userId=" + userId,
-                                "Word.unknownValue"
                         )
                 );
     }

@@ -99,8 +99,9 @@ public class TestConfig {
     @Bean
     public WordService wordService(WordsRepository wordsRepository,
                                    IntervalsRepository intervalsRepository,
-                                   Clock clock) {
-        return new WordService(wordsRepository, intervalsRepository, clock);
+                                   Clock clock,
+                                   ConfigData configData) {
+        return new WordService(wordsRepository, intervalsRepository, clock, configData);
     }
 
     @Bean

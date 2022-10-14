@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 @ConstructorBinding
 @ConfigurationProperties("conf")
 public record ConfigData(int maxPageSize,
+                         int defaultPageSize,
                          int minPageSize,
                          long jwsLifeTimeInDays,
                          String jdbcUrl,
@@ -14,4 +15,5 @@ public record ConfigData(int maxPageSize,
                          String pathToGmailLetterForRegistration,
                          String pathToGmailLetterForRestorePass,
                          String pathToGmailLetterForDeletion,
-                         String gmailLetterReturnAddress) {}
+                         String gmailLetterReturnAddress,
+                         int levenshteinMaxDistance) {}
