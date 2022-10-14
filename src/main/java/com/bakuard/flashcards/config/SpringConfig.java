@@ -56,12 +56,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public DataSource dataSource(ConfigData configData) {
                 HikariConfig hikariConfig = new HikariConfig();
-                hikariConfig.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
-                hikariConfig.setUsername(configData.databaseUser());
-                hikariConfig.setPassword(configData.databasePassword());
-                hikariConfig.addDataSourceProperty("databaseName", configData.databaseName());
-                hikariConfig.addDataSourceProperty("portNumber", "5432");
-                hikariConfig.addDataSourceProperty("serverName", "localhost");
+                hikariConfig.setJdbcUrl(configData.jdbcUrl());
                 hikariConfig.setAutoCommit(false);
                 hikariConfig.setMaximumPoolSize(10);
                 hikariConfig.setMinimumIdle(5);

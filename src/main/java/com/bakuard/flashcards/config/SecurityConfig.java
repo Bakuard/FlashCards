@@ -60,11 +60,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 and().
                 authorizeRequests().
                 antMatchers(
-                        "/dictionary/words/**",
-                        "/dictionary/expressions/**",
-                        "/repetition/words/**",
-                        "/repetition/expressions/**"
-                ).authenticated().
+                        "/users/registration/firstStep",
+                        "/users/restorePassword/firstStep"
+                ).permitAll().
+                anyRequest().authenticated().
                 and().
                 addFilterBefore(new JwsFilter(), UsernamePasswordAuthenticationFilter.class);
     }

@@ -219,7 +219,7 @@ public class DictionaryOfExpressionsController {
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
-    @Operation(summary = "Удаляет устойчевое выражение из словаря пользователя пользователя",
+    @Operation(summary = "Удаляет устойчевое выражение из словаря пользователя",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
