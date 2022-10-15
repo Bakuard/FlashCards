@@ -107,8 +107,9 @@ public class TestConfig {
     @Bean
     public ExpressionService expressionService(ExpressionRepository expressionRepository,
                                                IntervalsRepository intervalsRepository,
-                                               Clock clock) {
-        return new ExpressionService(expressionRepository, intervalsRepository, clock);
+                                               Clock clock,
+                                               ConfigData configData) {
+        return new ExpressionService(expressionRepository, intervalsRepository, clock, configData);
     }
 
     @Bean

@@ -5,10 +5,11 @@ import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.validation.ValidatorUtil;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -93,7 +94,7 @@ class ExpressionRepositoryTest {
 
         Optional<Expression> actual = expressionRepository.findById(user.getId(), toUUID(1));
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -118,39 +119,138 @@ class ExpressionRepositoryTest {
 
     @Test
     @DisplayName("""
-            findByValue(userId, value):
-             there is not expression with such value
-             => return empty optional
+            countForValue(userId, value, maxDistance):
+             user with userId hasn't any expressions
+             => return 0
             """)
-    public void findByValue1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
-        commit(() -> expressionRepository.save(expected));
+    public void countForValue1() {
+        commit(() -> userRepository.save(user(1)));
 
-        Optional<Expression> actual = expressionRepository.findByValue(user.getId(), "Unknown value");
+        long actual = expressionRepository.countForValue(toUUID(1), "value", 2);
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
     @DisplayName("""
-            findByValue(userId, value):
-             there is expression with such value
-             => return correct expression
+            countForValue(userId, value, maxDistance):
+             user has some expressions,
+             there are not expressions with maxDistance <= 2
+             => return 0
+            """)
+    public void countForValue2() {
+        User user = commit(() -> {
+            User temp = userRepository.save(user(1));
+            expressionRepository.save(expression(temp.getId(), "value", "note", repeatData(1)));
+            expressionRepository.save(expression(temp.getId(), "cock", "note", repeatData(3)));
+            expressionRepository.save(expression(temp.getId(), "rise", "note", repeatData(5)));
+            expressionRepository.save(expression(temp.getId(), "value1234", "note", repeatData(10)));
+            return temp;
+        });
+
+        long actual = expressionRepository.countForValue(user.getId(), "cockroach", 2);
+
+        Assertions.assertThat(actual).isZero();
+    }
+
+    @Test
+    @DisplayName("""
+            countForValue(userId, value, maxDistance):
+             user has some expressions,
+             there are expressions with maxDistance <= 2
+             => return correct result
+            """)
+    public void countForValue3() {
+        User user = commit(() -> {
+            User temp = userRepository.save(user(1));
+            expressionRepository.save(expression(temp.getId(), "frog", "note", repeatData(1)));
+            expressionRepository.save(expression(temp.getId(), "frog1", "note", repeatData(3)));
+            expressionRepository.save(expression(temp.getId(), "broom", "note", repeatData(5)));
+            expressionRepository.save(expression(temp.getId(), "distance", "note", repeatData(10)));
+            return temp;
+        });
+
+        long actual = expressionRepository.countForValue(user.getId(), "frog", 2);
+
+        org.assertj.core.api.Assertions.assertThat(actual).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("""
+            findByValue(userId, value, maxDistance, limit, offset):
+             user with userId hasn't any expressions
+             return empty list
+            """)
+    public void findByValue1() {
+        User user = commit(() -> userRepository.save(user(1)));
+
+        List<Expression> actual = expressionRepository.findByValue(
+                user.getId(),
+                "cockroach",
+                2,
+                10,
+                0
+        );
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findByValue(userId, value, maxDistance, limit, offset):
+             user has some expressions,
+             there are not expressions with maxDistance <= 2
+             return empty list
             """)
     public void findByValue2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> {
+            User temp = userRepository.save(user(1));
+            expressionRepository.save(expression(temp.getId(), "value", "note", repeatData(1)));
+            expressionRepository.save(expression(temp.getId(), "cock", "note", repeatData(3)));
+            expressionRepository.save(expression(temp.getId(), "rise", "note", repeatData(5)));
+            expressionRepository.save(expression(temp.getId(), "value1234", "note", repeatData(10)));
+            return temp;
+        });
 
-        Expression actual = expressionRepository.findByValue(user.getId(), "value 1").orElseThrow();
+        List<Expression> actual = expressionRepository.findByValue(
+                user.getId(),
+                "cockroach",
+                2,
+                10,
+                0
+        );
 
-        org.assertj.core.api.Assertions.
-                assertThat(expected).
-                usingRecursiveComparison().
-                isEqualTo(actual);
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findByValue(userId, value, maxDistance, limit, offset):
+             user has some expressions,
+             there are expressions with maxDistance <= 2
+             => return correct result
+            """)
+    public void findByValue3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        List<Expression> words = List.of(
+                expression(user.getId(), "frog", "note", repeatData(1)),
+                expression(user.getId(), "frog1", "note", repeatData(3)),
+                expression(user.getId(), "broom", "note", repeatData(5)),
+                expression(user.getId(), "distance", "note", repeatData(10))
+        );
+        commit(() -> words.forEach(word -> expressionRepository.save(word)));
+
+        List<Expression> actual = expressionRepository.findByValue(
+                user.getId(),
+                "frog",
+                2,
+                10,
+                0
+        );
+
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                containsExactly(words.get(0), words.get(1));
     }
 
     @Test
@@ -167,7 +267,7 @@ class ExpressionRepositoryTest {
 
         commit(() -> expressionRepository.deleteById(user.getId(), toUUID(1)));
 
-        Assertions.assertTrue(expressionRepository.existsById(expected.getId()));
+        Assertions.assertThat(expressionRepository.existsById(expected.getId())).isTrue();
     }
 
     @Test
@@ -184,7 +284,7 @@ class ExpressionRepositoryTest {
 
         commit(() -> expressionRepository.deleteById(user.getId(), expected.getId()));
 
-        Assertions.assertFalse(expressionRepository.existsById(expected.getId()));
+        Assertions.assertThat(expressionRepository.existsById(expected.getId())).isFalse();
     }
 
     @Test
@@ -199,7 +299,7 @@ class ExpressionRepositoryTest {
         Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
-        Assertions.assertFalse(expressionRepository.existsById(user.getId(), toUUID(1)));
+        Assertions.assertThat(expressionRepository.existsById(user.getId(), toUUID(1))).isFalse();
     }
 
     @Test
@@ -214,7 +314,7 @@ class ExpressionRepositoryTest {
         Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
         commit(() -> expressionRepository.save(expected));
 
-        Assertions.assertTrue(expressionRepository.existsById(user.getId(), expected.getId()));
+        Assertions.assertThat(expressionRepository.existsById(user.getId(), expected.getId())).isTrue();
     }
 
     @Test
@@ -234,7 +334,7 @@ class ExpressionRepositoryTest {
 
         long actual = expressionRepository.count(user3.getId());
 
-        Assertions.assertEquals(0, actual);
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
@@ -256,7 +356,7 @@ class ExpressionRepositoryTest {
 
         long actual = expressionRepository.count(user3.getId());
 
-        Assertions.assertEquals(2, actual);
+        Assertions.assertThat(actual).isEqualTo(2);
     }
 
     @Test
@@ -290,7 +390,7 @@ class ExpressionRepositoryTest {
                 user1.getId(), LocalDate.of(2022, 7, 10)
         );
 
-        Assertions.assertEquals(2, actual);
+        Assertions.assertThat(actual).isEqualTo(2);
     }
 
     @Test
@@ -306,7 +406,7 @@ class ExpressionRepositoryTest {
                 user1.getId(), LocalDate.of(2022, 7, 10)
         );
 
-        Assertions.assertEquals(0, actual);
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
@@ -340,7 +440,7 @@ class ExpressionRepositoryTest {
                 user1.getId(), LocalDate.of(2022, 7, 7)
         );
 
-        Assertions.assertEquals(0, actual);
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
@@ -354,7 +454,7 @@ class ExpressionRepositoryTest {
 
         Page<Expression> actual = expressionRepository.findByUserId(user1.getId(), PageRequest.of(0, 20));
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -375,7 +475,9 @@ class ExpressionRepositoryTest {
         List<Expression> expected = expressions.stream().
                 sorted(Comparator.comparing(Expression::getValue).reversed()).
                 toList();
-        Assertions.assertEquals(expected, actual.getContent());
+        Assertions.assertThat(actual.getContent()).
+                usingRecursiveFieldByFieldElementComparator().
+                isEqualTo(expected);
     }
 
     @Test
@@ -397,7 +499,9 @@ class ExpressionRepositoryTest {
                 sorted(Comparator.comparing((Expression e) -> e.getRepeatData().getInterval()).
                         thenComparing(Expression::getValue)).
                 toList();
-        Assertions.assertEquals(expected, actual.getContent());
+        Assertions.assertThat(actual.getContent()).
+                usingRecursiveFieldByFieldElementComparator().
+                isEqualTo(expected);
     }
 
     @Test
@@ -415,7 +519,7 @@ class ExpressionRepositoryTest {
                 20, 0
         );
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -436,7 +540,7 @@ class ExpressionRepositoryTest {
                 20, 0
         );
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -463,7 +567,9 @@ class ExpressionRepositoryTest {
                 filter(e -> e.getRepeatData().nextDateOfRepeat().compareTo(repeatDate) <= 0).
                 limit(2).
                 toList();
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                isEqualTo(expected);
     }
 
     @Test
@@ -482,7 +588,7 @@ class ExpressionRepositoryTest {
         List<Expression> actual = expressionRepository.findByUserId(user.getId(),
                         PageRequest.of(0, 20, Sort.by("value").ascending())).
                 getContent();
-        org.assertj.core.api.Assertions.
+        Assertions.
                 assertThat(actual).
                 usingRecursiveFieldByFieldElementComparator(
                         RecursiveComparisonConfiguration.builder().

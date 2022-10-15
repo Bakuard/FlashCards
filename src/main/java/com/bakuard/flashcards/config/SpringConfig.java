@@ -104,8 +104,9 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public ExpressionService expressionService(ExpressionRepository expressionRepository,
                                                    IntervalsRepository intervalsRepository,
-                                                   Clock clock) {
-                return new ExpressionService(expressionRepository, intervalsRepository, clock);
+                                                   Clock clock,
+                                                   ConfigData configData) {
+                return new ExpressionService(expressionRepository, intervalsRepository, clock, configData);
         }
 
         @Bean

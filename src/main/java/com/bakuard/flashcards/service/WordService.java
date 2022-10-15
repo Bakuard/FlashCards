@@ -33,6 +33,7 @@ public class WordService {
         this.wordsRepository = wordsRepository;
         this.intervalsRepository = intervalsRepository;
         this.clock = clock;
+        this.configData = configData;
     }
 
     public RepeatData initialRepeatData(UUID userId) {

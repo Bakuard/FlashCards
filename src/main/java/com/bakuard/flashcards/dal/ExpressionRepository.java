@@ -7,7 +7,6 @@ import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,8 +19,11 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
     @Query("select * from expressions where user_id = :userId and expression_id = :expressionId;")
     public Optional<Expression> findById(UUID userId, UUID expressionId);
 
-    @Query("select * from expressions where user_id = :userId and value = :value;")
-    public Optional<Expression> findByValue(UUID userId, String value);
+    @Query("""
+            select * from expressions
+                where user_id = :userId and distance(:value, value, :maxDistance) != -1;
+            """)
+    public List<Expression> findByValue(UUID userId, String value, int maxDistance, int limit, int offset);
 
     @Modifying
     @Query("delete from expressions where user_id = :userId and expression_id = :expressionId;")
@@ -38,6 +40,15 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
              where user_id = :userId and (last_date_of_repeat + repeat_interval) <= :date;
             """)
     public long countForRepeat(UUID userId, LocalDate date);
+
+    @Query("""
+            select count(*) from (
+               select value
+                   from expressions
+                   where user_id = :userId and distance(:value, value, :maxDistance) != -1
+            )
+            """)
+    public long countForValue(UUID userId, String value, int maxDistance);
 
     public Page<Expression> findByUserId(UUID userId, Pageable pageable);
 

@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.service;
 
+import com.bakuard.flashcards.config.ConfigData;
 import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.model.RepeatData;
@@ -23,13 +24,16 @@ public class ExpressionService {
     private ExpressionRepository expressionRepository;
     private IntervalsRepository intervalsRepository;
     private Clock clock;
+    private ConfigData configData;
 
     public ExpressionService(ExpressionRepository expressionRepository,
                              IntervalsRepository intervalsRepository,
-                             Clock clock) {
+                             Clock clock,
+                             ConfigData configData) {
         this.expressionRepository = expressionRepository;
         this.intervalsRepository = intervalsRepository;
         this.clock = clock;
+        this.configData = configData;
     }
 
     public RepeatData initialRepeatData(UUID userId) {
@@ -58,8 +62,16 @@ public class ExpressionService {
         return expressionRepository.findById(userId, expressionId);
     }
 
-    public Optional<Expression> findByValue(UUID userId, String value) {
-        return expressionRepository.findByValue(userId, value);
+    public Page<Expression> findByValue(UUID userId, String value, int maxDistance, Pageable pageable) {
+        maxDistance = Math.max(maxDistance, 1);
+        maxDistance = Math.min(configData.levenshteinMaxDistance(), maxDistance);
+        final int distance = maxDistance;
+
+        return PageableExecutionUtils.getPage(
+                expressionRepository.findByValue(userId, value, maxDistance, pageable.getPageSize(), pageable.getPageNumber()),
+                pageable,
+                () -> expressionRepository.countForValue(userId, value, distance)
+        );
     }
 
     public Expression tryFindById(UUID userId, UUID expressionId) {
@@ -68,16 +80,6 @@ public class ExpressionService {
                         () -> new UnknownEntityException(
                                 "Unknown expression with id=" + expressionId + " userId=" + userId,
                                 "Expression.unknownId"
-                        )
-                );
-    }
-
-    public Expression tryFindByValue(UUID userId, String value) {
-        return findByValue(userId, value).
-                orElseThrow(
-                        () -> new UnknownEntityException(
-                                "Unknown expression with value=" + value + " userId=" + userId,
-                                "Expression.unknownValue"
                         )
                 );
     }

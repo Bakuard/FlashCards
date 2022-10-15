@@ -220,9 +220,9 @@ public class DictionaryOfWordsController {
             String value,
             @RequestParam
             @Parameter(description = """
-                    максимальное реадкциооное растояние относительно искомого слова.
-                     Диапозон допустимых значений [1, 6].
-                    """, schema = @Schema(defaultValue = "6"))
+                    Максимальное редакциооное растояние относительно искомого слова.
+                     Диапозон допустимых значений [1, 20].
+                    """, schema = @Schema(defaultValue = "1"))
             int maxDistance,
             @RequestParam("page")
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)

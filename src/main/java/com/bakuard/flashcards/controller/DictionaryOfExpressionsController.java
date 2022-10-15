@@ -188,7 +188,11 @@ public class DictionaryOfExpressionsController {
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
-    @Operation(summary = "Возвращает устойчевое выражение из словаря пользователя по его значению",
+    @Operation(summary = """
+            Возвращает устойчевое выражение и/или наиболее похожие по написанию к нему устойчевые выражения.
+             Все выражения будут отсортирвоанны в порядке возрастания редакционного расстояние между искомым
+             словом, а затем в лексеграфиечском порядке.
+            """,
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -200,24 +204,39 @@ public class DictionaryOfExpressionsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение по указанныму id пользователя и значению выражения.",
+                            description = "Если пользователя с указанным id не существует.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
     @GetMapping("/value")
-    public ResponseEntity<ExpressionResponse> findByValue(
+    public ResponseEntity<Page<ExpressionForDictionaryListResponse>> findByValue(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, выражение которого запрашивается", required = true)
             UUID userId,
             @RequestParam
             @Parameter(description = "Значение устойчевого выражения. Не может быть null.", required = true)
-            String value) {
+            String value,
+            @RequestParam
+            @Parameter(description = """
+                    Максимальное редакциооное растояние относительно искомого слова.
+                     Диапозон допустимых значений [1, 20].
+                    """, schema = @Schema(defaultValue = "1"))
+            int maxDistance,
+            @RequestParam("page")
+            @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
+            int page,
+            @RequestParam(value = "size", required = false)
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
+            int size) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} get expression of user {} by value '{}'", jwsUserId, userId, value);
+        logger.info("user {} get expressions of user {} by value '{}', levenshtein_distance {}, page {}, size {}",
+                jwsUserId, userId, value, maxDistance, page, size);
 
-        Expression expression = expressionService.tryFindByValue(userId, value);
-        return ResponseEntity.ok(mapper.toExpressionResponse(expression));
+        Pageable pageable = mapper.toPageable(page, size);
+        Page<Expression> expressions = expressionService.findByValue(userId, value, maxDistance, pageable);
+        return ResponseEntity.ok(mapper.toExpressionsForDictionaryListResponse(expressions));
     }
 
     @Operation(summary = "Удаляет устойчевое выражение из словаря пользователя",
