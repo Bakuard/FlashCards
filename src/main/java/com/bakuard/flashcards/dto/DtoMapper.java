@@ -92,9 +92,9 @@ public class DtoMapper {
         );
     }
 
-    public Page<WordForRepetitionResponse> toWordsForRepetitionResponse(Page<Word> words) {
+    public Page<WordForRepetitionEnglishToNativeResponse> toWordsForRepetitionResponse(Page<Word> words) {
         return words.map(
-                word -> new WordForRepetitionResponse().
+                word -> new WordForRepetitionEnglishToNativeResponse().
                         setWordId(word.getId()).
                         setUserId(word.getUserId()).
                         setValue(word.getValue()).
@@ -176,9 +176,9 @@ public class DtoMapper {
         );
     }
 
-    public Page<ExpressionForRepetitionResponse> toExpressionsForRepetitionResponse(Page<Expression> expressions) {
+    public Page<ExpressionForRepetitionEnglishToNativeResponse> toExpressionsForRepetitionResponse(Page<Expression> expressions) {
         return expressions.map(
-                expression -> new ExpressionForRepetitionResponse().
+                expression -> new ExpressionForRepetitionEnglishToNativeResponse().
                         setExpressionId(expression.getId()).
                         setUserId(expression.getUserId()).
                         setValue(expression.getValue()).

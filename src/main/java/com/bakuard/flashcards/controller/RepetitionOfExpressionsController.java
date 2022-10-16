@@ -2,10 +2,12 @@ package com.bakuard.flashcards.controller;
 
 import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.dto.DtoMapper;
+import com.bakuard.flashcards.dto.common.RepetitionResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
-import com.bakuard.flashcards.dto.expression.ExpressionForRepetitionResponse;
-import com.bakuard.flashcards.dto.expression.ExpressionRepeatRequest;
-import com.bakuard.flashcards.dto.expression.ExpressionResponse;
+import com.bakuard.flashcards.dto.expression.*;
+import com.bakuard.flashcards.dto.word.WordForRepetitionNativeToEnglishResponse;
+import com.bakuard.flashcards.dto.word.WordRepeatFromNativeToEnglishRequest;
+import com.bakuard.flashcards.dto.word.WordResponse;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.service.ExpressionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,7 +47,10 @@ public class RepetitionOfExpressionsController {
         this.requestContext = requestContext;
     }
 
-    @Operation(summary = "Возвращает часть выборки устойчевых выражений доступных для повторения в текущую дату",
+    @Operation(summary = """
+            Возвращает часть выборки устойчевых выражений доступных для повторения в текущую дату.
+             Используется для повторения слов с английского на родной язык пользователя.
+            """,
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -62,8 +67,8 @@ public class RepetitionOfExpressionsController {
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @GetMapping
-    public ResponseEntity<Page<ExpressionForRepetitionResponse>> findAllBy(
+    @GetMapping("/english")
+    public ResponseEntity<Page<ExpressionForRepetitionEnglishToNativeResponse>> findAllEnglishToNativeBy(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, из выражений которого формируется выборка для повторения.", required = true)
             UUID userId,
@@ -75,7 +80,7 @@ public class RepetitionOfExpressionsController {
                     schema = @Schema(defaultValue = "20"))
             int size) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} find all expressions of user {} for repeat by page={}, size={}",
+        logger.info("user {} find all expressions from english to native of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
 
         Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort("value.asc"));
@@ -84,7 +89,10 @@ public class RepetitionOfExpressionsController {
         return ResponseEntity.ok(mapper.toExpressionsForRepetitionResponse(result));
     }
 
-    @Operation(summary = "Отмечает - помнит ли пользователь устойчевое выражение или нет.",
+    @Operation(summary = """
+            Отмечает - помнит ли пользователь устойчевое выражение или нет. Используется при
+             повторении слов с английского на родной язык пользователя.
+            """,
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -101,15 +109,77 @@ public class RepetitionOfExpressionsController {
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @PutMapping
-    public ResponseEntity<ExpressionResponse> repeat(@RequestBody ExpressionRepeatRequest dto) {
+    @PutMapping("/english")
+    public ResponseEntity<ExpressionResponse> repeatEnglishToNative(
+            @RequestBody ExpressionRepeatEnglishToNativeRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} repeat expression {} as user {}. remember is {}",
+        logger.info("user {} repeat expression from english to native {} as user {}. remember is {}",
                 userId, dto.getExpressionId(), dto.getUserId(), dto.isRemember());
 
         Expression expression = expressionService.repeat(dto.getUserId(), dto.getExpressionId(), dto.isRemember());
 
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
+    }
+
+    @Operation(summary = """
+            Возвращает часть выборки выражений доступных для повторения в текущую дату. Используется для
+             повторения выражений с родного языка пользователя на английский.
+            """,
+            responses = {
+                    @ApiResponse(responseCode = "200"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "401",
+                            description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти пользователя с указанным идентификатором.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class)))
+            }
+    )
+    @GetMapping("/native")
+    public ResponseEntity<Page<ExpressionForRepetitionNativeToEnglishResponse>> findAllNativeToEnglishBy(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из выражений которого формируется выборка для повторения.", required = true)
+            UUID userId,
+            @RequestParam("page")
+            @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
+            int page,
+            @RequestParam(value = "size", required = false)
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
+            int size) {
+        return null;
+    }
+
+    @Operation(summary = """
+            Отмечает - помнит ли пользователь выражение или нет. Используется при повторении выражений
+             с родного языка пользователя на английский.
+            """,
+            responses = {
+                    @ApiResponse(responseCode = "200"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "401",
+                            description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class)))
+            }
+    )
+    @PutMapping("/native")
+    public ResponseEntity<RepetitionResponse<ExpressionResponse>> repeatNativeToEnglish(
+            @RequestBody ExpressionRepeatFromNativeToEnglishRequest dto) {
+        return null;
     }
 
 }

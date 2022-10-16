@@ -5,12 +5,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 import java.util.UUID;
 
-@Schema(description = "Запрос на повторение слова.")
-public class WordRepeatRequest {
+@Schema(description = "Запрос на повторение слова с английского на родной язык пользователя.")
+public class WordRepeatFromEnglishToNativeRequest {
 
     @Schema(description = """
             Идентификатор пользователя, с которым связано указанное слово. <br/>
-            Ограничения: не должно быть null.
+            Ограничения: не должен быть null.
             """)
     private UUID userId;
     @Schema(description = """
@@ -23,7 +23,7 @@ public class WordRepeatRequest {
             """)
     private boolean isRemember;
 
-    public WordRepeatRequest() {
+    public WordRepeatFromEnglishToNativeRequest() {
 
     }
 
@@ -31,7 +31,7 @@ public class WordRepeatRequest {
         return userId;
     }
 
-    public WordRepeatRequest setUserId(UUID userId) {
+    public WordRepeatFromEnglishToNativeRequest setUserId(UUID userId) {
         this.userId = userId;
         return this;
     }
@@ -40,7 +40,7 @@ public class WordRepeatRequest {
         return wordId;
     }
 
-    public WordRepeatRequest setWordId(UUID wordId) {
+    public WordRepeatFromEnglishToNativeRequest setWordId(UUID wordId) {
         this.wordId = wordId;
         return this;
     }
@@ -49,7 +49,7 @@ public class WordRepeatRequest {
         return isRemember;
     }
 
-    public WordRepeatRequest setRemember(boolean remember) {
+    public WordRepeatFromEnglishToNativeRequest setRemember(boolean remember) {
         isRemember = remember;
         return this;
     }
@@ -58,7 +58,7 @@ public class WordRepeatRequest {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        WordRepeatRequest that = (WordRepeatRequest) o;
+        WordRepeatFromEnglishToNativeRequest that = (WordRepeatFromEnglishToNativeRequest) o;
         return isRemember == that.isRemember &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(wordId, that.wordId);
