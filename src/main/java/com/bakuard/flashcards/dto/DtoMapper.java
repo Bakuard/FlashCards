@@ -6,6 +6,7 @@ import com.bakuard.flashcards.dto.credential.*;
 import com.bakuard.flashcards.dto.exceptions.ExceptionReasonResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.expression.*;
+import com.bakuard.flashcards.dto.settings.IntervalsResponse;
 import com.bakuard.flashcards.dto.word.*;
 import com.bakuard.flashcards.model.auth.JwsWithUser;
 import com.bakuard.flashcards.model.auth.credential.Credential;
@@ -32,6 +33,8 @@ import javax.validation.ConstraintViolationException;
 import java.time.Clock;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class DtoMapper {
@@ -296,6 +299,13 @@ public class DtoMapper {
 
     public Sort toUserSort(String sortRule) {
         return sortRules.toSort(sortRule, SortedEntity.USER);
+    }
+
+
+    public IntervalsResponse toIntervalsResponse(UUID userId, List<Integer> intervals) {
+        return new IntervalsResponse().
+                setUserId(userId).
+                setIntervals(intervals);
     }
 
 

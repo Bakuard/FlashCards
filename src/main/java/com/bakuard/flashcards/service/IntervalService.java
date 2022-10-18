@@ -1,6 +1,7 @@
 package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.IntervalsRepository;
+import com.google.common.collect.ImmutableList;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
@@ -18,8 +19,12 @@ public class IntervalService {
         intervalsRepository.add(userId, interval);
     }
 
-    public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
+    public void replace(UUID userId, int oldInterval, int newInterval) {
         intervalsRepository.replace(userId, oldInterval, newInterval);
+    }
+
+    public ImmutableList<Integer> findAll(UUID userId) {
+        return intervalsRepository.findAll(userId);
     }
 
 }
