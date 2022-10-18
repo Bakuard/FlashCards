@@ -2,6 +2,7 @@ package com.bakuard.flashcards.controller;
 
 import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.controller.message.Messages;
+import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.settings.IntervalAddRequest;
 import com.bakuard.flashcards.dto.settings.IntervalReplaceRequest;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Общие настройки словарей и режимов повторения отдельного пользователя.")
@@ -32,14 +34,17 @@ public class SettingsController {
     private IntervalService intervalService;
     private RequestContext requestContext;
     private Messages messages;
+    private DtoMapper mapper;
 
     @Autowired
     public SettingsController(IntervalService intervalService,
                               RequestContext requestContext,
-                              Messages messages) {
+                              Messages messages,
+                              DtoMapper mapper) {
         this.intervalService = intervalService;
         this.requestContext = requestContext;
         this.messages = messages;
+        this.mapper = mapper;
     }
 
     @Operation(summary = """
@@ -62,11 +67,16 @@ public class SettingsController {
             }
     )
     @GetMapping("/intervals")
-    public ResponseEntity<IntervalsResponse> getAllIntervals(
+    public ResponseEntity<IntervalsResponse> findAllIntervals(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, из слов которого формируется выборка для повторения.", required = true)
             UUID userId) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find all repeat intervals of user {}", jwsUserId, userId);
+
+        List<Integer> intervals = intervalService.findAll(userId);
+
+        return ResponseEntity.ok(mapper.toIntervalsResponse(userId, intervals));
     }
 
     @Operation(summary = """
@@ -90,7 +100,12 @@ public class SettingsController {
     )
     @PostMapping("/intervals")
     public ResponseEntity<String> addInterval(IntervalAddRequest dto) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} add new interval for user {}", jwsUserId, dto.getUserId());
+
+        intervalService.add(dto.getUserId(), dto.getInterval());
+
+        return ResponseEntity.ok(messages.getMessage("settings.addInterval"));
     }
 
     @Operation(summary = """
@@ -116,7 +131,13 @@ public class SettingsController {
     )
     @PutMapping("/intervals")
     public ResponseEntity<String> replaceInterval(IntervalReplaceRequest dto) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} replace interval {} to {} for user {}",
+                jwsUserId, dto.getOldInterval(), dto.getNewInterval(), dto.getUserId());
+
+        intervalService.replace(dto.getUserId(), dto.getOldInterval(), dto.getNewInterval());
+
+        return ResponseEntity.ok(messages.getMessage("settings.replaceInterval"));
     }
 
 }
