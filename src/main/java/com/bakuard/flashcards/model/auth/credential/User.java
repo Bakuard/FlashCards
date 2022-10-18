@@ -208,10 +208,8 @@ public class User implements Entity {
         }
 
         public Builder setRoles(List<Role> roles) {
-            if(roles != null) {
-                this.roles.clear();
-                this.roles.addAll(roles);
-            }
+            this.roles.clear();
+            if(roles != null) this.roles.addAll(roles);
             return this;
         }
 

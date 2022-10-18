@@ -1,10 +1,7 @@
 package com.bakuard.flashcards.dto;
 
 import com.bakuard.flashcards.config.ConfigData;
-import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
-import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
-import com.bakuard.flashcards.dto.common.TranscriptionRequestResponse;
-import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.common.*;
 import com.bakuard.flashcards.dto.credential.*;
 import com.bakuard.flashcards.dto.exceptions.ExceptionReasonResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
@@ -55,6 +52,7 @@ public class DtoMapper {
                      ValidatorUtil validator,
                      Clock clock) {
         this.wordService = wordService;
+        this.authService = authService;
         this.expressionService = expressionService;
         this.configData = configData;
         this.sortRules = sortRules;
@@ -88,18 +86,33 @@ public class DtoMapper {
                         setWordId(word.getId()).
                         setUserId(word.getUserId()).
                         setValue(word.getValue()).
-                        setHotRepeat(wordService.isHotRepeat(word))
+                        setHotRepeatFromEnglish(wordService.isHotRepeatFromEnglish(word)).
+                        setHotRepeatFromNative(wordService.isHotRepeatFromNative(word))
         );
     }
 
-    public Page<WordForRepetitionResponse> toWordsForRepetitionResponse(Page<Word> words) {
+    public Page<WordForRepetitionEnglishToNativeResponse> toWordsForRepetitionFromEnglishResponse(Page<Word> words) {
         return words.map(
-                word -> new WordForRepetitionResponse().
+                word -> new WordForRepetitionEnglishToNativeResponse().
                         setWordId(word.getId()).
                         setUserId(word.getUserId()).
                         setValue(word.getValue()).
                         setExamples(word.getExamples().stream().
                                 map(WordExample::getOrigin).
+                                toList())
+        );
+    }
+
+    public Page<WordForRepetitionNativeToEnglishResponse> toWordsForRepetitionFromNativeResponse(Page<Word> words) {
+        return words.map(
+                word -> new WordForRepetitionNativeToEnglishResponse().
+                        setWordId(word.getId()).
+                        setUserId(word.getUserId()).
+                        setInterpretations(word.getInterpretations().stream().
+                                map(this::toInterpretationRequestResponse).
+                                toList()).
+                        setTranslations(word.getTranslations().stream().
+                                map(this::toTranslateRequestResponse).
                                 toList())
         );
     }
@@ -121,7 +134,7 @@ public class DtoMapper {
                 setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
                         toList()).
-                setRepeatData(wordService.initialRepeatData(dto.getUserID())).
+                setInitialRepeatData(wordService.getLowestRepeatInterval(dto.getUserID()), clock).
                 build();
     }
 
@@ -172,18 +185,32 @@ public class DtoMapper {
                         setUserId(expression.getUserId()).
                         setExpressionId(expression.getId()).
                         setValue(expression.getValue()).
-                        setHotRepeat(expressionService.isHotRepeat(expression))
+                        setHotRepeat(expressionService.isHotRepeatFromEnglish(expression))
         );
     }
 
-    public Page<ExpressionForRepetitionResponse> toExpressionsForRepetitionResponse(Page<Expression> expressions) {
+    public Page<ExpressionForRepetitionEnglishToNativeResponse> toExpressionsForRepetitionFromEnglishResponse(Page<Expression> expressions) {
         return expressions.map(
-                expression -> new ExpressionForRepetitionResponse().
+                expression -> new ExpressionForRepetitionEnglishToNativeResponse().
                         setExpressionId(expression.getId()).
                         setUserId(expression.getUserId()).
                         setValue(expression.getValue()).
                         setExamples(expression.getExamples().stream().
                                 map(ExpressionExample::getOrigin).
+                                toList())
+        );
+    }
+
+    public Page<ExpressionForRepetitionNativeToEnglishResponse> toExpressionForRepetitionFromNativeResponse(Page<Expression> expressions) {
+        return expressions.map(
+                expression -> new ExpressionForRepetitionNativeToEnglishResponse().
+                        setExpressionId(expression.getId()).
+                        setUserId(expression.getUserId()).
+                        setInterpretations(expression.getInterpretations().stream().
+                                map(this::toInterpretationRequestResponse).
+                                toList()).
+                        setTranslations(expression.getTranslations().stream().
+                                map(this::toTranslateRequestResponse).
                                 toList())
         );
     }
@@ -202,7 +229,7 @@ public class DtoMapper {
                 setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
                         toList()).
-                setRepeatData(expressionService.initialRepeatData(dto.getUserID())).
+                setInitialRepeatData(expressionService.getLowestRepeatInterval(dto.getUserID()), clock).
                 build();
     }
 
@@ -291,6 +318,12 @@ public class DtoMapper {
         response.setMessage(message);
         response.setPayload(body);
         return response;
+    }
+
+    public <T> RepetitionResponse<T> toRepetitionResponse(boolean isRemember, T payload) {
+        return new RepetitionResponse<T>().
+                setRemember(isRemember).
+                setPayload(payload);
     }
 
     public Pageable toPageable(int page, int size) {

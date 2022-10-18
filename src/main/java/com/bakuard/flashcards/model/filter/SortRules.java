@@ -28,7 +28,11 @@ public class SortRules {
     private String checkParameter(String parameter, SortedEntity sortedEntity) {
         switch(sortedEntity) {
             case EXPRESSION, WORD -> assertParameterIsOneOf(parameter,
-                    "value", "repeat_interval", "last_date_of_repeat");
+                    "value",
+                    "repeat_interval_from_english",
+                    "last_date_of_repeat_from_english",
+                    "repeat_interval_from_native",
+                    "last_date_of_repeat_from_native");
             case USER -> assertParameterIsOneOf(parameter,
                     "user_id", "email");
             default -> throw new IllegalArgumentException("Unsupported sorted entity = " + sortedEntity);

@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 import java.util.UUID;
 
-@Schema(description = "Запрос на повторение устойчевого выражения.")
-public class ExpressionRepeatRequest {
+@Schema(description = "Запрос на повторение устойчевого выражения с английского на родной язык пользователя.")
+public class ExpressionRepeatEnglishToNativeRequest {
 
     @Schema(description = """
             Идентификатор пользователя, с которым связано указанное устойчевое выражение. <br/>
@@ -23,7 +23,7 @@ public class ExpressionRepeatRequest {
             """)
     private boolean isRemember;
 
-    public ExpressionRepeatRequest() {
+    public ExpressionRepeatEnglishToNativeRequest() {
 
     }
 
@@ -31,7 +31,7 @@ public class ExpressionRepeatRequest {
         return userId;
     }
 
-    public ExpressionRepeatRequest setUserId(UUID userId) {
+    public ExpressionRepeatEnglishToNativeRequest setUserId(UUID userId) {
         this.userId = userId;
         return this;
     }
@@ -40,7 +40,7 @@ public class ExpressionRepeatRequest {
         return expressionId;
     }
 
-    public ExpressionRepeatRequest setExpressionId(UUID expressionId) {
+    public ExpressionRepeatEnglishToNativeRequest setExpressionId(UUID expressionId) {
         this.expressionId = expressionId;
         return this;
     }
@@ -49,7 +49,7 @@ public class ExpressionRepeatRequest {
         return isRemember;
     }
 
-    public ExpressionRepeatRequest setRemember(boolean remember) {
+    public ExpressionRepeatEnglishToNativeRequest setRemember(boolean remember) {
         isRemember = remember;
         return this;
     }
@@ -58,7 +58,7 @@ public class ExpressionRepeatRequest {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExpressionRepeatRequest that = (ExpressionRepeatRequest) o;
+        ExpressionRepeatEnglishToNativeRequest that = (ExpressionRepeatEnglishToNativeRequest) o;
         return isRemember == that.isRemember &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(expressionId, that.expressionId);

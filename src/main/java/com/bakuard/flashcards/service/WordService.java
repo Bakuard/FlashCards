@@ -3,10 +3,9 @@ package com.bakuard.flashcards.service;
 import com.bakuard.flashcards.config.ConfigData;
 import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
-import com.bakuard.flashcards.model.RepeatData;
 import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.validation.UnknownEntityException;
-import com.google.common.collect.ImmutableList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -36,9 +35,8 @@ public class WordService {
         this.configData = configData;
     }
 
-    public RepeatData initialRepeatData(UUID userId) {
-        List<Integer> intervals = intervalsRepository.findAll(userId);
-        return new RepeatData(intervals.get(0), LocalDate.now(clock));
+    public int getLowestRepeatInterval(UUID userId) {
+        return intervalsRepository.findAll(userId).get(0);
     }
 
     public Word save(Word word) {
@@ -89,44 +87,54 @@ public class WordService {
     }
 
     public long countForRepeat(UUID userId) {
-        return wordsRepository.countForRepeat(userId, LocalDate.now(clock));
+        return wordsRepository.countForRepeatFromEnglish(userId, LocalDate.now(clock));
     }
 
     public Page<Word> findByUserId(UUID userId, Pageable pageable) {
         return wordsRepository.findByUserId(userId, pageable);
     }
 
-    public Page<Word> findAllForRepeat(UUID userId, Pageable pageable) {
+    public Page<Word> findAllForRepeatFromEnglish(UUID userId, Pageable pageable) {
         LocalDate date = LocalDate.now(clock);
 
         return PageableExecutionUtils.getPage(
-                wordsRepository.findAllForRepeat(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
+                wordsRepository.findAllForRepeatFromEnglish(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
                 pageable,
-                () -> wordsRepository.countForRepeat(userId, date)
+                () -> wordsRepository.countForRepeatFromEnglish(userId, date)
         );
     }
 
-    public Word repeat(UUID userId, UUID wordId, boolean isRemember) {
+    public Page<Word> findAllForRepeatFromNative(UUID userId, Pageable pageable) {
+        LocalDate date = LocalDate.now(clock);
+
+        return PageableExecutionUtils.getPage(
+                wordsRepository.findAllForRepeatFromNative(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
+                pageable,
+                () -> wordsRepository.countForRepeatFromNative(userId, date)
+        );
+    }
+
+    public Word repeatFromEnglish(UUID userId, UUID wordId, boolean isRemember) {
         Word word = tryFindById(userId, wordId);
-        word.repeat(isRemember, LocalDate.now(clock), intervalsRepository.findAll(word.getUserId()));
+        word.repeatFromEnglish(isRemember, LocalDate.now(clock), intervalsRepository.findAll(userId));
         return word;
     }
 
-    public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
-        ImmutableList<Integer> intervals = intervalsRepository.findAll(userId);
-        if(!intervals.contains(oldInterval)) {
-            throw new IllegalArgumentException("Unknown oldInterval=" + oldInterval + " for user=" + userId);
-        } else if(!intervals.contains(newInterval)) {
-            throw new IllegalArgumentException("Unknown newInterval=" + newInterval + " for user=" + userId);
-        } else if(oldInterval != newInterval) {
-            wordsRepository.replaceRepeatInterval(userId, oldInterval, newInterval);
-            intervalsRepository.removeUnused(userId);
-        }
+    public RepetitionResult<Word> repeatFromNative(UUID userId, UUID wordId, String inputWordValue) {
+        Word word = tryFindById(userId, wordId);
+        boolean isRemember = word.repeatFromNative(inputWordValue, LocalDate.now(clock), intervalsRepository.findAll(userId));
+        return new RepetitionResult<>(word, isRemember);
     }
 
-    public boolean isHotRepeat(Word word) {
+    public boolean isHotRepeatFromEnglish(Word word) {
         List<Integer> intervals = intervalsRepository.findAll(word.getUserId());
-        return word.isHotRepeat(intervals.get(0));
+        return word.isHotRepeatFromEnglish(intervals.get(0));
     }
+
+    public boolean isHotRepeatFromNative(Word word) {
+        List<Integer> intervals = intervalsRepository.findAll(word.getUserId());
+        return word.isHotRepeatFromNative(intervals.get(0));
+    }
+
 
 }
