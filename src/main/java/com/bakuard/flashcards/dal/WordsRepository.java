@@ -37,9 +37,15 @@ public interface WordsRepository extends PagingAndSortingRepository<Word, UUID> 
 
     @Query("""
             select count(*) from words
-             where user_id = :userId and (last_date_of_repeat + repeat_interval) <= :date;
+             where user_id = :userId and (last_date_of_repeat_from_english + repeat_interval_from_english) <= :date;
             """)
-    public long countForRepeat(UUID userId, LocalDate date);
+    public long countForRepeatFromEnglish(UUID userId, LocalDate date);
+
+    @Query("""
+            select count(*) from words
+             where user_id = :userId and (last_date_of_repeat_from_native + repeat_interval_from_native) <= :date;
+            """)
+    public long countForRepeatFromNative(UUID userId, LocalDate date);
 
     @Query("""
             select count(*) from (
@@ -54,16 +60,16 @@ public interface WordsRepository extends PagingAndSortingRepository<Word, UUID> 
 
     @Query("""
             select * from words
-             where user_id = :userId and (last_date_of_repeat + repeat_interval) <= :date
+             where user_id = :userId and (last_date_of_repeat_from_english + repeat_interval_from_english) <= :date
              order by value limit :limit offset :offset;
             """)
-    public List<Word> findAllForRepeat(UUID userId, LocalDate date, int limit, int offset);
+    public List<Word> findAllForRepeatFromEnglish(UUID userId, LocalDate date, int limit, int offset);
 
-    @Modifying
     @Query("""
-            update words set repeat_interval = :newInterval
-             where repeat_interval = :oldInterval and user_id = :userId;
+            select * from words
+             where user_id = :userId and (last_date_of_repeat_from_native + repeat_interval_from_native) <= :date
+             order by value limit :limit offset :offset;
             """)
-    public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval);
+    public List<Word> findAllForRepeatFromNative(UUID userId, LocalDate date, int limit, int offset);
 
 }

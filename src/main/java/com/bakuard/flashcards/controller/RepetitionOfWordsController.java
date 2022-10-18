@@ -5,6 +5,7 @@ import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.common.RepetitionResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.word.*;
+import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.service.WordService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -81,9 +82,9 @@ public class RepetitionOfWordsController {
                 jwsUserId, userId, page, size);
 
         Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort("value.asc"));
-        Page<Word> result = wordService.findAllForRepeat(userId, pageable);
+        Page<Word> result = wordService.findAllForRepeatFromEnglish(userId, pageable);
 
-        return ResponseEntity.ok(mapper.toWordsForRepetitionResponse(result));
+        return ResponseEntity.ok(mapper.toWordsForRepetitionFromEnglishResponse(result));
     }
 
     @Operation(summary = """
@@ -112,7 +113,8 @@ public class RepetitionOfWordsController {
         logger.info("user {} repeat word from english to native {} as user {}. remember is {}",
                 userId, dto.getWordId(), dto.getUserId(), dto.isRemember());
 
-        Word word = wordService.repeat(dto.getUserId(), dto.getWordId(), dto.isRemember());
+        Word word = wordService.repeatFromEnglish(dto.getUserId(), dto.getWordId(), dto.isRemember());
+        wordService.save(word);
 
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
@@ -149,7 +151,14 @@ public class RepetitionOfWordsController {
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
                     schema = @Schema(defaultValue = "20"))
             int size) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find all words from native to english of user {} for repeat by page={}, size={}",
+                jwsUserId, userId, page, size);
+
+        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort("value.asc"));
+        Page<Word> result = wordService.findAllForRepeatFromNative(userId, pageable);
+
+        return ResponseEntity.ok(mapper.toWordsForRepetitionFromNativeResponse(result));
     }
 
     @Operation(summary = """
@@ -174,7 +183,19 @@ public class RepetitionOfWordsController {
     )
     @PutMapping("/native")
     public ResponseEntity<RepetitionResponse<WordResponse>> repeatNativeToEnglish(@RequestBody WordRepeatFromNativeToEnglishRequest dto) {
-        return null;
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} repeat word from native to english {} as user {}. inputTranslate is {}",
+                userId, dto.getWordId(), dto.getUserId(), dto.getInputValue());
+
+        RepetitionResult<Word> repetitionResult =
+                wordService.repeatFromNative(dto.getUserId(), dto.getWordId(), dto.getInputValue());
+        wordService.save(repetitionResult.payload());
+
+        RepetitionResponse<WordResponse> response = mapper.toRepetitionResponse(
+                repetitionResult.isRemember(),
+                mapper.toWordResponse(repetitionResult.payload())
+        );
+        return ResponseEntity.ok(response);
     }
 
 }

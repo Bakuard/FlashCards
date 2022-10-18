@@ -15,7 +15,7 @@ import java.util.UUID;
 public class ExpressionForRepetitionNativeToEnglishResponse {
 
     @Schema(description = "Уникальный идентификатор выражения.")
-    private UUID wordId;
+    private UUID expressionId;
     @Schema(description = "Уникальный идентификатор пользователя, к словарю которого относится это выражение.")
     private UUID userId;
     @Schema(description = "Переводы английского устойчевого выражения.")
@@ -27,12 +27,12 @@ public class ExpressionForRepetitionNativeToEnglishResponse {
 
     }
 
-    public UUID getWordId() {
-        return wordId;
+    public UUID getExpressionId() {
+        return expressionId;
     }
 
-    public ExpressionForRepetitionNativeToEnglishResponse setWordId(UUID wordId) {
-        this.wordId = wordId;
+    public ExpressionForRepetitionNativeToEnglishResponse setExpressionId(UUID expressionId) {
+        this.expressionId = expressionId;
         return this;
     }
 
@@ -68,7 +68,7 @@ public class ExpressionForRepetitionNativeToEnglishResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExpressionForRepetitionNativeToEnglishResponse that = (ExpressionForRepetitionNativeToEnglishResponse) o;
-        return Objects.equals(wordId, that.wordId) &&
+        return Objects.equals(expressionId, that.expressionId) &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(translations, that.translations) &&
                 Objects.equals(interpretations, that.interpretations);
@@ -76,13 +76,13 @@ public class ExpressionForRepetitionNativeToEnglishResponse {
 
     @Override
     public int hashCode() {
-        return Objects.hash(wordId, userId, translations, interpretations);
+        return Objects.hash(expressionId, userId, translations, interpretations);
     }
 
     @Override
     public String toString() {
         return "ExpressionForRepetitionNativeToEnglishResponse{" +
-                "wordId=" + wordId +
+                "wordId=" + expressionId +
                 ", userId=" + userId +
                 ", translations=" + translations +
                 ", interpretations=" + interpretations +

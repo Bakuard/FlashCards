@@ -19,7 +19,7 @@ public class WordRepeatFromNativeToEnglishRequest {
             """)
     private UUID wordId;
     @Schema(description = "Значение слова на английском языке записанное пользователем по памяти.")
-    private String inputTranslate;
+    private String inputValue;
 
     public WordRepeatFromNativeToEnglishRequest() {
 
@@ -43,12 +43,12 @@ public class WordRepeatFromNativeToEnglishRequest {
         return this;
     }
 
-    public String getInputTranslate() {
-        return inputTranslate;
+    public String getInputValue() {
+        return inputValue;
     }
 
-    public WordRepeatFromNativeToEnglishRequest setInputTranslate(String inputTranslate) {
-        this.inputTranslate = inputTranslate;
+    public WordRepeatFromNativeToEnglishRequest setInputValue(String inputValue) {
+        this.inputValue = inputValue;
         return this;
     }
 
@@ -59,12 +59,12 @@ public class WordRepeatFromNativeToEnglishRequest {
         WordRepeatFromNativeToEnglishRequest that = (WordRepeatFromNativeToEnglishRequest) o;
         return Objects.equals(userId, that.userId) &&
                 Objects.equals(wordId, that.wordId) &&
-                Objects.equals(inputTranslate, that.inputTranslate);
+                Objects.equals(inputValue, that.inputValue);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, wordId, inputTranslate);
+        return Objects.hash(userId, wordId, inputValue);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class WordRepeatFromNativeToEnglishRequest {
         return "WordRepeatFromNativeToEnglishRequest{" +
                 "userId=" + userId +
                 ", wordId=" + wordId +
-                ", inputTranslate='" + inputTranslate + '\'' +
+                ", inputTranslate='" + inputValue + '\'' +
                 '}';
     }
 

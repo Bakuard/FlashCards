@@ -5,9 +5,7 @@ import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.common.RepetitionResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.expression.*;
-import com.bakuard.flashcards.dto.word.WordForRepetitionNativeToEnglishResponse;
-import com.bakuard.flashcards.dto.word.WordRepeatFromNativeToEnglishRequest;
-import com.bakuard.flashcards.dto.word.WordResponse;
+import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.service.ExpressionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -84,9 +82,9 @@ public class RepetitionOfExpressionsController {
                 jwsUserId, userId, page, size);
 
         Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort("value.asc"));
-        Page<Expression> result = expressionService.findAllForRepeat(userId, pageable);
+        Page<Expression> result = expressionService.findAllForRepeatFromEnglish(userId, pageable);
 
-        return ResponseEntity.ok(mapper.toExpressionsForRepetitionResponse(result));
+        return ResponseEntity.ok(mapper.toExpressionsForRepetitionFromEnglishResponse(result));
     }
 
     @Operation(summary = """
@@ -116,7 +114,8 @@ public class RepetitionOfExpressionsController {
         logger.info("user {} repeat expression from english to native {} as user {}. remember is {}",
                 userId, dto.getExpressionId(), dto.getUserId(), dto.isRemember());
 
-        Expression expression = expressionService.repeat(dto.getUserId(), dto.getExpressionId(), dto.isRemember());
+        Expression expression = expressionService.repeatFromEnglish(dto.getUserId(), dto.getExpressionId(), dto.isRemember());
+        expressionService.save(expression);
 
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
@@ -153,7 +152,14 @@ public class RepetitionOfExpressionsController {
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
                     schema = @Schema(defaultValue = "20"))
             int size) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find all expressions from native to english of user {} for repeat by page={}, size={}",
+                jwsUserId, userId, page, size);
+
+        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort("value.asc"));
+        Page<Expression> result = expressionService.findAllForRepeatFromNative(userId, pageable);
+
+        return ResponseEntity.ok(mapper.toExpressionForRepetitionFromNativeResponse(result));
     }
 
     @Operation(summary = """
@@ -179,7 +185,19 @@ public class RepetitionOfExpressionsController {
     @PutMapping("/native")
     public ResponseEntity<RepetitionResponse<ExpressionResponse>> repeatNativeToEnglish(
             @RequestBody ExpressionRepeatFromNativeToEnglishRequest dto) {
-        return null;
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} repeat expression from english to native {} as user {}. inputValue is {}",
+                userId, dto.getExpressionId(), dto.getUserId(), dto.getInputValue());
+
+        RepetitionResult<Expression> repetitionResult =
+                expressionService.repeatFromNative(dto.getUserId(), dto.getExpressionId(), dto.getInputValue());
+        expressionService.save(repetitionResult.payload());
+
+        RepetitionResponse<ExpressionResponse> response = mapper.toRepetitionResponse(
+                repetitionResult.isRemember(),
+                mapper.toExpressionResponse(repetitionResult.payload())
+        );
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.config.ConfigData;
+import com.bakuard.flashcards.dal.IntervalsRepository;
 import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.model.auth.JwsWithUser;
 import com.bakuard.flashcards.model.auth.credential.Credential;
@@ -17,17 +18,20 @@ import java.util.UUID;
 public class AuthService {
 
     private UserRepository userRepository;
+    private IntervalsRepository intervalsRepository;
     private JwsService jwsService;
     private EmailService emailService;
     private ConfigData configData;
     private ValidatorUtil validator;
 
     public AuthService(UserRepository userRepository,
+                       IntervalsRepository intervalsRepository,
                        JwsService jwsService,
                        EmailService emailService,
                        ConfigData configData,
                        ValidatorUtil validator) {
         this.userRepository = userRepository;
+        this.intervalsRepository = intervalsRepository;
         this.jwsService = jwsService;
         this.emailService = emailService;
         this.configData = configData;
@@ -55,6 +59,13 @@ public class AuthService {
         User user = save(User.newBuilder(validator).
                 setCredential(jwsBody).
                 build());
+
+        //add default repeat intervals
+        intervalsRepository.add(user.getId(), 1);
+        intervalsRepository.add(user.getId(), 3);
+        intervalsRepository.add(user.getId(), 5);
+        intervalsRepository.add(user.getId(), 11);
+
         String jws = jwsService.generateJws(user.getId(), "register");
         return new JwsWithUser(user, jws);
     }

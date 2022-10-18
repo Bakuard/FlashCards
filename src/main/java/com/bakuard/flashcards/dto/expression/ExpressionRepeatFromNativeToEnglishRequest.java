@@ -19,9 +19,9 @@ public class ExpressionRepeatFromNativeToEnglishRequest {
             Уникальный идентификатор выражения. <br/>
             Огрничения: не должен быть null.
             """)
-    private UUID wordId;
+    private UUID expressionId;
     @Schema(description = "Значение выражения на английском языке записанное пользователем по памяти.")
-    private String inputTranslate;
+    private String inputValue;
 
     public ExpressionRepeatFromNativeToEnglishRequest() {
 
@@ -36,21 +36,21 @@ public class ExpressionRepeatFromNativeToEnglishRequest {
         return this;
     }
 
-    public UUID getWordId() {
-        return wordId;
+    public UUID getExpressionId() {
+        return expressionId;
     }
 
-    public ExpressionRepeatFromNativeToEnglishRequest setWordId(UUID wordId) {
-        this.wordId = wordId;
+    public ExpressionRepeatFromNativeToEnglishRequest setExpressionId(UUID expressionId) {
+        this.expressionId = expressionId;
         return this;
     }
 
-    public String getInputTranslate() {
-        return inputTranslate;
+    public String getInputValue() {
+        return inputValue;
     }
 
-    public ExpressionRepeatFromNativeToEnglishRequest setInputTranslate(String inputTranslate) {
-        this.inputTranslate = inputTranslate;
+    public ExpressionRepeatFromNativeToEnglishRequest setInputValue(String inputValue) {
+        this.inputValue = inputValue;
         return this;
     }
 
@@ -60,21 +60,21 @@ public class ExpressionRepeatFromNativeToEnglishRequest {
         if (o == null || getClass() != o.getClass()) return false;
         ExpressionRepeatFromNativeToEnglishRequest that = (ExpressionRepeatFromNativeToEnglishRequest) o;
         return Objects.equals(userId, that.userId) &&
-                Objects.equals(wordId, that.wordId) &&
-                Objects.equals(inputTranslate, that.inputTranslate);
+                Objects.equals(expressionId, that.expressionId) &&
+                Objects.equals(inputValue, that.inputValue);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, wordId, inputTranslate);
+        return Objects.hash(userId, expressionId, inputValue);
     }
 
     @Override
     public String toString() {
         return "ExpressionRepeatFromNativeToEnglishRequest{" +
                 "userId=" + userId +
-                ", wordId=" + wordId +
-                ", inputTranslate='" + inputTranslate + '\'' +
+                ", wordId=" + expressionId +
+                ", inputTranslate='" + inputValue + '\'' +
                 '}';
     }
 
