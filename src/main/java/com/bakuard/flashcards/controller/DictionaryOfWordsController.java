@@ -9,6 +9,7 @@ import com.bakuard.flashcards.dto.word.WordForDictionaryListResponse;
 import com.bakuard.flashcards.dto.word.WordResponse;
 import com.bakuard.flashcards.dto.word.WordUpdateRequest;
 import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.WordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,16 +36,19 @@ public class DictionaryOfWordsController {
 
 
     private WordService wordService;
+    private AuthService authService;
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
 
     @Autowired
     public DictionaryOfWordsController(WordService wordService,
+                                       AuthService authService,
                                        DtoMapper mapper,
                                        RequestContext requestContext,
                                        Messages messages) {
         this.wordService = wordService;
+        this.authService = authService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
@@ -65,10 +69,10 @@ public class DictionaryOfWordsController {
     )
     @PostMapping
     public ResponseEntity<WordResponse> add(@RequestBody WordAddRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} add word '{}'", userId, dto.getValue());
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} add word '{}' for user {}", userId, dto.getValue(), dto.getUserID());
 
-        Word word = mapper.toWord(dto, userId);
+        Word word = mapper.toWord(dto);
         word = wordService.save(word);
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
@@ -83,15 +87,19 @@ public class DictionaryOfWordsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
     @PutMapping
     public ResponseEntity<WordResponse> update(@RequestBody WordUpdateRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} update word {}", userId, dto.getWordId());
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} update word {} for user {}", userId, dto.getWordId(), dto.getUserId());
 
-        Word word = mapper.toWord(dto, userId);
+        Word word = mapper.toWord(dto);
         word = wordService.save(word);
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
@@ -106,16 +114,24 @@ public class DictionaryOfWordsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти пользователя с указанным идентификатором.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
     @GetMapping
     public ResponseEntity<Page<WordForDictionaryListResponse>> findAllBy(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из слов которого делается выборка", required = true)
+            UUID userId,
             @RequestParam("page")
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
             @RequestParam(value = "size", required = false)
-            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
             int size,
             @RequestParam(value = "sort", required = false)
             @Parameter(description = "Порядок сортировки.",
@@ -128,11 +144,12 @@ public class DictionaryOfWordsController {
                             }
                     ))
             String sort) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} get words by page={}, size={}, sort={}", userId, page, size, sort);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get words of user {} by page={}, size={}, sort={}",
+                jwsUserId, userId, page, size, sort);
 
-        Pageable pageable = mapper.toPageableForDictionaryWords(page, size, sort);
-
+        authService.assertExists(userId);
+        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(sort));
         Page<WordForDictionaryListResponse> result = mapper.toWordsForDictionaryListResponse(
                 wordService.findByUserId(userId, pageable)
         );
@@ -150,22 +167,33 @@ public class DictionaryOfWordsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @GetMapping("/{id}")
+    @GetMapping("/id")
     public ResponseEntity<WordResponse> findById(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, слово которого запрашивается", required = true)
+            UUID userId,
             @PathVariable
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} get word by id={}", userId, id);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get word of user {} by id={}", jwsUserId, userId, id);
 
         Word word = wordService.tryFindById(userId, id);
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
 
-    @Operation(summary = "Возвращает слово из словаря пользователя по его значению",
+    @Operation(summary = """
+            Возвращает слово и/или наиболее похожие по написанию к нему слова. Все слова будут отсортирвоанны
+             в порядке возрастания редакционного расстояние между искомым словом, а затем в лексеграфиечском
+             порядке.
+            """,
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -175,19 +203,41 @@ public class DictionaryOfWordsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если пользователя с указанным id не существует.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @GetMapping("/value/{value}")
-    public ResponseEntity<WordResponse> findByValue(
+    @GetMapping("/value")
+    public ResponseEntity<Page<WordForDictionaryListResponse>> findByValue(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из слов которого делается выборка", required = true)
+            UUID userId,
             @PathVariable
-            @Parameter(description = "Значение слова. Не может быть null.", required = true)
-            String value) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} find word by value '{}'", userId, value);
+            @Parameter(description = "Значение искомого слова. Не может быть null.", required = true)
+            String value,
+            @RequestParam
+            @Parameter(description = """
+                    Максимальное редакциооное растояние относительно искомого слова.
+                     Диапозон допустимых значений [1, 20].
+                    """, schema = @Schema(defaultValue = "1"))
+            int maxDistance,
+            @RequestParam("page")
+            @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
+            int page,
+            @RequestParam(value = "size", required = false)
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
+            int size) {
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get words of user {} by value '{}', levenshtein_distance {}, page {}, size {}",
+                jwsUserId, userId, value, maxDistance, page, size);
 
-        Word word = wordService.tryFindByValue(userId, value);
-        return ResponseEntity.ok(mapper.toWordResponse(word));
+        Pageable pageable = mapper.toPageable(page, size);
+        Page<Word> words = wordService.findByValue(userId, value, maxDistance, pageable);
+        return ResponseEntity.ok(mapper.toWordsForDictionaryListResponse(words));
     }
 
     @Operation(summary = "Удаляет слово из словаря пользователя пользователя",
@@ -200,16 +250,23 @@ public class DictionaryOfWordsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id")
     public ResponseEntity<String> delete(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, слово которого удаляется", required = true)
+            UUID userId,
             @PathVariable
             @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} delete word by id={}", userId, id);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} delete word of user {} by id={}", jwsUserId, userId, id);
 
         wordService.tryDeleteById(userId, id);
         return ResponseEntity.ok(messages.getMessage("dictionary.words.delete"));

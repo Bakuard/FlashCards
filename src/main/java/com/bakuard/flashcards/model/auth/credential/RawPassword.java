@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.model.credential;
+package com.bakuard.flashcards.model.auth.credential;
 
 import com.bakuard.flashcards.validation.Password;
 

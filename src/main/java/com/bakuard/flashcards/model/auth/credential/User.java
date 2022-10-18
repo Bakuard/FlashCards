@@ -1,23 +1,22 @@
-package com.bakuard.flashcards.model.credential;
+package com.bakuard.flashcards.model.auth.credential;
 
 import com.bakuard.flashcards.model.Entity;
-import com.bakuard.flashcards.validation.IncorrectCredentials;
-import com.bakuard.flashcards.validation.ValidatorUtil;
+import com.bakuard.flashcards.validation.*;
 import com.google.common.hash.Hashing;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.MappedCollection;
 import org.springframework.data.relational.core.mapping.Table;
 
+import javax.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Table("users")
-public class User implements Entity<User>{
+public class User implements Entity {
 
     public static Builder newBuilder(ValidatorUtil validator) {
         return new Builder(validator);
@@ -33,33 +32,45 @@ public class User implements Entity<User>{
     private String passwordHash;
     @Column("salt")
     private final String salt;
+    @MappedCollection(idColumn = "user_id", keyColumn = "index")
+    @NotContainsNull(message = "User.roles.notContainsNull")
+    @AllUnique(message = "User.roles.allUnique", nameOfGetterMethod = "name")
+    private final List<@Valid Role> roles;
     @Transient
     private ValidatorUtil validator;
 
     @PersistenceCreator
-    public User(UUID id, String email, String passwordHash, String salt) {
+    public User(UUID id, String email, String passwordHash, String salt, List<Role> roles) {
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
         this.salt = salt;
+        this.roles = roles;
     }
 
-    private User(UUID id, String email, String password, String salt, ValidatorUtil validator) {
-        validator.assertValid(
-                new Email(email),
-                new RawPassword(password)
-        );
-
+    private User(UUID id,
+                 Credential credential,
+                 String salt,
+                 List<Role> roles,
+                 ValidatorUtil validator) {
         this.id = id;
-        this.email = email;
-        this.passwordHash = calculatePasswordHash(password, salt);
+        this.email = credential.email();
         this.salt = salt;
+        this.roles = roles;
         this.validator = validator;
+
+        validator.assertValid(this, credential);
+        this.passwordHash = calculatePasswordHash(credential.password(), salt);
     }
 
     @Override
     public UUID getId() {
         return id;
+    }
+
+    @Override
+    public boolean isNew() {
+        return id == null;
     }
 
     @Override
@@ -79,22 +90,22 @@ public class User implements Entity<User>{
         return email;
     }
 
+    public List<Role> getRoles() {
+        return Collections.unmodifiableList(roles);
+    }
+
     @Override
     public void generateIdIfAbsent() {
         if(id == null) id = UUID.randomUUID();
     }
 
-    public void setPassword(String currentPassword, String newPassword) {
-        validator.assertValid(new RawPassword(currentPassword), new RawPassword(newPassword));
+    public void setEmail(String email) {
+        validator.assertValid(new Email(email));
 
-        if(calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
-            this.passwordHash = calculatePasswordHash(newPassword, salt);
-        } else {
-            throw new IncorrectCredentials();
-        }
+        this.email = email;
     }
 
-    public void checkPassword(String currentPassword) {
+    public void assertCurrentPassword(String currentPassword) {
         validator.assertValid(new RawPassword(currentPassword));
 
         if(!calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
@@ -102,8 +113,28 @@ public class User implements Entity<User>{
         }
     }
 
-    public void setEmail(String email) {
-        this.email = validator.assertValid(new Email(email)).asString();
+    public void changePassword(String currentPassword, String newPassword) {
+        validator.assertValid(new PasswordChangeData(currentPassword, newPassword));
+
+        if(!calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
+            throw new IncorrectCredentials();
+        }
+
+        this.passwordHash = calculatePasswordHash(newPassword, salt);
+    }
+
+    public void setCredential(Credential credential) {
+        validator.assertValid(credential);
+
+        this.email = credential.email();
+        this.passwordHash = calculatePasswordHash(credential.password(), salt);
+    }
+
+    public void setRoles(List<Role> roles) {
+        if(roles != null) {
+            this.roles.clear();
+            this.roles.addAll(roles);
+        }
     }
 
     @Override
@@ -131,21 +162,23 @@ public class User implements Entity<User>{
     }
 
 
-    private String calculatePasswordHash(String password, String salt) {
-        return Hashing.sha256().hashBytes(password.concat(salt).getBytes(StandardCharsets.UTF_8)).toString();
+    private String calculatePasswordHash(String newPassword, String salt) {
+        return Hashing.sha256().hashBytes(newPassword.concat(salt).getBytes(StandardCharsets.UTF_8)).toString();
     }
 
 
     public static class Builder {
 
         private UUID userID;
-        private String email;
-        private String password;
+        private Credential credential;
         private String salt;
+        private final List<Role> roles;
         private final ValidatorUtil validator;
 
         private Builder(ValidatorUtil validator) {
             this.salt = generateSalt();
+            this.credential = new Credential(null, null);
+            this.roles = new ArrayList<>();
             this.validator = validator;
         }
 
@@ -155,12 +188,17 @@ public class User implements Entity<User>{
         }
 
         public Builder setEmail(String email) {
-            this.email = email;
+            this.credential = new Credential(email, credential.password());
             return this;
         }
 
         public Builder setPassword(String password) {
-            this.password = password;
+            this.credential = new Credential(credential.email(), password);
+            return this;
+        }
+
+        public Builder setCredential(Credential credential) {
+            if(credential != null) this.credential = credential;
             return this;
         }
 
@@ -169,9 +207,26 @@ public class User implements Entity<User>{
             return this;
         }
 
-        public User build() {
-            return new User(userID, email, password, salt, validator);
+        public Builder setRoles(List<Role> roles) {
+            this.roles.clear();
+            if(roles != null) this.roles.addAll(roles);
+            return this;
         }
+
+        public Builder addRole(Role role) {
+            roles.add(role);
+            return this;
+        }
+
+        public Builder addRole(String role) {
+            roles.add(new Role(role));
+            return this;
+        }
+
+        public User build() {
+            return new User(userID, credential, salt, roles, validator);
+        }
+
 
         private String generateSalt() {
             return Base64.getEncoder().encodeToString(SecureRandom.getSeed(255));

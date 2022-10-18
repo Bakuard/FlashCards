@@ -2,6 +2,7 @@ package com.bakuard.flashcards.model.word;
 
 import com.bakuard.flashcards.validation.NotBlankOrNull;
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import javax.validation.constraints.NotBlank;
@@ -10,8 +11,10 @@ import java.util.Objects;
 @Table("words_transcriptions")
 public class WordTranscription {
 
+    @Column("value")
     @NotBlank(message = "WordTranscription.value.notBlank")
     private String value;
+    @Column("note")
     @NotBlankOrNull(message = "WordTranscription.note.notBlankOrNull")
     private String note;
 

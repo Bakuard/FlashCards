@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class AllUniqueConstraintValidator implements ConstraintValidator<AllUnique, List<?>> {
 
@@ -20,7 +21,9 @@ public class AllUniqueConstraintValidator implements ConstraintValidator<AllUniq
     public boolean isValid(List<?> objects, ConstraintValidatorContext constraintValidatorContext) {
         if(objects == null) return false;
 
+        long countNotNull = objects.stream().filter(Objects::nonNull).count();
         long countUnique = objects.stream().
+                filter(Objects::nonNull).
                 map(obj -> {
                     Class<?> c = obj.getClass();
                     Method m = Arrays.stream(c.getDeclaredMethods()).
@@ -37,7 +40,7 @@ public class AllUniqueConstraintValidator implements ConstraintValidator<AllUniq
                 distinct().
                 count();
 
-        return countUnique == objects.size();
+        return countUnique == countNotNull;
     }
 
 }

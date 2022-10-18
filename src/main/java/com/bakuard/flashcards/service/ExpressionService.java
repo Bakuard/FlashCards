@@ -1,11 +1,12 @@
 package com.bakuard.flashcards.service;
 
+import com.bakuard.flashcards.config.ConfigData;
 import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
-import com.bakuard.flashcards.model.RepeatData;
+import com.bakuard.flashcards.model.RepeatDataFromEnglish;
+import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.validation.UnknownEntityException;
-import com.google.common.collect.ImmutableList;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -23,18 +24,20 @@ public class ExpressionService {
     private ExpressionRepository expressionRepository;
     private IntervalsRepository intervalsRepository;
     private Clock clock;
+    private ConfigData configData;
 
     public ExpressionService(ExpressionRepository expressionRepository,
                              IntervalsRepository intervalsRepository,
-                             Clock clock) {
+                             Clock clock,
+                             ConfigData configData) {
         this.expressionRepository = expressionRepository;
         this.intervalsRepository = intervalsRepository;
         this.clock = clock;
+        this.configData = configData;
     }
 
-    public RepeatData initialRepeatData(UUID userId) {
-        List<Integer> intervals = intervalsRepository.findAll(userId);
-        return new RepeatData(intervals.get(0), LocalDate.now(clock));
+    public int getLowestRepeatInterval(UUID userId) {
+        return intervalsRepository.findAll(userId).get(0);
     }
 
     public Expression save(Expression expression) {
@@ -58,8 +61,16 @@ public class ExpressionService {
         return expressionRepository.findById(userId, expressionId);
     }
 
-    public Optional<Expression> findByValue(UUID userId, String value) {
-        return expressionRepository.findByValue(userId, value);
+    public Page<Expression> findByValue(UUID userId, String value, int maxDistance, Pageable pageable) {
+        maxDistance = Math.max(maxDistance, 1);
+        maxDistance = Math.min(configData.levenshteinMaxDistance(), maxDistance);
+        final int distance = maxDistance;
+
+        return PageableExecutionUtils.getPage(
+                expressionRepository.findByValue(userId, value, maxDistance, pageable.getPageSize(), pageable.getPageNumber()),
+                pageable,
+                () -> expressionRepository.countForValue(userId, value, distance)
+        );
     }
 
     public Expression tryFindById(UUID userId, UUID expressionId) {
@@ -72,59 +83,59 @@ public class ExpressionService {
                 );
     }
 
-    public Expression tryFindByValue(UUID userId, String value) {
-        return findByValue(userId, value).
-                orElseThrow(
-                        () -> new UnknownEntityException(
-                                "Unknown expression with value=" + value + " userId=" + userId,
-                                "Expression.unknownValue"
-                        )
-                );
-    }
-
     public long count(UUID userId) {
         return expressionRepository.count(userId);
     }
 
     public long countForRepeat(UUID userId) {
-        return expressionRepository.countForRepeat(userId, LocalDate.now(clock));
+        return expressionRepository.countForRepeatFromEnglish(userId, LocalDate.now(clock));
     }
 
     public Page<Expression> findByUserId(UUID userId, Pageable pageable) {
         return expressionRepository.findByUserId(userId, pageable);
     }
 
-    public Page<Expression> findAllForRepeat(UUID userId, Pageable pageable) {
+    public Page<Expression> findAllForRepeatFromEnglish(UUID userId, Pageable pageable) {
         LocalDate date = LocalDate.now(clock);
 
         return PageableExecutionUtils.getPage(
-                expressionRepository.findAllForRepeat(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
+                expressionRepository.findAllForRepeatFromEnglish(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
                 pageable,
-                () -> expressionRepository.countForRepeat(userId, date)
+                () -> expressionRepository.countForRepeatFromEnglish(userId, date)
         );
     }
 
-    public Expression repeat(UUID userId, UUID expressionId, boolean isRemember) {
+    public Page<Expression> findAllForRepeatFromNative(UUID userId, Pageable pageable) {
+        LocalDate date = LocalDate.now(clock);
+
+        return PageableExecutionUtils.getPage(
+                expressionRepository.findAllForRepeatFromNative(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
+                pageable,
+                () -> expressionRepository.countForRepeatFromNative(userId, date)
+        );
+    }
+
+    public Expression repeatFromEnglish(UUID userId, UUID expressionId, boolean isRemember) {
         Expression expression = tryFindById(userId, expressionId);
-        expression.repeat(isRemember, LocalDate.now(clock), intervalsRepository.findAll(expression.getUserId()));
+        expression.repeatFromEnglish(isRemember, LocalDate.now(clock), intervalsRepository.findAll(expression.getUserId()));
         return expression;
     }
 
-    public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
-        ImmutableList<Integer> intervals = intervalsRepository.findAll(userId);
-        if(!intervals.contains(oldInterval)) {
-            throw new IllegalArgumentException("Unknown oldInterval=" + oldInterval + " for user=" + userId);
-        } else if(!intervals.contains(newInterval)) {
-            throw new IllegalArgumentException("Unknown newInterval=" + newInterval + " for user=" + userId);
-        } else if(oldInterval != newInterval) {
-            expressionRepository.replaceRepeatInterval(userId, oldInterval, newInterval);
-            intervalsRepository.removeUnused(userId);
-        }
+    public RepetitionResult<Expression> repeatFromNative(UUID userId, UUID expressionId, String inputWordValue) {
+        Expression expression = tryFindById(userId, expressionId);
+        boolean isRemember = expression.repeatFromNative(
+                inputWordValue, LocalDate.now(clock), intervalsRepository.findAll(userId));
+        return new RepetitionResult<>(expression, isRemember);
     }
 
-    public boolean isHotRepeat(Expression expression) {
+    public boolean isHotRepeatFromEnglish(Expression expression) {
         List<Integer> intervals = intervalsRepository.findAll(expression.getUserId());
-        return expression.isHotRepeat(intervals.get(0));
+        return expression.isHotRepeatFromEnglish(intervals.get(0));
+    }
+
+    public boolean isHotRepeatFromNative(Expression expression) {
+        List<Integer> intervals = intervalsRepository.findAll(expression.getUserId());
+        return expression.isHotRepeatFromNative(intervals.get(0));
     }
 
 }

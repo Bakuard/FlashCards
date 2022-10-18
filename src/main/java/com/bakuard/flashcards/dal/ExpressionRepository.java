@@ -7,7 +7,6 @@ import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,8 +19,11 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
     @Query("select * from expressions where user_id = :userId and expression_id = :expressionId;")
     public Optional<Expression> findById(UUID userId, UUID expressionId);
 
-    @Query("select * from expressions where user_id = :userId and value = :value;")
-    public Optional<Expression> findByValue(UUID userId, String value);
+    @Query("""
+            select * from expressions
+                where user_id = :userId and distance(:value, value, :maxDistance) != -1;
+            """)
+    public List<Expression> findByValue(UUID userId, String value, int maxDistance, int limit, int offset);
 
     @Modifying
     @Query("delete from expressions where user_id = :userId and expression_id = :expressionId;")
@@ -35,24 +37,39 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
 
     @Query("""
             select count(*) from expressions
-             where user_id = :userId and (last_date_of_repeat + repeat_interval) <= :date;
+             where user_id = :userId and (last_date_of_repeat_from_english + repeat_interval_from_english) <= :date;
             """)
-    public long countForRepeat(UUID userId, LocalDate date);
+    public long countForRepeatFromEnglish(UUID userId, LocalDate date);
+
+    @Query("""
+            select count(*) from expressions
+             where user_id = :userId and (last_date_of_repeat_from_native + repeat_interval_from_native) <= :date;
+            """)
+    public long countForRepeatFromNative(UUID userId, LocalDate date);
+
+    @Query("""
+            select count(*) from (
+               select value
+                   from expressions
+                   where user_id = :userId and distance(:value, value, :maxDistance) != -1
+            )
+            """)
+    public long countForValue(UUID userId, String value, int maxDistance);
 
     public Page<Expression> findByUserId(UUID userId, Pageable pageable);
 
     @Query("""
             select * from expressions
-             where user_id = :userId and (last_date_of_repeat + repeat_interval) <= :date
+             where user_id = :userId and (last_date_of_repeat_from_english + repeat_interval_from_english) <= :date
              order by value limit :limit offset :offset;
             """)
-    public List<Expression> findAllForRepeat(UUID userId, LocalDate date, int limit, int offset);
+    public List<Expression> findAllForRepeatFromEnglish(UUID userId, LocalDate date, int limit, int offset);
 
-    @Modifying
     @Query("""
-            update expressions set repeat_interval = :newInterval
-             where repeat_interval = :oldInterval and user_id = :userId;
+            select * from expressions
+             where user_id = :userId and (last_date_of_repeat_from_native + repeat_interval_from_native) <= :date
+             order by value limit :limit offset :offset;
             """)
-    public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval);
+    public List<Expression> findAllForRepeatFromNative(UUID userId, LocalDate date, int limit, int offset);
 
 }

@@ -13,6 +13,11 @@ import java.util.UUID;
 public class ExpressionUpdateRequest {
 
     @Schema(description = """
+            Идентификатор пользователя, с которым связано указанное устойчевое выражение. <br/>
+            Ограничения: не должно быть null.
+            """)
+    private UUID userId;
+    @Schema(description = """
             Уникальный идентификатор устойчевого выражения. <br/>
             Ограничения: не должен быть null.
             """)
@@ -54,6 +59,15 @@ public class ExpressionUpdateRequest {
 
     public ExpressionUpdateRequest() {
 
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public ExpressionUpdateRequest setUserId(UUID userId) {
+        this.userId = userId;
+        return this;
     }
 
     public UUID getExpressionId() {
@@ -115,7 +129,8 @@ public class ExpressionUpdateRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExpressionUpdateRequest that = (ExpressionUpdateRequest) o;
-        return Objects.equals(expressionId, that.expressionId) &&
+        return Objects.equals(userId, that.userId) &&
+                Objects.equals(expressionId, that.expressionId) &&
                 Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
                 Objects.equals(interpretations, that.interpretations) &&
@@ -125,13 +140,14 @@ public class ExpressionUpdateRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(expressionId, value, note, interpretations, translates, examples);
+        return Objects.hash(userId, expressionId, value, note, interpretations, translates, examples);
     }
 
     @Override
     public String toString() {
         return "ExpressionUpdateRequest{" +
-                "expressionId=" + expressionId +
+                "userId=" + userId +
+                ", expressionId=" + expressionId +
                 ", value='" + value + '\'' +
                 ", note='" + note + '\'' +
                 ", interpretations=" + interpretations +

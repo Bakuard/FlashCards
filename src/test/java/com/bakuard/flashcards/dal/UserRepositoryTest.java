@@ -1,17 +1,15 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.credential.User;
+import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.ValidatorUtil;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.jdbc.AutoConfigureDataJdbc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -25,7 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @ExtendWith(SpringExtension.class)
-@TestPropertySource(locations = "classpath:application.properties")
+@TestPropertySource(locations = "classpath:test.properties")
 @Import(TestConfig.class)
 class UserRepositoryTest {
 
@@ -60,7 +58,7 @@ class UserRepositoryTest {
 
         User actual = userRepository.findByEmail(toEmail(1)).orElseThrow();
 
-        org.assertj.core.api.Assertions.
+        Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
                 isEqualTo(actual);
@@ -73,6 +71,24 @@ class UserRepositoryTest {
              => return empty Optional
             """)
     public void findByEmail2() {
+        commit(() -> {
+            userRepository.save(user(1));
+            userRepository.save(user(2));
+            userRepository.save(user(3));
+        });
+
+        Optional<User> actual = userRepository.findByEmail(toEmail(1000));
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            existsByEmail(email):
+             exists user with such email
+             => return true
+            """)
+    public void existsByEmail1() {
         User expected = user(1);
         commit(() -> {
             userRepository.save(expected);
@@ -80,9 +96,27 @@ class UserRepositoryTest {
             userRepository.save(user(3));
         });
 
-        Optional<User> actual = userRepository.findByEmail(toEmail(1000));
+        boolean actual = userRepository.existsByEmail(expected.getEmail());
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isTrue();
+    }
+
+    @Test
+    @DisplayName("""
+            existsByEmail(email):
+             not exists user with such email
+             => return false
+            """)
+    public void existsByEmail2() {
+        commit(() -> {
+            userRepository.save(user(1));
+            userRepository.save(user(2));
+            userRepository.save(user(3));
+        });
+
+        boolean actual = userRepository.existsByEmail(toEmail(1000));
+
+        Assertions.assertThat(actual).isFalse();
     }
 
 
@@ -99,6 +133,9 @@ class UserRepositoryTest {
                 setPassword("password" + number).
                 setEmail(toEmail(number)).
                 setOrGenerateSalt("salt" + number).
+                addRole("role1").
+                addRole("role2").
+                addRole("role3").
                 build();
     }
 

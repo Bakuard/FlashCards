@@ -9,6 +9,7 @@ import com.bakuard.flashcards.dto.expression.ExpressionForDictionaryListResponse
 import com.bakuard.flashcards.dto.expression.ExpressionResponse;
 import com.bakuard.flashcards.dto.expression.ExpressionUpdateRequest;
 import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,16 +36,19 @@ public class DictionaryOfExpressionsController {
 
 
     private ExpressionService expressionService;
+    private AuthService authService;
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
 
     @Autowired
     public DictionaryOfExpressionsController(ExpressionService expressionService,
+                                             AuthService authService,
                                              DtoMapper mapper,
                                              RequestContext requestContext,
                                              Messages messages) {
         this.expressionService = expressionService;
+        this.authService = authService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
@@ -64,10 +68,10 @@ public class DictionaryOfExpressionsController {
             })
     @PostMapping
     public ResponseEntity<ExpressionResponse> add(@RequestBody ExpressionAddRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} add word '{}'", userId, dto.getValue());
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} add word '{}' fro user {}", userId, dto.getValue(), dto.getUserID());
 
-        Expression expression = mapper.toExpression(dto, userId);
+        Expression expression = mapper.toExpression(dto);
         expression = expressionService.save(expression);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
@@ -82,15 +86,19 @@ public class DictionaryOfExpressionsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
     @PutMapping
     public ResponseEntity<ExpressionResponse> update(@RequestBody ExpressionUpdateRequest dto) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} update word {}", userId, dto.getExpressionId());
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} update word {} for user {}", userId, dto.getExpressionId(), dto.getUserId());
 
-        Expression expression = mapper.toExpression(dto, userId);
+        Expression expression = mapper.toExpression(dto);
         expression = expressionService.save(expression);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
@@ -105,16 +113,24 @@ public class DictionaryOfExpressionsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти пользователя с указанным идентификатором.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
     @GetMapping
     public ResponseEntity<Page<ExpressionForDictionaryListResponse>> findAllBy(
             @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из выражений которого делается выборка", required = true)
+            UUID userId,
+            @RequestParam
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
             @RequestBody(required = false)
-            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].")
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
             int size,
             @RequestParam(required = false)
             @Parameter(description = "Порядок сортировки.",
@@ -127,11 +143,13 @@ public class DictionaryOfExpressionsController {
                             }
                     ))
             String sort) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} get expressions by page={}, size={}, sort={}", page, size, sort);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get expressions of user {} by page={}, size={}, sort={}",
+                jwsUserId, userId, page, size, sort);
 
-        Pageable pageable = mapper.toPageableForDictionaryExpressions(page, size, sort);
-        Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionForDictionaryListResponse(
+        authService.assertExists(userId);
+        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(sort));
+        Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionsForDictionaryListResponse(
                 expressionService.findByUserId(userId, pageable)
         );
 
@@ -148,22 +166,33 @@ public class DictionaryOfExpressionsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @GetMapping("/{id}")
+    @GetMapping("/id")
     public ResponseEntity<ExpressionResponse> findById(
-            @PathVariable
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, выражение которого запрашивается", required = true)
+            UUID userId,
+            @RequestParam
             @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} get expression by id={}", userId, id);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get expression of user {} by id={}", jwsUserId, userId, id);
 
         Expression expression = expressionService.tryFindById(userId, id);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
-    @Operation(summary = "Возвращает устойчевое выражение из словаря пользователя по его значению",
+    @Operation(summary = """
+            Возвращает устойчевое выражение и/или наиболее похожие по написанию к нему устойчевые выражения.
+             Все выражения будут отсортирвоанны в порядке возрастания редакционного расстояние между искомым
+             словом, а затем в лексеграфиечском порядке.
+            """,
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -173,22 +202,44 @@ public class DictionaryOfExpressionsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если пользователя с указанным id не существует.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @GetMapping("/value/{value}")
-    public ResponseEntity<ExpressionResponse> findByValue(
-            @PathVariable
+    @GetMapping("/value")
+    public ResponseEntity<Page<ExpressionForDictionaryListResponse>> findByValue(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, выражение которого запрашивается", required = true)
+            UUID userId,
+            @RequestParam
             @Parameter(description = "Значение устойчевого выражения. Не может быть null.", required = true)
-            String value) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} get expression by value '{}'", userId, value);
+            String value,
+            @RequestParam
+            @Parameter(description = """
+                    Максимальное редакциооное растояние относительно искомого слова.
+                     Диапозон допустимых значений [1, 20].
+                    """, schema = @Schema(defaultValue = "1"))
+            int maxDistance,
+            @RequestParam("page")
+            @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
+            int page,
+            @RequestParam(value = "size", required = false)
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
+            int size) {
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get expressions of user {} by value '{}', levenshtein_distance {}, page {}, size {}",
+                jwsUserId, userId, value, maxDistance, page, size);
 
-        Expression expression = expressionService.tryFindByValue(userId, value);
-        return ResponseEntity.ok(mapper.toExpressionResponse(expression));
+        Pageable pageable = mapper.toPageable(page, size);
+        Page<Expression> expressions = expressionService.findByValue(userId, value, maxDistance, pageable);
+        return ResponseEntity.ok(mapper.toExpressionsForDictionaryListResponse(expressions));
     }
 
-    @Operation(summary = "Удаляет устойчевое выражение из словаря пользователя пользователя",
+    @Operation(summary = "Удаляет устойчевое выражение из словаря пользователя",
             responses = {
                     @ApiResponse(responseCode = "200"),
                     @ApiResponse(responseCode = "400",
@@ -198,16 +249,23 @@ public class DictionaryOfExpressionsController {
                     @ApiResponse(responseCode = "401",
                             description = "Если передан некорректный токен или токен не указан",
                             content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                            content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
     )
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/id")
     public ResponseEntity<String> delete(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, выражение которого удаляется", required = true)
+            UUID userId,
             @PathVariable
             @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
             UUID id) {
-        UUID userId = requestContext.getCurrentJwsBody();
-        logger.info("user {} delete expression by id={}", userId, id);
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} delete expression of user {} by id={}", jwsUserId, userId, id);
 
         expressionService.tryDeleteById(userId, id);
         return ResponseEntity.ok(messages.getMessage("dictionary.expressions.delete"));

@@ -2,13 +2,12 @@ package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatData;
-import com.bakuard.flashcards.model.credential.User;
+import com.bakuard.flashcards.model.RepeatDataFromEnglish;
+import com.bakuard.flashcards.model.RepeatDataFromNative;
+import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.validation.ValidatorUtil;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +31,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
-@TestPropertySource(locations = "classpath:application.properties")
+@TestPropertySource(locations = "classpath:test.properties")
 @Import(TestConfig.class)
 class ExpressionRepositoryTest {
 
@@ -68,7 +67,7 @@ class ExpressionRepositoryTest {
     public void save() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
+        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
 
         commit(() -> expressionRepository.save(expected));
 
@@ -88,12 +87,12 @@ class ExpressionRepositoryTest {
     public void findById1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
+        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
         commit(() -> expressionRepository.save(expected));
 
         Optional<Expression> actual = expressionRepository.findById(user.getId(), toUUID(1));
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -105,7 +104,7 @@ class ExpressionRepositoryTest {
     public void findById2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
+        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
         commit(() -> expressionRepository.save(expected));
 
         Expression actual = expressionRepository.findById(user.getId(), expected.getId()).orElseThrow();
@@ -118,39 +117,138 @@ class ExpressionRepositoryTest {
 
     @Test
     @DisplayName("""
-            findByValue(userId, value):
-             there is not expression with such value
-             => return empty optional
+            countForValue(userId, value, maxDistance):
+             user with userId hasn't any expressions
+             => return 0
             """)
-    public void findByValue1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
-        commit(() -> expressionRepository.save(expected));
+    public void countForValue1() {
+        commit(() -> userRepository.save(user(1)));
 
-        Optional<Expression> actual = expressionRepository.findByValue(user.getId(), "Unknown value");
+        long actual = expressionRepository.countForValue(toUUID(1), "value", 2);
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
     @DisplayName("""
-            findByValue(userId, value):
-             there is expression with such value
-             => return correct expression
+            countForValue(userId, value, maxDistance):
+             user has some expressions,
+             there are not expressions with maxDistance <= 2
+             => return 0
+            """)
+    public void countForValue2() {
+        User user = commit(() -> {
+            User temp = userRepository.save(user(1));
+            expressionRepository.save(expression(temp.getId(), "value", "note", 1));
+            expressionRepository.save(expression(temp.getId(), "cock", "note", 3));
+            expressionRepository.save(expression(temp.getId(), "rise", "note", 5));
+            expressionRepository.save(expression(temp.getId(), "value1234", "note", 10));
+            return temp;
+        });
+
+        long actual = expressionRepository.countForValue(user.getId(), "cockroach", 2);
+
+        Assertions.assertThat(actual).isZero();
+    }
+
+    @Test
+    @DisplayName("""
+            countForValue(userId, value, maxDistance):
+             user has some expressions,
+             there are expressions with maxDistance <= 2
+             => return correct result
+            """)
+    public void countForValue3() {
+        User user = commit(() -> {
+            User temp = userRepository.save(user(1));
+            expressionRepository.save(expression(temp.getId(), "frog", "note", 1));
+            expressionRepository.save(expression(temp.getId(), "frog1", "note", 3));
+            expressionRepository.save(expression(temp.getId(), "broom", "note", 5));
+            expressionRepository.save(expression(temp.getId(), "distance", "note", 10));
+            return temp;
+        });
+
+        long actual = expressionRepository.countForValue(user.getId(), "frog", 2);
+
+        org.assertj.core.api.Assertions.assertThat(actual).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("""
+            findByValue(userId, value, maxDistance, limit, offset):
+             user with userId hasn't any expressions
+             return empty list
+            """)
+    public void findByValue1() {
+        User user = commit(() -> userRepository.save(user(1)));
+
+        List<Expression> actual = expressionRepository.findByValue(
+                user.getId(),
+                "cockroach",
+                2,
+                10,
+                0
+        );
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findByValue(userId, value, maxDistance, limit, offset):
+             user has some expressions,
+             there are not expressions with maxDistance <= 2
+             return empty list
             """)
     public void findByValue2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> {
+            User temp = userRepository.save(user(1));
+            expressionRepository.save(expression(temp.getId(), "value", "note", 1));
+            expressionRepository.save(expression(temp.getId(), "cock", "note", 3));
+            expressionRepository.save(expression(temp.getId(), "rise", "note", 5));
+            expressionRepository.save(expression(temp.getId(), "value1234", "note", 10));
+            return temp;
+        });
 
-        Expression actual = expressionRepository.findByValue(user.getId(), "value 1").orElseThrow();
+        List<Expression> actual = expressionRepository.findByValue(
+                user.getId(),
+                "cockroach",
+                2,
+                10,
+                0
+        );
 
-        org.assertj.core.api.Assertions.
-                assertThat(expected).
-                usingRecursiveComparison().
-                isEqualTo(actual);
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findByValue(userId, value, maxDistance, limit, offset):
+             user has some expressions,
+             there are expressions with maxDistance <= 2
+             => return correct result
+            """)
+    public void findByValue3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        List<Expression> words = List.of(
+                expression(user.getId(), "frog", "note", 1),
+                expression(user.getId(), "frog1", "note", 3),
+                expression(user.getId(), "broom", "note", 5),
+                expression(user.getId(), "distance", "note", 10)
+        );
+        commit(() -> words.forEach(word -> expressionRepository.save(word)));
+
+        List<Expression> actual = expressionRepository.findByValue(
+                user.getId(),
+                "frog",
+                2,
+                10,
+                0
+        );
+
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                containsExactly(words.get(0), words.get(1));
     }
 
     @Test
@@ -162,12 +260,12 @@ class ExpressionRepositoryTest {
     public void deleteById1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
+        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
         commit(() -> expressionRepository.save(expected));
 
         commit(() -> expressionRepository.deleteById(user.getId(), toUUID(1)));
 
-        Assertions.assertTrue(expressionRepository.existsById(expected.getId()));
+        Assertions.assertThat(expressionRepository.existsById(expected.getId())).isTrue();
     }
 
     @Test
@@ -179,12 +277,12 @@ class ExpressionRepositoryTest {
     public void deleteById2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
+        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
         commit(() -> expressionRepository.save(expected));
 
         commit(() -> expressionRepository.deleteById(user.getId(), expected.getId()));
 
-        Assertions.assertFalse(expressionRepository.existsById(expected.getId()));
+        Assertions.assertThat(expressionRepository.existsById(expected.getId())).isFalse();
     }
 
     @Test
@@ -196,10 +294,10 @@ class ExpressionRepositoryTest {
     public void existsById1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
+        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
         commit(() -> expressionRepository.save(expected));
 
-        Assertions.assertFalse(expressionRepository.existsById(user.getId(), toUUID(1)));
+        Assertions.assertThat(expressionRepository.existsById(user.getId(), toUUID(1))).isFalse();
     }
 
     @Test
@@ -211,10 +309,10 @@ class ExpressionRepositoryTest {
     public void existsById2() {
         User user = user(1);
         commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", repeatData(1));
+        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
         commit(() -> expressionRepository.save(expected));
 
-        Assertions.assertTrue(expressionRepository.existsById(user.getId(), expected.getId()));
+        Assertions.assertThat(expressionRepository.existsById(user.getId(), expected.getId())).isTrue();
     }
 
     @Test
@@ -228,13 +326,13 @@ class ExpressionRepositoryTest {
         User user2 = commit(() -> userRepository.save(user(2)));
         User user3 = commit(() -> userRepository.save(user(3)));
         commit(() -> {
-            expressionRepository.save(expression(user1.getId(), "value1", "note1", repeatData(1)));
-            expressionRepository.save(expression(user2.getId(), "value2", "note2", repeatData(1)));
+            expressionRepository.save(expression(user1.getId(), "value1", "note1", 1));
+            expressionRepository.save(expression(user2.getId(), "value2", "note2", 1));
         });
 
         long actual = expressionRepository.count(user3.getId());
 
-        Assertions.assertEquals(0, actual);
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
@@ -248,99 +346,183 @@ class ExpressionRepositoryTest {
         User user2 = commit(() -> userRepository.save(user(2)));
         User user3 = commit(() -> userRepository.save(user(3)));
         commit(() -> {
-            expressionRepository.save(expression(user1.getId(), "value1", "note1", repeatData(1)));
-            expressionRepository.save(expression(user2.getId(), "value2", "note2", repeatData(1)));
-            expressionRepository.save(expression(user3.getId(), "value3", "note3", repeatData(1)));
-            expressionRepository.save(expression(user3.getId(), "value4", "note4", repeatData(1)));
+            expressionRepository.save(expression(user1.getId(), "value1", "note1", 1));
+            expressionRepository.save(expression(user2.getId(), "value2", "note2", 1));
+            expressionRepository.save(expression(user3.getId(), "value3", "note3", 1));
+            expressionRepository.save(expression(user3.getId(), "value4", "note4", 1));
         });
 
         long actual = expressionRepository.count(user3.getId());
 
-        Assertions.assertEquals(2, actual);
+        Assertions.assertThat(actual).isEqualTo(2);
     }
 
     @Test
     @DisplayName("""
-            countForRepeat(userId, date):
+            countForRepeatFromEnglish(userId, date):
              user with such id have some expressions for repeat with date
              => return correct result
             """)
-    public void countForRepeat1() {
+    public void countForRepeatFromEnglish1() {
         User user1 = commit(() -> userRepository.save(user(1)));
         commit(() -> {
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value1", "note1", repeatData(1))
+                    expression(user1.getId(), "value1", "note1", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value2", "note2", repeatData(3))
+                    expression(user1.getId(), "value2", "note2", 3)
             );
             clock.setDate(2022, 7, 10);
             expressionRepository.save(
-                    expression(user1.getId(), "value3", "note3", repeatData(1))
+                    expression(user1.getId(), "value3", "note3", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value4", "note4", repeatData(10))
+                    expression(user1.getId(), "value4", "note4", 10)
             );
         });
 
-        long actual = expressionRepository.countForRepeat(
+        long actual = expressionRepository.countForRepeatFromEnglish(
                 user1.getId(), LocalDate.of(2022, 7, 10)
         );
 
-        Assertions.assertEquals(2, actual);
+        Assertions.assertThat(actual).isEqualTo(2);
     }
 
     @Test
     @DisplayName("""
-            countForRepeat(userId, date):
+            countForRepeatFromEnglish(userId, date):
              user haven't any expressions
              => return 0
             """)
-    public void countForRepeat2() {
+    public void countForRepeatFromEnglish2() {
         User user1 = commit(() -> userRepository.save(user(1)));
 
-        long actual = expressionRepository.countForRepeat(
+        long actual = expressionRepository.countForRepeatFromEnglish(
                 user1.getId(), LocalDate.of(2022, 7, 10)
         );
 
-        Assertions.assertEquals(0, actual);
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
     @DisplayName("""
-            countForRepeat(userId, date):
+            countForRepeatFromEnglish(userId, date):
              user have expressions, but haven't any expressions to repeat
              => return 0
             """)
-    public void countForRepeat3() {
+    public void countForRepeatFromEnglish3() {
         User user1 = commit(() -> userRepository.save(user(1)));
         commit(() -> {
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value1", "note1", repeatData(1))
+                    expression(user1.getId(), "value1", "note1", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value2", "note2", repeatData(3))
+                    expression(user1.getId(), "value2", "note2", 3)
             );
             clock.setDate(2022, 7, 10);
             expressionRepository.save(
-                    expression(user1.getId(), "value3", "note3", repeatData(1))
+                    expression(user1.getId(), "value3", "note3", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value4", "note4", repeatData(10))
+                    expression(user1.getId(), "value4", "note4", 10)
             );
         });
 
-        long actual = expressionRepository.countForRepeat(
+        long actual = expressionRepository.countForRepeatFromEnglish(
                 user1.getId(), LocalDate.of(2022, 7, 7)
         );
 
-        Assertions.assertEquals(0, actual);
+        Assertions.assertThat(actual).isZero();
+    }
+
+    @Test
+    @DisplayName("""
+            countForRepeatFromNative(userId, date):
+             user with such id have some expressions for repeat with date
+             => return correct result
+            """)
+    public void countForRepeatFromNative1() {
+        User user1 = commit(() -> userRepository.save(user(1)));
+        commit(() -> {
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value1", "note1", 1)
+            );
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value2", "note2", 3)
+            );
+            clock.setDate(2022, 7, 10);
+            expressionRepository.save(
+                    expression(user1.getId(), "value3", "note3", 1)
+            );
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value4", "note4", 10)
+            );
+        });
+
+        long actual = expressionRepository.countForRepeatFromNative(
+                user1.getId(), LocalDate.of(2022, 7, 10)
+        );
+
+        Assertions.assertThat(actual).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("""
+            countForRepeatFromNative(userId, date):
+             user haven't any expressions
+             => return 0
+            """)
+    public void countForRepeatFromNative2() {
+        User user1 = commit(() -> userRepository.save(user(1)));
+
+        long actual = expressionRepository.countForRepeatFromNative(
+                user1.getId(), LocalDate.of(2022, 7, 10)
+        );
+
+        Assertions.assertThat(actual).isZero();
+    }
+
+    @Test
+    @DisplayName("""
+            countForRepeatFromNative(userId, date):
+             user have expressions, but haven't any expressions to repeat
+             => return 0
+            """)
+    public void countForRepeatFromNative3() {
+        User user1 = commit(() -> userRepository.save(user(1)));
+        commit(() -> {
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value1", "note1", 1)
+            );
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value2", "note2", 3)
+            );
+            clock.setDate(2022, 7, 10);
+            expressionRepository.save(
+                    expression(user1.getId(), "value3", "note3", 1)
+            );
+            clock.setDate(2022, 7, 7);
+            expressionRepository.save(
+                    expression(user1.getId(), "value4", "note4", 10)
+            );
+        });
+
+        long actual = expressionRepository.countForRepeatFromNative(
+                user1.getId(), LocalDate.of(2022, 7, 7)
+        );
+
+        Assertions.assertThat(actual).isZero();
     }
 
     @Test
@@ -354,7 +536,7 @@ class ExpressionRepositoryTest {
 
         Page<Expression> actual = expressionRepository.findByUserId(user1.getId(), PageRequest.of(0, 20));
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -375,7 +557,9 @@ class ExpressionRepositoryTest {
         List<Expression> expected = expressions.stream().
                 sorted(Comparator.comparing(Expression::getValue).reversed()).
                 toList();
-        Assertions.assertEquals(expected, actual.getContent());
+        Assertions.assertThat(actual.getContent()).
+                usingRecursiveFieldByFieldElementComparator().
+                isEqualTo(expected);
     }
 
     @Test
@@ -391,129 +575,151 @@ class ExpressionRepositoryTest {
         commit(() -> expressions.forEach(expression -> expressionRepository.save(expression)));
 
         Page<Expression> actual = expressionRepository.findByUserId(user.getId(),
-                PageRequest.of(0, 20, Sort.by("repeat_interval", "value")));
+                PageRequest.of(0, 20, Sort.by("repeat_interval_from_english", "value")));
 
         List<Expression> expected = expressions.stream().
-                sorted(Comparator.comparing((Expression e) -> e.getRepeatData().getInterval()).
+                sorted(Comparator.comparing((Expression e) -> e.getRepeatDataFromEnglish().interval()).
                         thenComparing(Expression::getValue)).
                 toList();
-        Assertions.assertEquals(expected, actual.getContent());
+        Assertions.assertThat(actual.getContent()).
+                usingRecursiveFieldByFieldElementComparator().
+                isEqualTo(expected);
     }
 
     @Test
     @DisplayName("""
-            findAllForRepeat(userId, date):
+            findAllForRepeatFromEnglish(userId, date):
              user haven't any expression
              => return empty page
             """)
-    public void findAllForRepeat1() {
+    public void findAllForRepeatFromEnglish1() {
         User user = commit(() -> userRepository.save(user(1)));
 
-        List<Expression> actual = expressionRepository.findAllForRepeat(
+        List<Expression> actual = expressionRepository.findAllForRepeatFromEnglish(
                 user.getId(),
                 LocalDate.of(2022, 7, 10),
                 20, 0
         );
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
     @DisplayName("""
-            findAllForRepeat(userId, date):
+            findAllForRepeatFromEnglish(userId, date):
              user have some expressions,
              there are not expressions for repeat
              => return empty page
             """)
-    public void findAllForRepeat2() {
+    public void findAllForRepeatFromEnglish2() {
         User user = commit(() -> userRepository.save(user(1)));
         List<Expression> expressions = expressions(user.getId());
         expressions.forEach(expression -> expressionRepository.save(expression));
 
-        List<Expression> actual = expressionRepository.findAllForRepeat(
+        List<Expression> actual = expressionRepository.findAllForRepeatFromEnglish(
                 user.getId(),
                 LocalDate.of(2022, 7, 1),
                 20, 0
         );
 
-        Assertions.assertTrue(actual.isEmpty());
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
     @DisplayName("""
-            findAllForRepeat(userId, date):
+            findAllForRepeatFromEnglish(userId, date):
              user have some expressions,
              there are expressions for repeat
              => return correct result
             """)
-    public void findAllForRepeat3() {
+    public void findAllForRepeatFromEnglish3() {
         User user = commit(() -> userRepository.save(user(1)));
         List<Expression> expressions = expressions(user.getId());
         commit(() -> expressions.forEach(word -> expressionRepository.save(word)));
 
         LocalDate repeatDate = LocalDate.of(2022, 7, 10);
-        List<Expression> actual = expressionRepository.findAllForRepeat(
+        List<Expression> actual = expressionRepository.findAllForRepeatFromEnglish(
                 user.getId(),
                 repeatDate,
                 2, 0
         );
 
         List<Expression> expected = expressions.stream().
-                sorted(Comparator.comparing((Expression e) -> e.getRepeatData().nextDateOfRepeat())).
-                filter(e -> e.getRepeatData().nextDateOfRepeat().compareTo(repeatDate) <= 0).
+                sorted(Comparator.comparing((Expression e) -> e.getRepeatDataFromEnglish().nextDateOfRepeat())).
+                filter(e -> e.getRepeatDataFromEnglish().nextDateOfRepeat().compareTo(repeatDate) <= 0).
                 limit(2).
                 toList();
-        Assertions.assertEquals(expected, actual);
-    }
-
-    @Test
-    @DisplayName("""
-            replaceRepeatInterval(userId, oldInterval, newInterval):
-             there are not expressions with oldInterval
-             => do nothing
-            """)
-    public void replaceRepeatInterval1() {
-        User user = commit(() -> userRepository.save(user(1)));
-        List<Expression> expected = expressions(user.getId());
-        commit(() -> expected.forEach(expression -> expressionRepository.save(expression)));
-
-        commit(() -> expressionRepository.replaceRepeatInterval(user.getId(), 5, 10));
-
-        List<Expression> actual = expressionRepository.findByUserId(user.getId(),
-                        PageRequest.of(0, 20, Sort.by("value").ascending())).
-                getContent();
-        org.assertj.core.api.Assertions.
-                assertThat(actual).
-                usingRecursiveFieldByFieldElementComparator(
-                        RecursiveComparisonConfiguration.builder().
-                                withIgnoreAllOverriddenEquals(true).
-                                build()
-                ).
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
                 isEqualTo(expected);
     }
 
     @Test
     @DisplayName("""
-            replaceRepeatInterval(userId, oldInterval, newInterval):
-             there are expressions with oldInterval
-             => replace them to newInterval
+            findAllForRepeatFromNative(userId, date):
+             user haven't any expression
+             => return empty page
             """)
-    public void replaceRepeatInterval2() {
+    public void findAllForRepeatFromNative1() {
         User user = commit(() -> userRepository.save(user(1)));
-        List<Expression> expected = expressions(user.getId());
-        commit(() -> expected.forEach(word -> expressionRepository.save(word)));
 
-        commit(() -> expressionRepository.replaceRepeatInterval(user.getId(), 1, 10));
+        List<Expression> actual = expressionRepository.findAllForRepeatFromNative(
+                user.getId(),
+                LocalDate.of(2022, 7, 10),
+                20, 0
+        );
 
-        List<Expression> actual = expressionRepository.findByUserId(user.getId(),
-                        PageRequest.of(0, 20, Sort.by("value").ascending())).
-                getContent();
-        SoftAssertions assertions = new SoftAssertions();
-        assertions.assertThat(actual).
-                elements(2, 3, 4).allMatch(w -> w.getRepeatData().getInterval() == 3);
-        assertions.assertThat(actual).
-                elements(0, 1, 5).allMatch(w -> w.getRepeatData().getInterval() == 10);
-        assertions.assertAll();
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findAllForRepeatFromNative(userId, date):
+             user have some expressions,
+             there are not expressions for repeat
+             => return empty page
+            """)
+    public void findAllForRepeatFromNative2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        List<Expression> expressions = expressions(user.getId());
+        expressions.forEach(expression -> expressionRepository.save(expression));
+
+        List<Expression> actual = expressionRepository.findAllForRepeatFromNative(
+                user.getId(),
+                LocalDate.of(2022, 7, 1),
+                20, 0
+        );
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findAllForRepeatFromNative(userId, date):
+             user have some expressions,
+             there are expressions for repeat
+             => return correct result
+            """)
+    public void findAllForRepeatFromNative3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        List<Expression> expressions = expressions(user.getId());
+        commit(() -> expressions.forEach(word -> expressionRepository.save(word)));
+
+        LocalDate repeatDate = LocalDate.of(2022, 7, 10);
+        List<Expression> actual = expressionRepository.findAllForRepeatFromNative(
+                user.getId(),
+                repeatDate,
+                2, 0
+        );
+
+        List<Expression> expected = expressions.stream().
+                sorted(Comparator.comparing((Expression e) -> e.getRepeatDataFromEnglish().nextDateOfRepeat())).
+                filter(e -> e.getRepeatDataFromEnglish().nextDateOfRepeat().compareTo(repeatDate) <= 0).
+                limit(2).
+                toList();
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                isEqualTo(expected);
     }
 
 
@@ -522,23 +728,26 @@ class ExpressionRepositoryTest {
     }
 
     private User user(int number) {
-        return new User(
-                null,
-                "password" + number,
-                "salt" + number,
-                "user" + number + "@gmail.com"
-        );
+        return User.newBuilder(validator).
+                setPassword("password" + number).
+                setOrGenerateSalt("salt" + number).
+                setEmail("me" + number + "@mail.com").
+                addRole("role1").
+                addRole("role2").
+                addRole("role3").
+                build();
     }
 
     private Expression expression(UUID userId,
                                   String value,
                                   String note,
-                                  RepeatData repeatData) {
+                                  int interval) {
         return Expression.newBuilder(validator).
                 setUserId(userId).
                 setValue(value).
                 setNote(note).
-                setRepeatData(repeatData).
+                setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
+                setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
                 build();
     }
 
@@ -547,34 +756,30 @@ class ExpressionRepositoryTest {
 
         clock.setDate(2022, 7, 1);
         expressions.add(
-                expression(userId, "expressionA", "noteA", repeatData(1))
+                expression(userId, "expressionA", "noteA", 1)
         );
         clock.setDate(2022, 7, 2);
         expressions.add(
-                expression(userId, "expressionB", "noteB", repeatData(1))
+                expression(userId, "expressionB", "noteB", 1)
         );
         clock.setDate(2022, 7, 6);
         expressions.add(
-                expression(userId, "expressionC", "noteB", repeatData(3))
+                expression(userId, "expressionC", "noteB", 3)
         );
         clock.setDate(2022, 7, 7);
         expressions.add(
-                expression(userId, "expressionD", "noteD", repeatData(3))
+                expression(userId, "expressionD", "noteD", 3)
         );
         clock.setDate(2022, 7, 8);
         expressions.add(
-                expression(userId, "expressionE", "noteE", repeatData(3))
+                expression(userId, "expressionE", "noteE", 3)
         );
         clock.setDate(2022, 7, 10);
         expressions.add(
-                expression(userId, "expressionF", "noteF", repeatData(1))
+                expression(userId, "expressionF", "noteF", 1)
         );
 
         return expressions;
-    }
-
-    private RepeatData repeatData(int interval) {
-        return new RepeatData(interval, LocalDate.now(clock));
     }
 
     private void commit(Executable executable) {

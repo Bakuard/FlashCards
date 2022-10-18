@@ -14,6 +14,11 @@ import java.util.UUID;
 public class WordUpdateRequest {
 
     @Schema(description = """
+            Идентификатор пользователя, с которым связано указанное слово. <br/>
+            Ограничения: не должно быть null.
+            """)
+    private UUID userId;
+    @Schema(description = """
             Уникальный идентификатор слова. <br/>
             Ограничения: не должен быть null.
             """)
@@ -63,6 +68,15 @@ public class WordUpdateRequest {
 
     public WordUpdateRequest() {
 
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public WordUpdateRequest setUserId(UUID userId) {
+        this.userId = userId;
+        return this;
     }
 
     public UUID getWordId() {
@@ -133,7 +147,8 @@ public class WordUpdateRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WordUpdateRequest that = (WordUpdateRequest) o;
-        return Objects.equals(wordId, that.wordId) &&
+        return Objects.equals(userId, that.userId) &&
+                Objects.equals(wordId, that.wordId) &&
                 Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
                 Objects.equals(transcriptions, that.transcriptions) &&
@@ -144,13 +159,14 @@ public class WordUpdateRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(wordId, value, note, transcriptions, interpretations, translates, examples);
+        return Objects.hash(userId, wordId, value, note, transcriptions, interpretations, translates, examples);
     }
 
     @Override
     public String toString() {
         return "WordUpdateRequest{" +
-                "wordId=" + wordId +
+                "userId=" + userId +
+                ", wordId=" + wordId +
                 ", value='" + value + '\'' +
                 ", note='" + note + '\'' +
                 ", transcriptions=" + transcriptions +

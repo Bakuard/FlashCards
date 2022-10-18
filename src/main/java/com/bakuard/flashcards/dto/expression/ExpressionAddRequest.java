@@ -7,10 +7,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Schema(description = "Данные добавляемого устойчевого выражения.")
 public class ExpressionAddRequest {
 
+    @Schema(description = """
+            Идентификатор пользователя, в словарь которого будет добавленно устойчевое выражение. <br/>
+            Ограничения: не должен быть null.
+            """)
+    private UUID userID;
     @Schema(description = """
             Значение устойчевого выражения. <br/>
             Должно представлять собой не пустую строку.
@@ -48,6 +54,15 @@ public class ExpressionAddRequest {
 
     public ExpressionAddRequest() {
 
+    }
+
+    public UUID getUserID() {
+        return userID;
+    }
+
+    public ExpressionAddRequest setUserID(UUID userID) {
+        this.userID = userID;
+        return this;
     }
 
     public String getValue() {
@@ -100,7 +115,8 @@ public class ExpressionAddRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExpressionAddRequest that = (ExpressionAddRequest) o;
-        return Objects.equals(value, that.value) &&
+        return Objects.equals(userID, that.userID) &&
+                Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
                 Objects.equals(interpretations, that.interpretations) &&
                 Objects.equals(translates, that.translates) &&
@@ -109,13 +125,14 @@ public class ExpressionAddRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note, interpretations, translates, examples);
+        return Objects.hash(userID, value, note, interpretations, translates, examples);
     }
 
     @Override
     public String toString() {
         return "ExpressionAddRequest{" +
-                "value='" + value + '\'' +
+                "userID=" + userID +
+                ", value='" + value + '\'' +
                 ", note='" + note + '\'' +
                 ", interpretations=" + interpretations +
                 ", translates=" + translates +

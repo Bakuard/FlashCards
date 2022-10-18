@@ -2,6 +2,7 @@ package com.bakuard.flashcards.model.expression;
 
 import com.bakuard.flashcards.validation.NotBlankOrNull;
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import javax.validation.constraints.NotBlank;
@@ -10,10 +11,13 @@ import java.util.Objects;
 @Table("expressions_examples")
 public class ExpressionExample {
 
+    @Column("origin")
     @NotBlank(message = "ExpressionExample.origin.notBlank")
     private String origin;
+    @Column("translate")
     @NotBlank(message = "ExpressionExample.translate.notBlank")
     private String translate;
+    @Column("note")
     @NotBlankOrNull(message = "ExpressionExample.note.notBlankOrNull")
     private String note;
 

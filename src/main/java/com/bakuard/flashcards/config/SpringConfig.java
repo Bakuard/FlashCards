@@ -6,13 +6,13 @@ import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.controller.message.MessagesImpl;
 import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalsRepository;
+import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.dal.WordsRepository;
 import com.bakuard.flashcards.dal.impl.IntervalsRepositoryImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
-import com.bakuard.flashcards.service.ExpressionService;
-import com.bakuard.flashcards.service.WordService;
+import com.bakuard.flashcards.service.*;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -56,12 +56,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public DataSource dataSource(ConfigData configData) {
                 HikariConfig hikariConfig = new HikariConfig();
-                hikariConfig.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
-                hikariConfig.setUsername(configData.databaseUser());
-                hikariConfig.setPassword(configData.databasePassword());
-                hikariConfig.addDataSourceProperty("databaseName", configData.databaseName());
-                hikariConfig.addDataSourceProperty("portNumber", "5432");
-                hikariConfig.addDataSourceProperty("serverName", "localhost");
+                hikariConfig.setJdbcUrl(configData.jdbcUrl());
                 hikariConfig.setAutoCommit(false);
                 hikariConfig.setMaximumPoolSize(10);
                 hikariConfig.setMinimumIdle(5);
@@ -101,15 +96,42 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public WordService wordService(WordsRepository wordsRepository,
                                        IntervalsRepository intervalsRepository,
-                                       Clock clock) {
-                return new WordService(wordsRepository, intervalsRepository, clock);
+                                       Clock clock,
+                                       ConfigData configData) {
+                return new WordService(wordsRepository, intervalsRepository, clock, configData);
         }
 
         @Bean
         public ExpressionService expressionService(ExpressionRepository expressionRepository,
                                                    IntervalsRepository intervalsRepository,
-                                                   Clock clock) {
-                return new ExpressionService(expressionRepository, intervalsRepository, clock);
+                                                   Clock clock,
+                                                   ConfigData configData) {
+                return new ExpressionService(expressionRepository, intervalsRepository, clock, configData);
+        }
+
+        @Bean
+        public AuthService authService(UserRepository userRepository,
+                                       IntervalsRepository intervalsRepository,
+                                       JwsService jwsService,
+                                       EmailService emailService,
+                                       ConfigData configData,
+                                       ValidatorUtil validator) {
+             return new AuthService(userRepository,
+                     intervalsRepository,
+                     jwsService,
+                     emailService,
+                     configData,
+                     validator);
+        }
+
+        @Bean
+        public JwsService jwsService(ConfigData configData, Clock clock) {
+             return new JwsService(configData, clock);
+        }
+
+        @Bean
+        public EmailService emailService(ConfigData configData) {
+                return new EmailService(configData);
         }
 
         @Bean
@@ -134,10 +156,12 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public DtoMapper dtoMapper(WordService wordService,
                                    ExpressionService expressionService,
+                                   AuthService authService,
                                    ConfigData configData,
                                    SortRules sortRules,
-                                   ValidatorUtil validator) {
-                return new DtoMapper(wordService, expressionService, configData, sortRules, validator);
+                                   ValidatorUtil validator,
+                                   Clock clock) {
+                return new DtoMapper(wordService, expressionService, authService, configData, sortRules, validator, clock);
         }
 
         @Bean
@@ -148,7 +172,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public ApplicationListener<BeforeConvertEvent<?>> entityCreator(final ValidatorUtil validator) {
                 return event -> {
-                       if(event.getEntity() instanceof Entity<?> entity) {
+                       if(event.getEntity() instanceof Entity entity) {
                                entity.generateIdIfAbsent();
                        }
                 };
@@ -157,7 +181,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public ApplicationListener<AfterConvertEvent<?>> afterLoad(final ValidatorUtil validator) {
                 return event -> {
-                        if(event.getEntity() instanceof Entity<?> entity) {
+                        if(event.getEntity() instanceof Entity entity) {
                                 entity.setValidator(validator);
                         }
                 };

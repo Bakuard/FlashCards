@@ -15,11 +15,11 @@ public class IntervalService {
     }
 
     public void add(UUID userId, int interval) {
-        if(interval <= 0) {
-            throw new IllegalArgumentException("interval can't be less then 1. Actual: " + interval);
-        }
-
         intervalsRepository.add(userId, interval);
+    }
+
+    public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
+        intervalsRepository.replace(userId, oldInterval, newInterval);
     }
 
 }

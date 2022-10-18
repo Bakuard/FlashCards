@@ -8,6 +8,16 @@ CREATE TABLE users (
     UNIQUE(salt)
 );
 
+CREATE TABLE roles (
+    user_id UUID NOT NULL,
+    name VARCHAR(64) NOT NULL,
+    index INT NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE(user_id, name)
+);
+
+------------------------------------------------------------------------------------------
+
 CREATE TABLE intervals (
     user_id UUID NOT NULL,
     number_days INT NOT NULL,
@@ -20,8 +30,10 @@ CREATE TABLE words (
     word_id UUID NOT NULL,
     value VARCHAR(64) NOT NULL,
     note VARCHAR(512),
-    repeat_interval INT NOT NULL,
-    last_date_of_repeat DATE NOT NULL,
+    repeat_interval_from_english INT NOT NULL,
+    last_date_of_repeat_from_english DATE NOT NULL,
+    repeat_interval_from_native INT NOT NULL,
+    last_date_of_repeat_from_native DATE NOT NULL,
     PRIMARY KEY(word_id),
     FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE(user_id, value)
@@ -63,13 +75,37 @@ CREATE TABLE words_examples (
     FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE
 );
 
+CREATE TABLE repeat_from_english_to_native (
+    repeat_id UUID NOT NULL,
+    word_id UUID NOT NULL,
+    repetition_date DATE NOT NULL,
+    repetition_interval INT NOT NULL,
+    is_remember BOOLEAN NOT NULL,
+    PRIMARY KEY(repeat_id),
+    UNIQUE(repetition_date, repetition_interval, is_remember),
+    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE
+);
+
+CREATE TABLE repeat_from_native_to_english (
+    repeat_id UUID NOT NULL,
+    word_id UUID NOT NULL,
+    repetition_date DATE NOT NULL,
+    repetition_interval INT NOT NULL,
+    is_remember BOOLEAN NOT NULL,
+    PRIMARY KEY(repeat_id),
+    UNIQUE(repetition_date, repetition_interval, is_remember),
+    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE
+);
+
 CREATE TABLE expressions (
     user_id UUID NOT NULL,
     expression_id UUID NOT NULL,
     value VARCHAR(512) NOT NULL,
     note VARCHAR(256) NOT NULL,
-    repeat_interval INT NOT NULL,
-    last_date_of_repeat DATE NOT NULL,
+    repeat_interval_from_english INT NOT NULL,
+    last_date_of_repeat_from_english DATE NOT NULL,
+    repeat_interval_from_native INT NOT NULL,
+    last_date_of_repeat_from_native DATE NOT NULL,
     PRIMARY KEY(expression_id),
     FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE(user_id, value)
@@ -101,3 +137,5 @@ CREATE TABLE expressions_examples (
     UNIQUE(origin, translate),
     FOREIGN KEY(expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE
 );
+
+CREATE ALIAS distance FOR 'com.bakuard.flashcards.dal.impl.StoredProcedures.levenshteinDistance';

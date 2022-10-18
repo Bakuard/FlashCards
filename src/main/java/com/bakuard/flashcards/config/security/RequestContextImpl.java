@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.config.security;
 
-import java.util.UUID;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class RequestContextImpl implements RequestContext {
 
@@ -9,8 +9,11 @@ public class RequestContextImpl implements RequestContext {
     }
 
     @Override
-    public UUID getCurrentJwsBody() {
-        return null;
+    public <T> T getCurrentJwsBodyAs(Class<T> jwsBodyType) {
+        JwsAuthentication jwsAuthentication = (JwsAuthentication) SecurityContextHolder.
+                getContext().
+                getAuthentication();
+        return jwsBodyType.cast(jwsAuthentication.getJwsBody());
     }
 
 }

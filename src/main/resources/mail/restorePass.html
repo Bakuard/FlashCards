@@ -1,0 +1,42 @@
+<!Doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+            .wrapper {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                grid-template-rows: 70px 50px;
+            }
+            .message {
+                font-size: 20px;
+                text-align: center;
+                vertical-align: middle;
+                font-family: sans-serif;
+                grid-column: 1 / 4;
+            }
+            a {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #ff7003;
+                border-radius: 20px;
+                grid-column: 2 / 3;
+                grid-row: 2 / 3;
+                font-size: 18px;
+                font-family: sans-serif;
+                text-decoration: none;
+                color: white;
+                text-transform: uppercase;
+            }
+        </style>
+</head>
+<body>
+<div class="wrapper">
+    <p class="message">
+        Перейдите по ссылке, чтобы сохранить новый пароль
+    </p>
+    <a target="_blank" href="endpoint">Сохранить новый пароль</a>
+</div>
+</body>
+</html>
