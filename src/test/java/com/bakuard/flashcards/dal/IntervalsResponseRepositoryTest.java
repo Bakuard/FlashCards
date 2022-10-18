@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
 @Import(TestConfig.class)
-class IntervalsRepositoryTest {
+class IntervalsResponseRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;

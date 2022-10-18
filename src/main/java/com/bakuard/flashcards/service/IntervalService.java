@@ -18,7 +18,7 @@ public class IntervalService {
         intervalsRepository.add(userId, interval);
     }
 
-    public void replaceRepeatInterval(UUID userId, int oldInterval, int newInterval) {
+    public void replace(UUID userId, int oldInterval, int newInterval) {
         intervalsRepository.replace(userId, oldInterval, newInterval);
     }
 
