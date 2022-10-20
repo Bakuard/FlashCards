@@ -135,6 +135,11 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
+        public IntervalService intervalService(IntervalsRepository intervalsRepository) {
+             return new IntervalService(intervalsRepository);
+        }
+
+        @Bean
         public LocaleResolver localeResolver() {
                 return new AcceptHeaderLocaleResolver();
         }

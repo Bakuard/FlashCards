@@ -138,8 +138,10 @@ public class DictionaryOfExpressionsController {
                             defaultValue = "value.asc (Сортировка по значению в порядке возрастания).",
                             allowableValues = {
                                     "value - сортировка по значению",
-                                    "repeat_interval - сортировка по интервалу повторения",
-                                    "last_date_of_repeat - сортировка по дате поседнего повторения"
+                                    "repeat_interval_from_english - сортировка по интервалу повторения для перевода с английского",
+                                    "repeat_interval_from_native - сортировка по дате поседнего повторения для переводоа с родного языка",
+                                    "last_date_of_repeat_from_english - сортировка по последней дате повторения с английского",
+                                    "last_date_of_repeat_from_native - сортировка по последней дате повторения с родного языка"
                             }
                     ))
             String sort) {
@@ -168,7 +170,7 @@ public class DictionaryOfExpressionsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -179,12 +181,12 @@ public class DictionaryOfExpressionsController {
             @Parameter(description = "Идентификатор пользователя, выражение которого запрашивается", required = true)
             UUID userId,
             @RequestParam
-            @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
-            UUID id) {
+            @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID.", required = true)
+            UUID expressionId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} get expression of user {} by id={}", jwsUserId, userId, id);
+        logger.info("user {} get expression of user {} by id={}", jwsUserId, userId, expressionId);
 
-        Expression expression = expressionService.tryFindById(userId, id);
+        Expression expression = expressionService.tryFindById(userId, expressionId);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
@@ -251,7 +253,7 @@ public class DictionaryOfExpressionsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -262,12 +264,12 @@ public class DictionaryOfExpressionsController {
             @Parameter(description = "Идентификатор пользователя, выражение которого удаляется", required = true)
             UUID userId,
             @PathVariable
-            @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID. Не может быть null.", required = true)
-            UUID id) {
+            @Parameter(description = "Уникальный идентификатор устойчевого выражения в формате UUID.", required = true)
+            UUID expressionId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} delete expression of user {} by id={}", jwsUserId, userId, id);
+        logger.info("user {} delete expression of user {} by id={}", jwsUserId, userId, expressionId);
 
-        expressionService.tryDeleteById(userId, id);
+        expressionService.tryDeleteById(userId, expressionId);
         return ResponseEntity.ok(messages.getMessage("dictionary.expressions.delete"));
     }
 

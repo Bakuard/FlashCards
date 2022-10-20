@@ -4,6 +4,8 @@ public enum SortedEntity {
 
     WORD,
     EXPRESSION,
-    USER
+    USER,
+    WORD_STATISTIC,
+    EXPRESSION_STATISTIC
 
 }

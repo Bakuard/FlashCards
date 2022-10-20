@@ -35,6 +35,11 @@ public class SortRules {
                     "last_date_of_repeat_from_native");
             case USER -> assertParameterIsOneOf(parameter,
                     "user_id", "email");
+            case WORD_STATISTIC, EXPRESSION_STATISTIC -> assertParameterIsOneOf(parameter,
+                    "rememberFromEnglish",
+                    "rememberFromNative",
+                    "notRememberFromEnglish",
+                    "notRememberFromNative");
             default -> throw new IllegalArgumentException("Unsupported sorted entity = " + sortedEntity);
         }
         return parameter;

@@ -75,26 +75,28 @@ CREATE TABLE words_examples (
     FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE
 );
 
-CREATE TABLE repeat_from_english_to_native (
+CREATE TABLE repeat_words_from_english_statistic (
     repeat_id UUID NOT NULL,
+    user_id UUID NOT NULL,
     word_id UUID NOT NULL,
     repetition_date DATE NOT NULL,
     repetition_interval INT NOT NULL,
     is_remember BOOLEAN NOT NULL,
     PRIMARY KEY(repeat_id),
-    UNIQUE(repetition_date, repetition_interval, is_remember),
-    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE
+    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-CREATE TABLE repeat_from_native_to_english (
+CREATE TABLE repeat_words_from_native_statistic (
     repeat_id UUID NOT NULL,
     word_id UUID NOT NULL,
+    user_id UUID NOT NULL,
     repetition_date DATE NOT NULL,
     repetition_interval INT NOT NULL,
     is_remember BOOLEAN NOT NULL,
     PRIMARY KEY(repeat_id),
-    UNIQUE(repetition_date, repetition_interval, is_remember),
-    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE
+    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE expressions (
@@ -136,6 +138,30 @@ CREATE TABLE expressions_examples (
     index INT NOT NULL,
     UNIQUE(origin, translate),
     FOREIGN KEY(expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE
+);
+
+CREATE TABLE repeat_expressions_from_english_statistic (
+    repeat_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    expression_id UUID NOT NULL,
+    repetition_date DATE NOT NULL,
+    repetition_interval INT NOT NULL,
+    is_remember BOOLEAN NOT NULL,
+    PRIMARY KEY(repeat_id),
+    FOREIGN KEY (expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE repeat_expressions_from_native_statistic (
+    repeat_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    expression_id UUID NOT NULL,
+    repetition_date DATE NOT NULL,
+    repetition_interval INT NOT NULL,
+    is_remember BOOLEAN NOT NULL,
+    PRIMARY KEY(repeat_id),
+    FOREIGN KEY (expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE ALIAS distance FOR 'com.bakuard.flashcards.dal.impl.StoredProcedures.levenshteinDistance';
