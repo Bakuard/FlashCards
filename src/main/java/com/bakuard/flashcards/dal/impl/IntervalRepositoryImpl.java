@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.dal.impl;
 
-import com.bakuard.flashcards.dal.IntervalsRepository;
+import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.validation.InvalidParameter;
 import com.google.common.collect.ImmutableList;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -8,11 +8,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class IntervalsRepositoryImpl implements IntervalsRepository {
+public class IntervalRepositoryImpl implements IntervalRepository {
 
     private JdbcTemplate jdbcTemplate;
 
-    public IntervalsRepositoryImpl(JdbcTemplate jdbcTemplate) {
+    public IntervalRepositoryImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

@@ -111,12 +111,12 @@ public class StatisticController {
             @RequestParam(value = "sort", required = false)
             @Parameter(description = "Порядок сортировки.",
                     schema = @Schema(
-                            defaultValue = "rememberFromEnglish.asc (Сортировка по кол-ву успешных повторений с английского).",
+                            defaultValue = "remember_from_english.asc (Сортировка по кол-ву успешных повторений с английского).",
                             allowableValues = {
-                                    "rememberFromEnglish - сортировка по кол-ву успешных повторений с английского",
-                                    "rememberFromNative - сортировка по кол-ву успешных повторений с родного языка",
-                                    "notRememberFromEnglish - сортировка по кол-ву не успешных повторений с английского",
-                                    "notRememberFromNative - сортировка по кол-ву не успешных повторений с родного языка"
+                                    "remember_from_english - сортировка по кол-ву успешных повторений с английского",
+                                    "remember_from_native - сортировка по кол-ву успешных повторений с родного языка",
+                                    "not_remember_from_english - сортировка по кол-ву не успешных повторений с английского",
+                                    "not_remember_from_native - сортировка по кол-ву не успешных повторений с родного языка"
                             }
                     ))
             String sort) {
@@ -201,12 +201,12 @@ public class StatisticController {
             @RequestParam(value = "sort", required = false)
             @Parameter(description = "Порядок сортировки.",
                     schema = @Schema(
-                            defaultValue = "rememberFromEnglish.asc (Сортировка по кол-ву успешных повторений с английского).",
+                            defaultValue = "remember_from_english.asc (Сортировка по кол-ву успешных повторений с английского).",
                             allowableValues = {
-                                    "rememberFromEnglish - сортировка по кол-ву успешных повторений с английского",
-                                    "rememberFromNative - сортировка по кол-ву успешных повторений с родного языка",
-                                    "notRememberFromEnglish - сортировка по кол-ву не успешных повторений с английского",
-                                    "notRememberFromNative - сортировка по кол-ву не успешных повторений с родного языка"
+                                    "remember_from_english - сортировка по кол-ву успешных повторений с английского",
+                                    "remember_from_native - сортировка по кол-ву успешных повторений с родного языка",
+                                    "not_remember_from_english - сортировка по кол-ву не успешных повторений с английского",
+                                    "not_remember_from_native - сортировка по кол-ву не успешных повторений с родного языка"
                             }
                     ))
             String sort) {

@@ -39,7 +39,15 @@ class UserRepositoryTest {
     @BeforeEach
     public void beforeEach() {
         commit(() -> JdbcTestUtils.deleteFromTables(jdbcTemplate,
-                "expressions", "words", "intervals", "users"));
+                "expressions",
+                "words",
+                "intervals",
+                "users",
+                "repeat_words_from_english_statistic",
+                "repeat_words_from_native_statistic",
+                "repeat_expressions_from_english_statistic",
+                "repeat_expressions_from_native_statistic"
+        ));
     }
 
     @Test

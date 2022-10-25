@@ -2,8 +2,7 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.config.ConfigData;
 import com.bakuard.flashcards.dal.ExpressionRepository;
-import com.bakuard.flashcards.dal.IntervalsRepository;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
+import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.validation.UnknownEntityException;
@@ -22,22 +21,22 @@ import java.util.UUID;
 public class ExpressionService {
 
     private ExpressionRepository expressionRepository;
-    private IntervalsRepository intervalsRepository;
+    private IntervalRepository intervalRepository;
     private Clock clock;
     private ConfigData configData;
 
     public ExpressionService(ExpressionRepository expressionRepository,
-                             IntervalsRepository intervalsRepository,
+                             IntervalRepository intervalRepository,
                              Clock clock,
                              ConfigData configData) {
         this.expressionRepository = expressionRepository;
-        this.intervalsRepository = intervalsRepository;
+        this.intervalRepository = intervalRepository;
         this.clock = clock;
         this.configData = configData;
     }
 
     public int getLowestRepeatInterval(UUID userId) {
-        return intervalsRepository.findAll(userId).get(0);
+        return intervalRepository.findAll(userId).get(0);
     }
 
     public Expression save(Expression expression) {
@@ -117,24 +116,24 @@ public class ExpressionService {
 
     public Expression repeatFromEnglish(UUID userId, UUID expressionId, boolean isRemember) {
         Expression expression = tryFindById(userId, expressionId);
-        expression.repeatFromEnglish(isRemember, LocalDate.now(clock), intervalsRepository.findAll(expression.getUserId()));
+        expression.repeatFromEnglish(isRemember, LocalDate.now(clock), intervalRepository.findAll(expression.getUserId()));
         return expression;
     }
 
     public RepetitionResult<Expression> repeatFromNative(UUID userId, UUID expressionId, String inputWordValue) {
         Expression expression = tryFindById(userId, expressionId);
         boolean isRemember = expression.repeatFromNative(
-                inputWordValue, LocalDate.now(clock), intervalsRepository.findAll(userId));
+                inputWordValue, LocalDate.now(clock), intervalRepository.findAll(userId));
         return new RepetitionResult<>(expression, isRemember);
     }
 
     public boolean isHotRepeatFromEnglish(Expression expression) {
-        List<Integer> intervals = intervalsRepository.findAll(expression.getUserId());
+        List<Integer> intervals = intervalRepository.findAll(expression.getUserId());
         return expression.isHotRepeatFromEnglish(intervals.get(0));
     }
 
     public boolean isHotRepeatFromNative(Expression expression) {
-        List<Integer> intervals = intervalsRepository.findAll(expression.getUserId());
+        List<Integer> intervals = intervalRepository.findAll(expression.getUserId());
         return expression.isHotRepeatFromNative(intervals.get(0));
     }
 

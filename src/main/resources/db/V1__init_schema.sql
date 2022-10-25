@@ -75,30 +75,6 @@ CREATE TABLE words_examples (
     FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE
 );
 
-CREATE TABLE repeat_words_from_english_statistic (
-    repeat_id UUID NOT NULL,
-    user_id UUID NOT NULL,
-    word_id UUID NOT NULL,
-    repetition_date DATE NOT NULL,
-    repetition_interval INT NOT NULL,
-    is_remember BOOLEAN NOT NULL,
-    PRIMARY KEY(repeat_id),
-    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
-CREATE TABLE repeat_words_from_native_statistic (
-    repeat_id UUID NOT NULL,
-    word_id UUID NOT NULL,
-    user_id UUID NOT NULL,
-    repetition_date DATE NOT NULL,
-    repetition_interval INT NOT NULL,
-    is_remember BOOLEAN NOT NULL,
-    PRIMARY KEY(repeat_id),
-    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
 CREATE TABLE expressions (
     user_id UUID NOT NULL,
     expression_id UUID NOT NULL,
@@ -140,28 +116,98 @@ CREATE TABLE expressions_examples (
     FOREIGN KEY(expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE
 );
 
+---------------------------------------------------------------------------------------------------------
+
+CREATE TABLE repeat_words_from_english_statistic (
+    user_id UUID NOT NULL,
+    word_id UUID NOT NULL,
+    repetition_date DATE NOT NULL,
+    is_remember BOOLEAN NOT NULL,
+    UNIQUE(user_id, word_id, repetition_date),
+    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE repeat_words_from_native_statistic (
+    user_id UUID NOT NULL,
+    word_id UUID NOT NULL,
+    repetition_date DATE NOT NULL,
+    is_remember BOOLEAN NOT NULL,
+    UNIQUE(user_id, word_id, repetition_date),
+    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 CREATE TABLE repeat_expressions_from_english_statistic (
-    repeat_id UUID NOT NULL,
     user_id UUID NOT NULL,
     expression_id UUID NOT NULL,
     repetition_date DATE NOT NULL,
-    repetition_interval INT NOT NULL,
     is_remember BOOLEAN NOT NULL,
-    PRIMARY KEY(repeat_id),
+    UNIQUE(user_id, expression_id, repetition_date),
     FOREIGN KEY (expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE repeat_expressions_from_native_statistic (
-    repeat_id UUID NOT NULL,
     user_id UUID NOT NULL,
     expression_id UUID NOT NULL,
     repetition_date DATE NOT NULL,
-    repetition_interval INT NOT NULL,
     is_remember BOOLEAN NOT NULL,
-    PRIMARY KEY(repeat_id),
+    UNIQUE(user_id, expression_id, repetition_date),
     FOREIGN KEY (expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+CREATE VIEW repeat_words_statistic
+AS
+SELECT stat.user_id, stat.word_id, stat.repetition_date,
+       stat.eng_is_remember, stat.ntv_is_remember, words.value FROM (
+    (
+        (SELECT eng.user_id, eng.word_id, eng.repetition_date,
+                eng.is_remember as eng_is_remember, ntv.is_remember as ntv_is_remember
+             from repeat_words_from_english_statistic eng
+             LEFT JOIN repeat_words_from_native_statistic ntv
+                 ON eng.user_id = ntv.user_id
+                    AND eng.word_id = ntv.word_id
+                    AND eng.repetition_date = ntv.repetition_date)
+        UNION
+        (SELECT ntv.user_id, ntv.word_id, ntv.repetition_date,
+                eng.is_remember as eng_is_remember, ntv.is_remember as ntv_is_remember
+             from repeat_words_from_english_statistic eng
+             RIGHT JOIN repeat_words_from_native_statistic ntv
+                 ON eng.user_id = ntv.user_id
+                    AND eng.word_id = ntv.word_id
+                    AND eng.repetition_date = ntv.repetition_date)
+    ) AS stat
+    INNER JOIN words ON stat.word_id = words.word_id
+);
+
+CREATE VIEW repeat_expressions_statistic
+AS
+SELECT stat.user_id, stat.expression_id, stat.repetition_date,
+       stat.eng_is_remember, stat.ntv_is_remember, expressions.value FROM (
+    (
+        (SELECT eng.user_id, eng.expression_id, eng.repetition_date,
+                 eng.is_remember as eng_is_remember, ntv.is_remember as ntv_is_remember
+             from repeat_expressions_from_english_statistic eng
+             LEFT JOIN repeat_expressions_from_native_statistic ntv
+                 ON eng.user_id = ntv.user_id
+                    AND eng.expression_id = ntv.expression_id
+                    AND eng.repetition_date = ntv.repetition_date)
+        UNION
+        (SELECT ntv.user_id, ntv.expression_id, ntv.repetition_date,
+                eng.is_remember as eng_is_remember, ntv.is_remember as ntv_is_remember
+             from repeat_expressions_from_english_statistic eng
+             RIGHT JOIN repeat_expressions_from_native_statistic ntv
+                 ON eng.user_id = ntv.user_id
+                    AND eng.expression_id = ntv.expression_id
+                    AND eng.repetition_date = ntv.repetition_date)
+    ) AS stat
+    INNER JOIN expressions ON stat.expression_id = expressions.expression_id
+);
+
+---------------------------------------------------------------------------------------------------
+
 CREATE ALIAS distance FOR 'com.bakuard.flashcards.dal.impl.StoredProcedures.levenshteinDistance';
+CREATE AGGREGATE countTrue FOR 'com.bakuard.flashcards.dal.impl.CountTrue';
+CREATE AGGREGATE countFalse FOR 'com.bakuard.flashcards.dal.impl.CountFalse';

@@ -81,7 +81,7 @@ public class RepetitionOfWordsController {
         logger.info("user {} find all words from english to native of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
 
-        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort("value.asc"));
+        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(null));
         Page<Word> result = wordService.findAllForRepeatFromEnglish(userId, pageable);
 
         return ResponseEntity.ok(mapper.toWordsForRepetitionFromEnglishResponse(result));
@@ -155,7 +155,7 @@ public class RepetitionOfWordsController {
         logger.info("user {} find all words from native to english of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
 
-        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort("value.asc"));
+        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(null));
         Page<Word> result = wordService.findAllForRepeatFromNative(userId, pageable);
 
         return ResponseEntity.ok(mapper.toWordsForRepetitionFromNativeResponse(result));

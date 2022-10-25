@@ -9,6 +9,7 @@ public record WordRepetitionByPeriodStatistic(UUID userId,
                                               long rememberFromNative,
                                               long notRememberFromNative) {
 
+
     public long totalRepetitionNumbersFromEnglish() {
         return rememberFromEnglish + notRememberFromEnglish;
     }

@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.UUID;
 
-public interface IntervalsRepository {
+public interface IntervalRepository {
 
     public void add(UUID userId, int interval);
 

@@ -81,7 +81,7 @@ public class RepetitionOfExpressionsController {
         logger.info("user {} find all expressions from english to native of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
 
-        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort("value.asc"));
+        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(null));
         Page<Expression> result = expressionService.findAllForRepeatFromEnglish(userId, pageable);
 
         return ResponseEntity.ok(mapper.toExpressionsForRepetitionFromEnglishResponse(result));
@@ -156,7 +156,7 @@ public class RepetitionOfExpressionsController {
         logger.info("user {} find all expressions from native to english of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
 
-        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort("value.asc"));
+        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(null));
         Page<Expression> result = expressionService.findAllForRepeatFromNative(userId, pageable);
 
         return ResponseEntity.ok(mapper.toExpressionForRepetitionFromNativeResponse(result));
