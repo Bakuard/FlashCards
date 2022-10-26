@@ -106,7 +106,7 @@ public class RepetitionOfWordsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            description = "Если не удалось найти слово или пользователя по указанным идентификаторам.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -180,7 +180,7 @@ public class RepetitionOfWordsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            description = "Если не удалось найти слово или пользователя по указанным идентификаторам.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -200,6 +200,72 @@ public class RepetitionOfWordsController {
                 mapper.toWordResponse(repetitionResult.payload())
         );
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = """
+            Сбрасывает интервал повторения с английского языка для указанного слова на наименьший
+             и устанавливает в качестве даты повторения текущую дату. Этот запрос удобен в тех случаях,
+             когда пользователь обнаружил, что забыл слово, и хочет немедленно отметить его для скорейшего
+             повторения, но ближайшая дата повторения этого слова не совпадает с текущей.
+            """,
+            responses = {
+                    @ApiResponse(responseCode = "200"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "401",
+                            description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово или пользователя по указанным идентификаторам.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class)))
+            }
+    )
+    @PutMapping("/english/markForRepetition")
+    public ResponseEntity<WordResponse> markForRepetitionFromEnglish(WordMarkForRepetitionRequest dto) {
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} mark word {} of user {} for repetition from english.",
+                userId, dto.getWordId(), dto.getUserId());
+
+        Word word = wordService.markForRepetitionFromEnglish(dto.getUserId(), dto.getWordId());
+
+        return ResponseEntity.ok(mapper.toWordResponse(word));
+    }
+
+    @Operation(summary = """
+            Сбрасывает интервал повторения с родного языка пользователя для указанного слова на наименьший
+             и устанавливает в качестве даты повторения текущую дату. Этот запрос удобен в тех случаях,
+             когда пользователь обнаружил, что забыл слово, и хочет немедленно отметить его для скорейшего
+             повторения, но ближайшая дата повторения этого слова не совпадает с текущей.
+            """,
+            responses = {
+                    @ApiResponse(responseCode = "200"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "401",
+                            description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти слово или пользователя по указанным идентификаторам.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class)))
+            }
+    )
+    @PutMapping("/native/markForRepetition")
+    public ResponseEntity<WordResponse> markForRepetitionFromNative(WordMarkForRepetitionRequest dto) {
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} mark word {} of user {} for repetition from native.",
+                userId, dto.getWordId(), dto.getUserId());
+
+        Word word = wordService.markForRepetitionFromNative(dto.getUserId(), dto.getWordId());
+
+        return ResponseEntity.ok(mapper.toWordResponse(word));
     }
 
 }

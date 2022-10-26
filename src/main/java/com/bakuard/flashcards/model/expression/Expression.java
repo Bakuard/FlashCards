@@ -206,6 +206,14 @@ public class Expression implements Entity {
         return isRemember;
     }
 
+    public void markForRepetitionFromEnglish(LocalDate lastDateOfRepeat, int lowestInterval) {
+        repeatDataFromEnglish = new RepeatDataFromEnglish(lowestInterval, lastDateOfRepeat);
+    }
+
+    public void markForRepetitionFromNative(LocalDate lastDateOfRepeat, int lowestInterval) {
+        repeatDataFromNative = new RepeatDataFromNative(lowestInterval, lastDateOfRepeat);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

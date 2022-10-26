@@ -128,6 +128,20 @@ public class WordService {
         return new RepetitionResult<>(word, isRemember);
     }
 
+    public Word markForRepetitionFromEnglish(UUID userId, UUID wordId) {
+        Word word = tryFindById(userId, wordId);
+        word.markForRepetitionFromEnglish(LocalDate.now(clock), intervalRepository.findAll(userId).get(0));
+        save(word);
+        return word;
+    }
+
+    public Word markForRepetitionFromNative(UUID userId, UUID wordId) {
+        Word word = tryFindById(userId, wordId);
+        word.markForRepetitionFromNative(LocalDate.now(clock), intervalRepository.findAll(userId).get(0));
+        save(word);
+        return word;
+    }
+
     public boolean isHotRepeatFromEnglish(Word word) {
         List<Integer> intervals = intervalRepository.findAll(word.getUserId());
         return word.isHotRepeatFromEnglish(intervals.get(0));
