@@ -117,6 +117,7 @@ public class ExpressionService {
     public Expression repeatFromEnglish(UUID userId, UUID expressionId, boolean isRemember) {
         Expression expression = tryFindById(userId, expressionId);
         expression.repeatFromEnglish(isRemember, LocalDate.now(clock), intervalRepository.findAll(expression.getUserId()));
+        save(expression);
         return expression;
     }
 
@@ -124,6 +125,7 @@ public class ExpressionService {
         Expression expression = tryFindById(userId, expressionId);
         boolean isRemember = expression.repeatFromNative(
                 inputWordValue, LocalDate.now(clock), intervalRepository.findAll(userId));
+        save(expression);
         return new RepetitionResult<>(expression, isRemember);
     }
 

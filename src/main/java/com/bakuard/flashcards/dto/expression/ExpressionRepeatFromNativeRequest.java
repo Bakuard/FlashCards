@@ -8,7 +8,7 @@ import java.util.UUID;
 @Schema(description = """
         Запрос на повторение устойчевого выражения с родного языка пользователя на англиский.
         """)
-public class ExpressionRepeatFromNativeToEnglishRequest {
+public class ExpressionRepeatFromNativeRequest {
 
     @Schema(description = """
             Идентификатор пользователя, с которым связано указанное выражение. <br/>
@@ -23,7 +23,7 @@ public class ExpressionRepeatFromNativeToEnglishRequest {
     @Schema(description = "Значение выражения на английском языке записанное пользователем по памяти.")
     private String inputValue;
 
-    public ExpressionRepeatFromNativeToEnglishRequest() {
+    public ExpressionRepeatFromNativeRequest() {
 
     }
 
@@ -31,7 +31,7 @@ public class ExpressionRepeatFromNativeToEnglishRequest {
         return userId;
     }
 
-    public ExpressionRepeatFromNativeToEnglishRequest setUserId(UUID userId) {
+    public ExpressionRepeatFromNativeRequest setUserId(UUID userId) {
         this.userId = userId;
         return this;
     }
@@ -40,7 +40,7 @@ public class ExpressionRepeatFromNativeToEnglishRequest {
         return expressionId;
     }
 
-    public ExpressionRepeatFromNativeToEnglishRequest setExpressionId(UUID expressionId) {
+    public ExpressionRepeatFromNativeRequest setExpressionId(UUID expressionId) {
         this.expressionId = expressionId;
         return this;
     }
@@ -49,7 +49,7 @@ public class ExpressionRepeatFromNativeToEnglishRequest {
         return inputValue;
     }
 
-    public ExpressionRepeatFromNativeToEnglishRequest setInputValue(String inputValue) {
+    public ExpressionRepeatFromNativeRequest setInputValue(String inputValue) {
         this.inputValue = inputValue;
         return this;
     }
@@ -58,7 +58,7 @@ public class ExpressionRepeatFromNativeToEnglishRequest {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExpressionRepeatFromNativeToEnglishRequest that = (ExpressionRepeatFromNativeToEnglishRequest) o;
+        ExpressionRepeatFromNativeRequest that = (ExpressionRepeatFromNativeRequest) o;
         return Objects.equals(userId, that.userId) &&
                 Objects.equals(expressionId, that.expressionId) &&
                 Objects.equals(inputValue, that.inputValue);

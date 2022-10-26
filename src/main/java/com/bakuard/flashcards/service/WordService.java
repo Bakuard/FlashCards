@@ -117,12 +117,14 @@ public class WordService {
     public Word repeatFromEnglish(UUID userId, UUID wordId, boolean isRemember) {
         Word word = tryFindById(userId, wordId);
         word.repeatFromEnglish(isRemember, LocalDate.now(clock), intervalRepository.findAll(userId));
+        save(word);
         return word;
     }
 
     public RepetitionResult<Word> repeatFromNative(UUID userId, UUID wordId, String inputWordValue) {
         Word word = tryFindById(userId, wordId);
         boolean isRemember = word.repeatFromNative(inputWordValue, LocalDate.now(clock), intervalRepository.findAll(userId));
+        save(word);
         return new RepetitionResult<>(word, isRemember);
     }
 

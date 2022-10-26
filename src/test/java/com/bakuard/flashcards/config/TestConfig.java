@@ -138,8 +138,8 @@ public class TestConfig {
     }
 
     @Bean
-    public StatisticService statisticService(StatisticRepository statisticRepository) {
-        return new StatisticService(statisticRepository);
+    public StatisticService statisticService(StatisticRepository statisticRepository, Clock clock) {
+        return new StatisticService(statisticRepository, clock);
     }
 
     @Bean

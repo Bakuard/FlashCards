@@ -104,6 +104,14 @@ public class StatisticRepositoryImpl implements StatisticRepository {
             UUID userId, UUID wordId, LocalDate start, LocalDate end) {
         assertPeriodIsValid(start, end);
 
+        String value = jdbcTemplate.query("select value from words where word_id = ?;",
+                ps -> ps.setObject(1, wordId),
+                rs -> {
+                    String result = null;
+                    if(rs.next()) result = rs.getString("value");
+                    return result;
+                });
+
         return jdbcTemplate.query(
                 """
                 select countTrue(repeat_words_statistic.eng_is_remember) as remember_from_english,
@@ -138,6 +146,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
                     return new WordRepetitionByPeriodStatistic(
                             userId,
                             wordId,
+                            value,
                             eng_remember,
                             eng_not_remember,
                             ntv_remember,
@@ -150,6 +159,14 @@ public class StatisticRepositoryImpl implements StatisticRepository {
     public ExpressionRepetitionByPeriodStatistic expressionRepetitionByPeriod(
             UUID userId, UUID expressionId, LocalDate start, LocalDate end) {
         assertPeriodIsValid(start, end);
+
+        String value = jdbcTemplate.query("select value from expressions where expression_id = ?;",
+                ps -> ps.setObject(1, expressionId),
+                rs -> {
+                    String result = null;
+                    if(rs.next()) result = rs.getString("value");
+                    return result;
+                });
 
         return jdbcTemplate.query(
                 """
@@ -185,6 +202,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
                     return new ExpressionRepetitionByPeriodStatistic(
                             userId,
                             expressionId,
+                            value,
                             eng_remember,
                             eng_not_remember,
                             ntv_remember,
@@ -200,14 +218,15 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 
         List<WordRepetitionByPeriodStatistic> statistics = jdbcTemplate.query(
                 """
-                select repeat_words_statistic.word_id,
+                select repeat_words_statistic.value,
+                       repeat_words_statistic.word_id,
                        countTrue(repeat_words_statistic.eng_is_remember) as remember_from_english,
                        countFalse(repeat_words_statistic.eng_is_remember) as not_remember_from_english,
                        countTrue(repeat_words_statistic.ntv_is_remember) as remember_from_native,
                        countFalse(repeat_words_statistic.ntv_is_remember) as not_remember_from_native
                  from repeat_words_statistic
                  where user_id = ? and repetition_date >= ? and repetition_date <= ?
-                 group by word_id
+                 group by word_id, value
                  order by %s
                  limit ? offset ?;
                 """.formatted(toSortString(pageable.getSort())),
@@ -224,6 +243,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
                         result.add(new WordRepetitionByPeriodStatistic(
                                 userId,
                                 (UUID) rs.getObject("word_id"),
+                                rs.getString("value"),
                                 rs.getInt("remember_from_english"),
                                 rs.getInt("not_remember_from_english"),
                                 rs.getInt("remember_from_native"),
@@ -244,14 +264,15 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 
         List<ExpressionRepetitionByPeriodStatistic> statistics = jdbcTemplate.query(
                 """
-                select repeat_expressions_statistic.expression_id,
+                select repeat_expressions_statistic.value,
+                       repeat_expressions_statistic.expression_id,
                        countTrue(repeat_expressions_statistic.eng_is_remember) as remember_from_english,
                        countFalse(repeat_expressions_statistic.eng_is_remember) as not_remember_from_english,
                        countTrue(repeat_expressions_statistic.ntv_is_remember) as remember_from_native,
                        countFalse(repeat_expressions_statistic.ntv_is_remember) as not_remember_from_native
                  from repeat_expressions_statistic
                  where user_id = ? and repetition_date >= ? and repetition_date <= ?
-                 group by expression_id
+                 group by expression_id, value
                  order by %s
                  limit ? offset ?;
                 """.formatted(toSortString(pageable.getSort())),
@@ -268,6 +289,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
                         result.add(new ExpressionRepetitionByPeriodStatistic(
                                 userId,
                                 (UUID) rs.getObject("expression_id"),
+                                rs.getString("value"),
                                 rs.getInt("remember_from_english"),
                                 rs.getInt("not_remember_from_english"),
                                 rs.getInt("remember_from_native"),

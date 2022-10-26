@@ -128,6 +128,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
                         word.getId(),
+                        "valueA",
                         0,
                         0,
                         0,
@@ -167,6 +168,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
                         word.getId(),
+                        "valueA",
                         0,
                         0,
                         2,
@@ -206,6 +208,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
                         word.getId(),
+                        "valueA",
                         3,
                         1,
                         0,
@@ -255,6 +258,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
                         word.getId(),
+                        "valueA",
                         3,
                         0,
                         2,
@@ -305,6 +309,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
                         word.getId(),
+                        "valueA",
                         0,
                         0,
                         0,
@@ -370,6 +375,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
                         expression.getId(),
+                        "valueA",
                         0,
                         0,
                         0,
@@ -410,6 +416,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
                         expression.getId(),
+                        "valueA",
                         0,
                         0,
                         2,
@@ -450,6 +457,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
                         expression.getId(),
+                        "valueA",
                         3,
                         1,
                         0,
@@ -500,6 +508,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
                         expression.getId(),
+                        "valueA",
                         3,
                         0,
                         2,
@@ -551,6 +560,7 @@ class StatisticRepositoryTest {
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
                         expression.getId(),
+                        "valueA",
                         0,
                         0,
                         0,
@@ -706,6 +716,7 @@ class StatisticRepositoryTest {
                         new WordRepetitionByPeriodStatistic(
                                 user.getId(),
                                 wordF.getId(),
+                                "wordF",
                                 0,
                                 3,
                                 1,
@@ -713,6 +724,7 @@ class StatisticRepositoryTest {
                         new WordRepetitionByPeriodStatistic(
                                 user.getId(),
                                 wordA.getId(),
+                                "wordA",
                                 1,
                                 1,
                                 1,
@@ -720,6 +732,7 @@ class StatisticRepositoryTest {
                         new WordRepetitionByPeriodStatistic(
                                 user.getId(),
                                 wordE.getId(),
+                                "wordE",
                                 1,
                                 2,
                                 2,
@@ -727,6 +740,7 @@ class StatisticRepositoryTest {
                         new WordRepetitionByPeriodStatistic(
                                 user.getId(),
                                 wordC.getId(),
+                                "wordC",
                                 1,
                                 2,
                                 1,
@@ -734,6 +748,7 @@ class StatisticRepositoryTest {
                         new WordRepetitionByPeriodStatistic(
                                 user.getId(),
                                 wordB.getId(),
+                                "wordB",
                                 1,
                                 2,
                                 1,
@@ -741,6 +756,7 @@ class StatisticRepositoryTest {
                         new WordRepetitionByPeriodStatistic(
                                 user.getId(),
                                 wordD.getId(),
+                                "wordD",
                                 1,
                                 2,
                                 1,
@@ -798,6 +814,7 @@ class StatisticRepositoryTest {
                         new WordRepetitionByPeriodStatistic(
                                 user.getId(),
                                 wordC.getId(),
+                                "wordC",
                                 1,
                                 2,
                                 1,
@@ -805,6 +822,7 @@ class StatisticRepositoryTest {
                         new WordRepetitionByPeriodStatistic(
                                 user.getId(),
                                 wordA.getId(),
+                                "wordA",
                                 2,
                                 0,
                                 1,
@@ -812,6 +830,7 @@ class StatisticRepositoryTest {
                         new WordRepetitionByPeriodStatistic(
                                 user.getId(),
                                 wordB.getId(),
+                                "wordB",
                                 2,
                                 0,
                                 2,
@@ -966,6 +985,7 @@ class StatisticRepositoryTest {
                         new ExpressionRepetitionByPeriodStatistic(
                                 user.getId(),
                                 expressionF.getId(),
+                                "expressionF",
                                 0,
                                 3,
                                 1,
@@ -973,6 +993,7 @@ class StatisticRepositoryTest {
                         new ExpressionRepetitionByPeriodStatistic(
                                 user.getId(),
                                 expressionA.getId(),
+                                "expressionA",
                                 1,
                                 1,
                                 1,
@@ -980,6 +1001,7 @@ class StatisticRepositoryTest {
                         new ExpressionRepetitionByPeriodStatistic(
                                 user.getId(),
                                 expressionE.getId(),
+                                "expressionE",
                                 1,
                                 2,
                                 2,
@@ -987,6 +1009,7 @@ class StatisticRepositoryTest {
                         new ExpressionRepetitionByPeriodStatistic(
                                 user.getId(),
                                 expressionC.getId(),
+                                "expressionC",
                                 1,
                                 2,
                                 1,
@@ -994,6 +1017,7 @@ class StatisticRepositoryTest {
                         new ExpressionRepetitionByPeriodStatistic(
                                 user.getId(),
                                 expressionB.getId(),
+                                "expressionB",
                                 1,
                                 2,
                                 1,
@@ -1001,6 +1025,7 @@ class StatisticRepositoryTest {
                         new ExpressionRepetitionByPeriodStatistic(
                                 user.getId(),
                                 expressionD.getId(),
+                                "expressionD",
                                 1,
                                 2,
                                 1,
@@ -1059,6 +1084,7 @@ class StatisticRepositoryTest {
                         new ExpressionRepetitionByPeriodStatistic(
                                 user.getId(),
                                 expressionC.getId(),
+                                "expressionC",
                                 1,
                                 2,
                                 1,
@@ -1066,6 +1092,7 @@ class StatisticRepositoryTest {
                         new ExpressionRepetitionByPeriodStatistic(
                                 user.getId(),
                                 expressionA.getId(),
+                                "expressionA",
                                 2,
                                 0,
                                 1,
@@ -1073,6 +1100,7 @@ class StatisticRepositoryTest {
                         new ExpressionRepetitionByPeriodStatistic(
                                 user.getId(),
                                 expressionB.getId(),
+                                "expressionB",
                                 2,
                                 0,
                                 2,

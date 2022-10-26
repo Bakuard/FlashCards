@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record ExpressionRepetitionByPeriodStatistic(UUID userId,
                                                     UUID expressionId,
+                                                    String value,
                                                     long rememberFromEnglish,
                                                     long notRememberFromEnglish,
                                                     long rememberFromNative,

@@ -44,8 +44,8 @@ public class ExpressionRepetitionByPeriodResponse {
         return expressionId;
     }
 
-    public ExpressionRepetitionByPeriodResponse setWordId(UUID wordId) {
-        this.expressionId = wordId;
+    public ExpressionRepetitionByPeriodResponse setExpressionId(UUID expressionId) {
+        this.expressionId = expressionId;
         return this;
     }
 

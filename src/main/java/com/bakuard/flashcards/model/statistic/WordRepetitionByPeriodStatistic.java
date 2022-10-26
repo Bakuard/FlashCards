@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record WordRepetitionByPeriodStatistic(UUID userId,
                                               UUID wordId,
+                                              String value,
                                               long rememberFromEnglish,
                                               long notRememberFromEnglish,
                                               long rememberFromNative,

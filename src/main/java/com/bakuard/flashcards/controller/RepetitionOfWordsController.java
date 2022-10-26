@@ -7,6 +7,7 @@ import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.word.*;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.service.StatisticService;
 import com.bakuard.flashcards.service.WordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,14 +34,17 @@ public class RepetitionOfWordsController {
 
 
     private WordService wordService;
+    private StatisticService statisticService;
     private DtoMapper mapper;
     private RequestContext requestContext;
 
     @Autowired
     public RepetitionOfWordsController(WordService wordService,
+                                       StatisticService statisticService,
                                        DtoMapper mapper,
                                        RequestContext requestContext) {
         this.wordService = wordService;
+        this.statisticService = statisticService;
         this.mapper = mapper;
         this.requestContext = requestContext;
     }
@@ -66,7 +70,7 @@ public class RepetitionOfWordsController {
             }
     )
     @GetMapping("/english")
-    public ResponseEntity<Page<WordForRepetitionEnglishToNativeResponse>> findAllEnglishToNativeBy(
+    public ResponseEntity<Page<WordForRepetitionFromEnglishResponse>> findAllFromEnglishBy(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, из слов которого формируется выборка для повторения.", required = true)
             UUID userId,
@@ -108,13 +112,13 @@ public class RepetitionOfWordsController {
             }
     )
     @PutMapping("/english")
-    public ResponseEntity<WordResponse> repeatEnglishToNative(@RequestBody WordRepeatFromEnglishToNativeRequest dto) {
+    public ResponseEntity<WordResponse> repeatFromEnglish(@RequestBody WordRepeatFromEnglishRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} repeat word from english to native {} as user {}. remember is {}",
                 userId, dto.getWordId(), dto.getUserId(), dto.isRemember());
 
         Word word = wordService.repeatFromEnglish(dto.getUserId(), dto.getWordId(), dto.isRemember());
-        wordService.save(word);
+        statisticService.appendWordFromEnglish(dto.getUserId(), dto.getWordId(), dto.isRemember());
 
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
@@ -140,7 +144,7 @@ public class RepetitionOfWordsController {
             }
     )
     @GetMapping("/native")
-    public ResponseEntity<Page<WordForRepetitionNativeToEnglishResponse>> findAllNativeToEnglishBy(
+    public ResponseEntity<Page<WordForRepetitionFromNativeResponse>> findAllFromNativeBy(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, из слов которого формируется выборка для повторения.", required = true)
             UUID userId,
@@ -182,14 +186,14 @@ public class RepetitionOfWordsController {
             }
     )
     @PutMapping("/native")
-    public ResponseEntity<RepetitionResponse<WordResponse>> repeatNativeToEnglish(@RequestBody WordRepeatFromNativeToEnglishRequest dto) {
+    public ResponseEntity<RepetitionResponse<WordResponse>> repeatFromNative(@RequestBody WordRepeatFromNativeRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} repeat word from native to english {} as user {}. inputTranslate is {}",
                 userId, dto.getWordId(), dto.getUserId(), dto.getInputValue());
 
         RepetitionResult<Word> repetitionResult =
                 wordService.repeatFromNative(dto.getUserId(), dto.getWordId(), dto.getInputValue());
-        wordService.save(repetitionResult.payload());
+        statisticService.appendWordFromNative(dto.getUserId(), dto.getWordId(), repetitionResult.isRemember());
 
         RepetitionResponse<WordResponse> response = mapper.toRepetitionResponse(
                 repetitionResult.isRemember(),

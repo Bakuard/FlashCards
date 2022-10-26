@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Schema(description = "Данные слова для списка повторяемых слов с родного языка пользователя на английский язык.")
-public class WordForRepetitionNativeToEnglishResponse {
+public class WordForRepetitionFromNativeResponse {
 
     @Schema(description = "Уникальный идентификатор слова.")
     private UUID wordId;
@@ -20,7 +20,7 @@ public class WordForRepetitionNativeToEnglishResponse {
     @Schema(description = "Толкования английского слова.")
     private List<InterpretationRequestResponse> interpretations;
 
-    public WordForRepetitionNativeToEnglishResponse() {
+    public WordForRepetitionFromNativeResponse() {
 
     }
 
@@ -28,7 +28,7 @@ public class WordForRepetitionNativeToEnglishResponse {
         return wordId;
     }
 
-    public WordForRepetitionNativeToEnglishResponse setWordId(UUID wordId) {
+    public WordForRepetitionFromNativeResponse setWordId(UUID wordId) {
         this.wordId = wordId;
         return this;
     }
@@ -37,7 +37,7 @@ public class WordForRepetitionNativeToEnglishResponse {
         return userId;
     }
 
-    public WordForRepetitionNativeToEnglishResponse setUserId(UUID userId) {
+    public WordForRepetitionFromNativeResponse setUserId(UUID userId) {
         this.userId = userId;
         return this;
     }
@@ -46,7 +46,7 @@ public class WordForRepetitionNativeToEnglishResponse {
         return translations;
     }
 
-    public WordForRepetitionNativeToEnglishResponse setTranslations(List<TranslateRequestResponse> translations) {
+    public WordForRepetitionFromNativeResponse setTranslations(List<TranslateRequestResponse> translations) {
         this.translations = translations;
         return this;
     }
@@ -55,7 +55,7 @@ public class WordForRepetitionNativeToEnglishResponse {
         return interpretations;
     }
 
-    public WordForRepetitionNativeToEnglishResponse setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public WordForRepetitionFromNativeResponse setInterpretations(List<InterpretationRequestResponse> interpretations) {
         this.interpretations = interpretations;
         return this;
     }
@@ -64,7 +64,7 @@ public class WordForRepetitionNativeToEnglishResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        WordForRepetitionNativeToEnglishResponse that = (WordForRepetitionNativeToEnglishResponse) o;
+        WordForRepetitionFromNativeResponse that = (WordForRepetitionFromNativeResponse) o;
         return Objects.equals(wordId, that.wordId) &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(translations, that.translations) &&

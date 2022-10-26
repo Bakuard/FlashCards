@@ -10,7 +10,7 @@ import java.util.UUID;
         Данные устойчевого выражения для списка повторяемых устойчевых выражений
          с английского на родной язык пользователя.
         """)
-public class ExpressionForRepetitionEnglishToNativeResponse {
+public class ExpressionForRepetitionFromEnglishResponse {
 
     @Schema(description = "Уникальный идентификатор устойчевого выражения.")
     private UUID expressionId;
@@ -21,7 +21,7 @@ public class ExpressionForRepetitionEnglishToNativeResponse {
     @Schema(description = "Список примеров устойчевого выражения.")
     private List<String> examples;
 
-    public ExpressionForRepetitionEnglishToNativeResponse() {
+    public ExpressionForRepetitionFromEnglishResponse() {
 
     }
 
@@ -29,7 +29,7 @@ public class ExpressionForRepetitionEnglishToNativeResponse {
         return expressionId;
     }
 
-    public ExpressionForRepetitionEnglishToNativeResponse setExpressionId(UUID expressionId) {
+    public ExpressionForRepetitionFromEnglishResponse setExpressionId(UUID expressionId) {
         this.expressionId = expressionId;
         return this;
     }
@@ -38,7 +38,7 @@ public class ExpressionForRepetitionEnglishToNativeResponse {
         return userId;
     }
 
-    public ExpressionForRepetitionEnglishToNativeResponse setUserId(UUID userId) {
+    public ExpressionForRepetitionFromEnglishResponse setUserId(UUID userId) {
         this.userId = userId;
         return this;
     }
@@ -47,7 +47,7 @@ public class ExpressionForRepetitionEnglishToNativeResponse {
         return value;
     }
 
-    public ExpressionForRepetitionEnglishToNativeResponse setValue(String value) {
+    public ExpressionForRepetitionFromEnglishResponse setValue(String value) {
         this.value = value;
         return this;
     }
@@ -56,7 +56,7 @@ public class ExpressionForRepetitionEnglishToNativeResponse {
         return examples;
     }
 
-    public ExpressionForRepetitionEnglishToNativeResponse setExamples(List<String> examples) {
+    public ExpressionForRepetitionFromEnglishResponse setExamples(List<String> examples) {
         this.examples = examples;
         return this;
     }
@@ -65,7 +65,7 @@ public class ExpressionForRepetitionEnglishToNativeResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExpressionForRepetitionEnglishToNativeResponse that = (ExpressionForRepetitionEnglishToNativeResponse) o;
+        ExpressionForRepetitionFromEnglishResponse that = (ExpressionForRepetitionFromEnglishResponse) o;
         return Objects.equals(expressionId, that.expressionId) &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(value, that.value) &&

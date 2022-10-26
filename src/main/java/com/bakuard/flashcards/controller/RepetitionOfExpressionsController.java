@@ -8,6 +8,7 @@ import com.bakuard.flashcards.dto.expression.*;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.service.ExpressionService;
+import com.bakuard.flashcards.service.StatisticService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,14 +34,17 @@ public class RepetitionOfExpressionsController {
 
 
     private ExpressionService expressionService;
+    private StatisticService statisticService;
     private DtoMapper mapper;
     private RequestContext requestContext;
 
     @Autowired
     public RepetitionOfExpressionsController(ExpressionService expressionService,
+                                             StatisticService statisticService,
                                              DtoMapper mapper,
                                              RequestContext requestContext) {
         this.expressionService = expressionService;
+        this.statisticService = statisticService;
         this.mapper = mapper;
         this.requestContext = requestContext;
     }
@@ -66,7 +70,7 @@ public class RepetitionOfExpressionsController {
             }
     )
     @GetMapping("/english")
-    public ResponseEntity<Page<ExpressionForRepetitionEnglishToNativeResponse>> findAllEnglishToNativeBy(
+    public ResponseEntity<Page<ExpressionForRepetitionFromEnglishResponse>> findAllFromEnglishBy(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, из выражений которого формируется выборка для повторения.", required = true)
             UUID userId,
@@ -108,14 +112,14 @@ public class RepetitionOfExpressionsController {
             }
     )
     @PutMapping("/english")
-    public ResponseEntity<ExpressionResponse> repeatEnglishToNative(
-            @RequestBody ExpressionRepeatEnglishToNativeRequest dto) {
+    public ResponseEntity<ExpressionResponse> repeatFromEnglish(
+            @RequestBody ExpressionRepeatFromEnglishRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} repeat expression from english to native {} as user {}. remember is {}",
                 userId, dto.getExpressionId(), dto.getUserId(), dto.isRemember());
 
         Expression expression = expressionService.repeatFromEnglish(dto.getUserId(), dto.getExpressionId(), dto.isRemember());
-        expressionService.save(expression);
+        statisticService.appendExpressionFromEnglish(dto.getUserId(), dto.getExpressionId(), dto.isRemember());
 
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
@@ -141,7 +145,7 @@ public class RepetitionOfExpressionsController {
             }
     )
     @GetMapping("/native")
-    public ResponseEntity<Page<ExpressionForRepetitionNativeToEnglishResponse>> findAllNativeToEnglishBy(
+    public ResponseEntity<Page<ExpressionForRepetitionFromNativeResponse>> findAllFromNativeBy(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя, из выражений которого формируется выборка для повторения.", required = true)
             UUID userId,
@@ -183,15 +187,15 @@ public class RepetitionOfExpressionsController {
             }
     )
     @PutMapping("/native")
-    public ResponseEntity<RepetitionResponse<ExpressionResponse>> repeatNativeToEnglish(
-            @RequestBody ExpressionRepeatFromNativeToEnglishRequest dto) {
+    public ResponseEntity<RepetitionResponse<ExpressionResponse>> repeatFromNative(
+            @RequestBody ExpressionRepeatFromNativeRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} repeat expression from english to native {} as user {}. inputValue is {}",
                 userId, dto.getExpressionId(), dto.getUserId(), dto.getInputValue());
 
         RepetitionResult<Expression> repetitionResult =
                 expressionService.repeatFromNative(dto.getUserId(), dto.getExpressionId(), dto.getInputValue());
-        expressionService.save(repetitionResult.payload());
+        statisticService.appendExpressionFromNative(dto.getUserId(), dto.getExpressionId(), repetitionResult.isRemember());
 
         RepetitionResponse<ExpressionResponse> response = mapper.toRepetitionResponse(
                 repetitionResult.isRemember(),

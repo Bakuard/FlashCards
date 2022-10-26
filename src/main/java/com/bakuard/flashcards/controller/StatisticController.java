@@ -6,6 +6,9 @@ import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.statistic.ExpressionRepetitionByPeriodResponse;
 import com.bakuard.flashcards.dto.statistic.WordRepetitionByPeriodResponse;
+import com.bakuard.flashcards.model.statistic.ExpressionRepetitionByPeriodStatistic;
+import com.bakuard.flashcards.model.statistic.WordRepetitionByPeriodStatistic;
+import com.bakuard.flashcards.service.StatisticService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -29,9 +34,21 @@ public class StatisticController {
     private static final Logger logger = LoggerFactory.getLogger(StatisticController.class.getName());
 
 
+    private StatisticService statisticService;
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
+
+    @Autowired
+    public StatisticController(StatisticService statisticService,
+                               DtoMapper mapper,
+                               RequestContext requestContext,
+                               Messages messages) {
+        this.statisticService = statisticService;
+        this.mapper = mapper;
+        this.requestContext = requestContext;
+        this.messages = messages;
+    }
 
     @Operation(summary = "Возвращает статистику о результатах повторения указанного слова за указанный период.",
             responses = {
@@ -61,13 +78,25 @@ public class StatisticController {
             @RequestParam
             @Parameter(description = """
                     Начало периода, за который собирается статистика. Значение не должно превышать
-                     значения параметра endDate.
+                     значения параметра endDate. <br/>
+                     Ограничения: дата задается в формате yyyy.mm.dd
                     """)
             String startDate,
             @RequestParam
-            @Parameter(description = "Конец периода, за который собирается статистика.")
+            @Parameter(description = """
+                    Конец периода, за который собирается статистика. <br/>
+                    Ограничения: дата задается в формате yyyy.mm.dd
+                    """)
             String endDate) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find statistic of user {} for wordId={}, startDate={}, endDate={}",
+                jwsUserId, userId, wordId, startDate, endDate);
+
+        WordRepetitionByPeriodStatistic statistic = statisticService.wordRepetitionByPeriod(
+                userId, wordId, startDate, endDate
+        );
+
+        return ResponseEntity.ok(mapper.toWordRepetitionByPeriodResponse(statistic));
     }
 
     @Operation(summary = "Возвращает статистику о результатах повторения всех слов за указанный период.",
@@ -95,11 +124,15 @@ public class StatisticController {
             @RequestParam
             @Parameter(description = """
                     Начало периода, за который собирается статистика. Значение не должно превышать
-                     значения параметра endDate.
+                     значения параметра endDate. <br/>
+                     Ограничения: дата задается в формате yyyy.mm.dd
                     """)
             String startDate,
             @RequestParam
-            @Parameter(description = "Конец периода, за который собирается статистика.")
+            @Parameter(description = """
+                    Конец периода, за который собирается статистика. <br/>
+                    Ограничения: дата задается в формате yyyy.mm.dd
+                    """)
             String endDate,
             @RequestParam("page")
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
@@ -120,7 +153,15 @@ public class StatisticController {
                             }
                     ))
             String sort) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find statistic of user {} for startDate={}, endDate={}, page={}, size={}, sort={}",
+                jwsUserId, userId, startDate, endDate, page, size, sort);
+
+        Page<WordRepetitionByPeriodStatistic> statistic = statisticService.wordsRepetitionByPeriod(
+                userId, startDate, endDate, mapper.toPageable(page, size, mapper.toWordStatisticSort(sort))
+        );
+
+        return ResponseEntity.ok(mapper.toWordsRepetitionByPeriodResponse(statistic));
     }
 
     @Operation(summary = "Возвращает статистику о результатах повторения указанного выражения за указанный период.",
@@ -151,13 +192,25 @@ public class StatisticController {
             @RequestParam
             @Parameter(description = """
                     Начало периода, за который собирается статистика. Значение не должно превышать
-                     значения параметра endDate.
+                     значения параметра endDate. <br/>
+                     Ограничения: дата задается в формате yyyy.mm.dd
                     """)
             String startDate,
             @RequestParam
-            @Parameter(description = "Конец периода, за который собирается статистика.")
+            @Parameter(description = """
+                    Конец периода, за который собирается статистика. <br/>
+                    Ограничения: дата задается в формате yyyy.mm.dd
+                    """)
             String endDate) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find statistic of user {} for expressionId={}, startDate={}, endDate={}",
+                jwsUserId, userId, expressionId, startDate, endDate);
+
+        ExpressionRepetitionByPeriodStatistic statistic = statisticService.expressionRepetitionByPeriod(
+                userId, expressionId, startDate, endDate
+        );
+
+        return ResponseEntity.ok(mapper.toExpressionRepetitionByPeriodResponse(statistic));
     }
 
     @Operation(summary = "Возвращает статистику о результатах повторения всех выражений за указанный период.",
@@ -178,18 +231,22 @@ public class StatisticController {
             }
     )
     @GetMapping("/expressions")
-    public ResponseEntity<Page<WordRepetitionByPeriodResponse>> findStatisticForExpressionsRepetition(
+    public ResponseEntity<Page<ExpressionRepetitionByPeriodResponse>> findStatisticForExpressionsRepetition(
             @RequestParam
             @Parameter(description = "Идентификатор пользователя", required = true)
             UUID userId,
             @RequestParam
             @Parameter(description = """
                     Начало периода, за который собирается статистика. Значение не должно превышать
-                     значения параметра endDate.
+                     значения параметра endDate. <br/>
+                     Ограничения: дата задается в формате yyyy.mm.dd
                     """)
             String startDate,
             @RequestParam
-            @Parameter(description = "Конец периода, за который собирается статистика.")
+            @Parameter(description = """
+                    Конец периода, за который собирается статистика. <br/>
+                    Ограничения: дата задается в формате yyyy.mm.dd
+                    """)
             String endDate,
             @RequestParam("page")
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
@@ -210,7 +267,15 @@ public class StatisticController {
                             }
                     ))
             String sort) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} find statistic of user {} for startDate={}, endDate={}, page={}, size={}, sort={}",
+                jwsUserId, userId, startDate, endDate, page, size, sort);
+
+        Page<ExpressionRepetitionByPeriodStatistic> statistic = statisticService.expressionsRepetitionByPeriod(
+                userId, startDate, endDate, mapper.toPageable(page, size, mapper.toExpressionSort(sort))
+        );
+
+        return ResponseEntity.ok(mapper.toExpressionsRepetitionByPeriodResponse(statistic));
     }
 
 }
