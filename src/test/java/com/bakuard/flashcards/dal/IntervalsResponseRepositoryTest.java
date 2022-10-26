@@ -29,11 +29,9 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
@@ -43,9 +41,9 @@ class IntervalsResponseRepositoryTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private IntervalsRepository intervalsRepository;
+    private IntervalRepository intervalRepository;
     @Autowired
-    private WordsRepository wordsRepository;
+    private WordRepository wordRepository;
     @Autowired
     private ExpressionRepository expressionRepository;
     @Autowired
@@ -60,7 +58,15 @@ class IntervalsResponseRepositoryTest {
     @BeforeEach
     public void beforeEach() {
         commit(() -> JdbcTestUtils.deleteFromTables(jdbcTemplate,
-                "expressions", "words", "intervals", "users"));
+                "expressions",
+                "words",
+                "intervals",
+                "users",
+                "repeat_words_from_english_statistic",
+                "repeat_words_from_native_statistic",
+                "repeat_expressions_from_english_statistic",
+                "repeat_expressions_from_native_statistic"
+        ));
     }
 
     @Test
@@ -71,9 +77,9 @@ class IntervalsResponseRepositoryTest {
             """)
     public void add1() {
         User user = userRepository.save(user(1));
-        commit(() -> intervalsRepository.add(user.getId(), 10));
+        commit(() -> intervalRepository.add(user.getId(), 10));
 
-        ImmutableList<Integer> intervals = intervalsRepository.findAll(user.getId());
+        ImmutableList<Integer> intervals = intervalRepository.findAll(user.getId());
 
         Assertions.assertThat(intervals).contains(10);
     }
@@ -86,10 +92,10 @@ class IntervalsResponseRepositoryTest {
             """)
     public void add2() {
         User user = userRepository.save(user(1));
-        commit(() -> intervalsRepository.add(user.getId(), 10));
+        commit(() -> intervalRepository.add(user.getId(), 10));
 
         Assertions.assertThatExceptionOfType(DuplicateKeyException.class).
-                isThrownBy(() -> commit(() -> intervalsRepository.add(user.getId(), 10)));
+                isThrownBy(() -> commit(() -> intervalRepository.add(user.getId(), 10)));
     }
 
     @Test
@@ -101,14 +107,14 @@ class IntervalsResponseRepositoryTest {
     public void replace1() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
 
         Assertions.assertThatExceptionOfType(InvalidParameter.class).
-                isThrownBy(() -> intervalsRepository.replace(user.getId(), 20, 30));
+                isThrownBy(() -> intervalRepository.replace(user.getId(), 20, 30));
     }
 
     @Test
@@ -121,15 +127,15 @@ class IntervalsResponseRepositoryTest {
     public void replace2() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 30));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 30));
 
-        List<Integer> actual = intervalsRepository.findAll(user.getId());
+        List<Integer> actual = intervalRepository.findAll(user.getId());
         Assertions.assertThat(actual).containsExactly(1, 3, 5, 30);
     }
 
@@ -144,18 +150,18 @@ class IntervalsResponseRepositoryTest {
     public void replace3() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
-            wordsRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
-            wordsRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
+            wordRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
+            wordRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
+            wordRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 30));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 30));
 
         List<Integer> actual = findAllWords().stream().
                 map(word -> word.getRepeatDataFromEnglish().interval()).
@@ -174,18 +180,18 @@ class IntervalsResponseRepositoryTest {
     public void replace4() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
-            wordsRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
-            wordsRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
+            wordRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
+            wordRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
+            wordRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 30));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 30));
 
         List<Integer> actual = findAllWords().stream().
                 map(word -> word.getRepeatDataFromNative().interval()).
@@ -204,10 +210,10 @@ class IntervalsResponseRepositoryTest {
     public void replace5() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1, 1));
@@ -215,7 +221,7 @@ class IntervalsResponseRepositoryTest {
             expressionRepository.save(expression(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 30));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 30));
 
         List<Integer> actual = findAllExpressions().stream().
                 map(expression -> expression.getRepeatDataFromEnglish().interval()).
@@ -234,10 +240,10 @@ class IntervalsResponseRepositoryTest {
     public void replace6() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1, 1));
@@ -245,7 +251,7 @@ class IntervalsResponseRepositoryTest {
             expressionRepository.save(expression(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 30));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 30));
 
         List<Integer> actual = findAllExpressions().stream().
                 map(expression -> expression.getRepeatDataFromNative().interval()).
@@ -263,15 +269,15 @@ class IntervalsResponseRepositoryTest {
     public void replace7() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 5));
 
-        List<Integer> actual = intervalsRepository.findAll(user.getId());
+        List<Integer> actual = intervalRepository.findAll(user.getId());
         Assertions.assertThat(actual).containsExactly(1, 3, 5);
     }
 
@@ -286,18 +292,18 @@ class IntervalsResponseRepositoryTest {
     public void replace8() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
-            wordsRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
-            wordsRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
+            wordRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
+            wordRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
+            wordRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 5));
 
         List<Integer> actual = findAllWords().stream().
                 map(word -> word.getRepeatDataFromEnglish().interval()).
@@ -316,18 +322,18 @@ class IntervalsResponseRepositoryTest {
     public void replace9() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
-            wordsRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
-            wordsRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
+            wordRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
+            wordRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
+            wordRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 5));
 
         List<Integer> actual = findAllWords().stream().
                 map(word -> word.getRepeatDataFromNative().interval()).
@@ -346,10 +352,10 @@ class IntervalsResponseRepositoryTest {
     public void replace10() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1, 1));
@@ -357,7 +363,7 @@ class IntervalsResponseRepositoryTest {
             expressionRepository.save(expression(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 5));
 
         List<Integer> actual = findAllExpressions().stream().
                 map(expression -> expression.getRepeatDataFromEnglish().interval()).
@@ -376,10 +382,10 @@ class IntervalsResponseRepositoryTest {
     public void replace11() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1, 1));
@@ -387,7 +393,7 @@ class IntervalsResponseRepositoryTest {
             expressionRepository.save(expression(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 10, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 10, 5));
 
         List<Integer> actual = findAllExpressions().stream().
                 map(expression -> expression.getRepeatDataFromNative().interval()).
@@ -405,15 +411,15 @@ class IntervalsResponseRepositoryTest {
     public void replace12() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 5, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 5, 5));
 
-        List<Integer> actual = intervalsRepository.findAll(user.getId());
+        List<Integer> actual = intervalRepository.findAll(user.getId());
         Assertions.assertThat(actual).containsExactly(1, 3, 5, 10);
     }
 
@@ -428,18 +434,18 @@ class IntervalsResponseRepositoryTest {
     public void replace13() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
-            wordsRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
-            wordsRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
+            wordRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
+            wordRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
+            wordRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 5, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 5, 5));
 
         List<Integer> actual = findAllWords().stream().
                 map(word -> word.getRepeatDataFromEnglish().interval()).
@@ -458,18 +464,18 @@ class IntervalsResponseRepositoryTest {
     public void replace14() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
-            wordsRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
-            wordsRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
+            wordRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
+            wordRepository.save(word(user.getId(), "valueB", "noteB", 5, 5));
+            wordRepository.save(word(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 5, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 5, 5));
 
         List<Integer> actual = findAllWords().stream().
                 map(word -> word.getRepeatDataFromNative().interval()).
@@ -488,10 +494,10 @@ class IntervalsResponseRepositoryTest {
     public void replace15() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1, 1));
@@ -499,7 +505,7 @@ class IntervalsResponseRepositoryTest {
             expressionRepository.save(expression(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 5, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 5, 5));
 
         List<Integer> actual = findAllExpressions().stream().
                 map(expression -> expression.getRepeatDataFromEnglish().interval()).
@@ -518,10 +524,10 @@ class IntervalsResponseRepositoryTest {
     public void replace16() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1, 1));
@@ -529,7 +535,7 @@ class IntervalsResponseRepositoryTest {
             expressionRepository.save(expression(user.getId(), "valueC", "noteC", 10, 10));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 5, 5));
+        commit(() -> intervalRepository.replace(user.getId(), 5, 5));
 
         List<Integer> actual = findAllExpressions().stream().
                 map(expression -> expression.getRepeatDataFromNative().interval()).
@@ -546,11 +552,11 @@ class IntervalsResponseRepositoryTest {
             """)
     public void replace17() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> intervalsRepository.add(user.getId(), 1));
+        commit(() -> intervalRepository.add(user.getId(), 1));
 
-        commit(() -> intervalsRepository.replace(user.getId(), 1, 10));
+        commit(() -> intervalRepository.replace(user.getId(), 1, 10));
 
-        List<Integer> actual = intervalsRepository.findAll(user.getId());
+        List<Integer> actual = intervalRepository.findAll(user.getId());
         Assertions.assertThat(actual).containsExactly(10);
     }
 
@@ -564,14 +570,14 @@ class IntervalsResponseRepositoryTest {
             """)
     public void replace18() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> intervalsRepository.add(user.getId(), 1));
+        commit(() -> intervalRepository.add(user.getId(), 1));
         commit(() -> {
-            wordsRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueB", "noteB", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueC", "noteC", 1, 1));
+            wordRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
+            wordRepository.save(word(user.getId(), "valueB", "noteB", 1, 1));
+            wordRepository.save(word(user.getId(), "valueC", "noteC", 1, 1));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 1, 10));
+        commit(() -> intervalRepository.replace(user.getId(), 1, 10));
 
         List<Integer> actual = findAllWords().stream().
                 map(word -> word.getRepeatDataFromEnglish().interval()).
@@ -589,14 +595,14 @@ class IntervalsResponseRepositoryTest {
             """)
     public void replace19() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> intervalsRepository.add(user.getId(), 1));
+        commit(() -> intervalRepository.add(user.getId(), 1));
         commit(() -> {
-            wordsRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueB", "noteB", 1, 1));
-            wordsRepository.save(word(user.getId(), "valueC", "noteC", 1, 1));
+            wordRepository.save(word(user.getId(), "valueA", "noteA", 1, 1));
+            wordRepository.save(word(user.getId(), "valueB", "noteB", 1, 1));
+            wordRepository.save(word(user.getId(), "valueC", "noteC", 1, 1));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 1, 10));
+        commit(() -> intervalRepository.replace(user.getId(), 1, 10));
 
         List<Integer> actual = findAllWords().stream().
                 map(word -> word.getRepeatDataFromNative().interval()).
@@ -614,14 +620,14 @@ class IntervalsResponseRepositoryTest {
             """)
     public void replace20() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> intervalsRepository.add(user.getId(), 1));
+        commit(() -> intervalRepository.add(user.getId(), 1));
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1, 1));
             expressionRepository.save(expression(user.getId(), "valueB", "noteB", 1, 1));
             expressionRepository.save(expression(user.getId(), "valueC", "noteC", 1, 1));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 1, 10));
+        commit(() -> intervalRepository.replace(user.getId(), 1, 10));
 
         List<Integer> actual = findAllExpressions().stream().
                 map(expression -> expression.getRepeatDataFromEnglish().interval()).
@@ -639,14 +645,14 @@ class IntervalsResponseRepositoryTest {
             """)
     public void replace21() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> intervalsRepository.add(user.getId(), 1));
+        commit(() -> intervalRepository.add(user.getId(), 1));
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1, 1));
             expressionRepository.save(expression(user.getId(), "valueB", "noteB", 1, 1));
             expressionRepository.save(expression(user.getId(), "valueC", "noteC", 1, 1));
         });
 
-        commit(() -> intervalsRepository.replace(user.getId(), 1, 10));
+        commit(() -> intervalRepository.replace(user.getId(), 1, 10));
 
         List<Integer> actual = findAllExpressions().stream().
                 map(expression -> expression.getRepeatDataFromNative().interval()).
@@ -664,19 +670,19 @@ class IntervalsResponseRepositoryTest {
     public void replace22() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         List<Word> words = List.of(
                 word(user.getId(), "valueA", "noteA", 1, 1),
                 word(user.getId(), "valueB", "noteB", 5, 5),
                 word(user.getId(), "valueC", "noteC", 10, 10)
         );
-        commit(() -> words.forEach(word -> wordsRepository.save(word)));
+        commit(() -> words.forEach(word -> wordRepository.save(word)));
 
-        commit(() -> intervalsRepository.replace(user.getId(), 3, 30));
+        commit(() -> intervalRepository.replace(user.getId(), 3, 30));
 
         List<Word> actual = findAllWords();
         Assertions.assertThat(actual).
@@ -694,10 +700,10 @@ class IntervalsResponseRepositoryTest {
     public void replace23() {
         User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
-            intervalsRepository.add(user.getId(), 1);
-            intervalsRepository.add(user.getId(), 3);
-            intervalsRepository.add(user.getId(), 5);
-            intervalsRepository.add(user.getId(), 10);
+            intervalRepository.add(user.getId(), 1);
+            intervalRepository.add(user.getId(), 3);
+            intervalRepository.add(user.getId(), 5);
+            intervalRepository.add(user.getId(), 10);
         });
         List<Expression> expressions = List.of(
                 expression(user.getId(), "valueA", "noteA", 1, 1),
@@ -706,7 +712,7 @@ class IntervalsResponseRepositoryTest {
         );
         commit(() -> expressions.forEach(expression -> expressionRepository.save(expression)));
 
-        commit(() -> intervalsRepository.replace(user.getId(), 3, 30));
+        commit(() -> intervalRepository.replace(user.getId(), 3, 30));
 
         List<Expression> actual = findAllExpressions();
         Assertions.assertThat(actual).
@@ -755,7 +761,7 @@ class IntervalsResponseRepositoryTest {
     }
 
     private List<Word> findAllWords() {
-        return wordsRepository.findAll(PageRequest.of(0, 100, Sort.by("value"))).getContent();
+        return wordRepository.findAll(PageRequest.of(0, 100, Sort.by("value"))).getContent();
     }
 
     private List<Expression> findAllExpressions() {

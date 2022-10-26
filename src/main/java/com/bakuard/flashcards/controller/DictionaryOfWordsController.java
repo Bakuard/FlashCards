@@ -139,8 +139,10 @@ public class DictionaryOfWordsController {
                             defaultValue = "value.asc (Сортировка по значению в порядке возрастания).",
                             allowableValues = {
                                     "value - сортировка по значению",
-                                    "repeat_interval - сортировка по интервалу повторения",
-                                    "last_date_of_repeat - сортировка по дате поседнего повторения"
+                                    "repeat_interval_from_english - сортировка по интервалу повторения для перевода с английского",
+                                    "repeat_interval_from_native - сортировка по дате поседнего повторения для переводоа с родного языка",
+                                    "last_date_of_repeat_from_english - сортировка по последней дате повторения с английского",
+                                    "last_date_of_repeat_from_native - сортировка по последней дате повторения с родного языка"
                             }
                     ))
             String sort) {
@@ -169,7 +171,7 @@ public class DictionaryOfWordsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            description = "Если не удалось найти слово или пользователя по указанным идентификаторам.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -180,12 +182,12 @@ public class DictionaryOfWordsController {
             @Parameter(description = "Идентификатор пользователя, слово которого запрашивается", required = true)
             UUID userId,
             @PathVariable
-            @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
-            UUID id) {
+            @Parameter(description = "Уникальный идентификатор слова в формате UUID.", required = true)
+            UUID wordId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} get word of user {} by id={}", jwsUserId, userId, id);
+        logger.info("user {} get word of user {} by id={}", jwsUserId, userId, wordId);
 
-        Word word = wordService.tryFindById(userId, id);
+        Word word = wordService.tryFindById(userId, wordId);
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
 
@@ -213,7 +215,7 @@ public class DictionaryOfWordsController {
     @GetMapping("/value")
     public ResponseEntity<Page<WordForDictionaryListResponse>> findByValue(
             @RequestParam
-            @Parameter(description = "Идентификатор пользователя, из слов которого делается выборка", required = true)
+            @Parameter(description = "Идентификатор пользователя, из слов которого делается выборка.", required = true)
             UUID userId,
             @PathVariable
             @Parameter(description = "Значение искомого слова. Не может быть null.", required = true)
@@ -252,7 +254,7 @@ public class DictionaryOfWordsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            description = "Если не удалось найти слово или пользователя по указанным идентификаторам.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -260,15 +262,15 @@ public class DictionaryOfWordsController {
     @DeleteMapping("/id")
     public ResponseEntity<String> delete(
             @RequestParam
-            @Parameter(description = "Идентификатор пользователя, слово которого удаляется", required = true)
+            @Parameter(description = "Идентификатор пользователя, слово которого удаляется.", required = true)
             UUID userId,
             @PathVariable
-            @Parameter(description = "Уникальный идентификатор слова в формате UUID. Не может быть null.", required = true)
-            UUID id) {
+            @Parameter(description = "Уникальный идентификатор слова в формате UUID.", required = true)
+            UUID wordId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} delete word of user {} by id={}", jwsUserId, userId, id);
+        logger.info("user {} delete word of user {} by id={}", jwsUserId, userId, wordId);
 
-        wordService.tryDeleteById(userId, id);
+        wordService.tryDeleteById(userId, wordId);
         return ResponseEntity.ok(messages.getMessage("dictionary.words.delete"));
     }
 

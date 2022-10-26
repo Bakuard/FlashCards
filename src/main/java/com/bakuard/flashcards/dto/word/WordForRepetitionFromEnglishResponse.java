@@ -9,7 +9,7 @@ import java.util.UUID;
 @Schema(description = """
         Данные слова для списка повторяемых слов с английского на родной язык пользователя.
         """)
-public class WordForRepetitionEnglishToNativeResponse {
+public class WordForRepetitionFromEnglishResponse {
 
     @Schema(description = "Уникальный идентификатор слова.")
     private UUID wordId;
@@ -20,7 +20,7 @@ public class WordForRepetitionEnglishToNativeResponse {
     @Schema(description = "Список примеров слова.")
     private List<String> examples;
 
-    public WordForRepetitionEnglishToNativeResponse() {
+    public WordForRepetitionFromEnglishResponse() {
 
     }
 
@@ -28,7 +28,7 @@ public class WordForRepetitionEnglishToNativeResponse {
         return wordId;
     }
 
-    public WordForRepetitionEnglishToNativeResponse setWordId(UUID wordId) {
+    public WordForRepetitionFromEnglishResponse setWordId(UUID wordId) {
         this.wordId = wordId;
         return this;
     }
@@ -37,7 +37,7 @@ public class WordForRepetitionEnglishToNativeResponse {
         return userId;
     }
 
-    public WordForRepetitionEnglishToNativeResponse setUserId(UUID userId) {
+    public WordForRepetitionFromEnglishResponse setUserId(UUID userId) {
         this.userId = userId;
         return this;
     }
@@ -46,7 +46,7 @@ public class WordForRepetitionEnglishToNativeResponse {
         return value;
     }
 
-    public WordForRepetitionEnglishToNativeResponse setValue(String value) {
+    public WordForRepetitionFromEnglishResponse setValue(String value) {
         this.value = value;
         return this;
     }
@@ -55,7 +55,7 @@ public class WordForRepetitionEnglishToNativeResponse {
         return examples;
     }
 
-    public WordForRepetitionEnglishToNativeResponse setExamples(List<String> examples) {
+    public WordForRepetitionFromEnglishResponse setExamples(List<String> examples) {
         this.examples = examples;
         return this;
     }
@@ -64,7 +64,7 @@ public class WordForRepetitionEnglishToNativeResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        WordForRepetitionEnglishToNativeResponse that = (WordForRepetitionEnglishToNativeResponse) o;
+        WordForRepetitionFromEnglishResponse that = (WordForRepetitionFromEnglishResponse) o;
         return Objects.equals(wordId, that.wordId) &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(value, that.value) &&

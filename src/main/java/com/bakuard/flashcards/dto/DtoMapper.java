@@ -7,6 +7,8 @@ import com.bakuard.flashcards.dto.exceptions.ExceptionReasonResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.expression.*;
 import com.bakuard.flashcards.dto.settings.IntervalsResponse;
+import com.bakuard.flashcards.dto.statistic.ExpressionRepetitionByPeriodResponse;
+import com.bakuard.flashcards.dto.statistic.WordRepetitionByPeriodResponse;
 import com.bakuard.flashcards.dto.word.*;
 import com.bakuard.flashcards.model.auth.JwsWithUser;
 import com.bakuard.flashcards.model.auth.credential.Credential;
@@ -18,6 +20,8 @@ import com.bakuard.flashcards.model.expression.ExpressionInterpretation;
 import com.bakuard.flashcards.model.expression.ExpressionTranslation;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.model.filter.SortedEntity;
+import com.bakuard.flashcards.model.statistic.ExpressionRepetitionByPeriodStatistic;
+import com.bakuard.flashcards.model.statistic.WordRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.model.word.*;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
@@ -94,9 +98,9 @@ public class DtoMapper {
         );
     }
 
-    public Page<WordForRepetitionEnglishToNativeResponse> toWordsForRepetitionFromEnglishResponse(Page<Word> words) {
+    public Page<WordForRepetitionFromEnglishResponse> toWordsForRepetitionFromEnglishResponse(Page<Word> words) {
         return words.map(
-                word -> new WordForRepetitionEnglishToNativeResponse().
+                word -> new WordForRepetitionFromEnglishResponse().
                         setWordId(word.getId()).
                         setUserId(word.getUserId()).
                         setValue(word.getValue()).
@@ -106,9 +110,9 @@ public class DtoMapper {
         );
     }
 
-    public Page<WordForRepetitionNativeToEnglishResponse> toWordsForRepetitionFromNativeResponse(Page<Word> words) {
+    public Page<WordForRepetitionFromNativeResponse> toWordsForRepetitionFromNativeResponse(Page<Word> words) {
         return words.map(
-                word -> new WordForRepetitionNativeToEnglishResponse().
+                word -> new WordForRepetitionFromNativeResponse().
                         setWordId(word.getId()).
                         setUserId(word.getUserId()).
                         setInterpretations(word.getInterpretations().stream().
@@ -192,9 +196,9 @@ public class DtoMapper {
         );
     }
 
-    public Page<ExpressionForRepetitionEnglishToNativeResponse> toExpressionsForRepetitionFromEnglishResponse(Page<Expression> expressions) {
+    public Page<ExpressionForRepetitionFromEnglishResponse> toExpressionsForRepetitionFromEnglishResponse(Page<Expression> expressions) {
         return expressions.map(
-                expression -> new ExpressionForRepetitionEnglishToNativeResponse().
+                expression -> new ExpressionForRepetitionFromEnglishResponse().
                         setExpressionId(expression.getId()).
                         setUserId(expression.getUserId()).
                         setValue(expression.getValue()).
@@ -204,9 +208,9 @@ public class DtoMapper {
         );
     }
 
-    public Page<ExpressionForRepetitionNativeToEnglishResponse> toExpressionForRepetitionFromNativeResponse(Page<Expression> expressions) {
+    public Page<ExpressionForRepetitionFromNativeResponse> toExpressionForRepetitionFromNativeResponse(Page<Expression> expressions) {
         return expressions.map(
-                expression -> new ExpressionForRepetitionNativeToEnglishResponse().
+                expression -> new ExpressionForRepetitionFromNativeResponse().
                         setExpressionId(expression.getId()).
                         setUserId(expression.getUserId()).
                         setInterpretations(expression.getInterpretations().stream().
@@ -306,6 +310,49 @@ public class DtoMapper {
         return new IntervalsResponse().
                 setUserId(userId).
                 setIntervals(intervals);
+    }
+
+
+    public WordRepetitionByPeriodResponse toWordRepetitionByPeriodResponse(WordRepetitionByPeriodStatistic statistic) {
+        return new WordRepetitionByPeriodResponse().
+                setWordId(statistic.wordId()).
+                setUserId(statistic.userId()).
+                setValue(statistic.value()).
+                setNotRememberFromEnglish(statistic.notRememberFromEnglish()).
+                setNotRememberFromNative(statistic.notRememberFromNative()).
+                setRememberFromEnglish(statistic.rememberFromEnglish()).
+                setRememberFromNative(statistic.rememberFromNative()).
+                setTotalRepetitionNumbersFromEnglish(statistic.totalRepetitionNumbersFromEnglish()).
+                setTotalRepetitionNumbersFromNative(statistic.totalRepetitionNumbersFromNative());
+    }
+
+    public ExpressionRepetitionByPeriodResponse toExpressionRepetitionByPeriodResponse(ExpressionRepetitionByPeriodStatistic statistic) {
+        return new ExpressionRepetitionByPeriodResponse().
+                setUserId(statistic.userId()).
+                setExpressionId(statistic.expressionId()).
+                setValue(statistic.value()).
+                setNotRememberFromEnglish(statistic.notRememberFromEnglish()).
+                setNotRememberFromNative(statistic.notRememberFromNative()).
+                setRememberFromEnglish(statistic.rememberFromEnglish()).
+                setRememberFromNative(statistic.rememberFromNative()).
+                setTotalRepetitionNumbersFromEnglish(statistic.totalRepetitionNumbersFromEnglish()).
+                setTotalRepetitionNumbersFromNative(statistic.totalRepetitionNumbersFromNative());
+    }
+
+    public Page<WordRepetitionByPeriodResponse> toWordsRepetitionByPeriodResponse(Page<WordRepetitionByPeriodStatistic> statistic) {
+        return statistic.map(this::toWordRepetitionByPeriodResponse);
+    }
+
+    public Page<ExpressionRepetitionByPeriodResponse> toExpressionsRepetitionByPeriodResponse(Page<ExpressionRepetitionByPeriodStatistic> statistic) {
+        return statistic.map(this::toExpressionRepetitionByPeriodResponse);
+    }
+
+    public Sort toExpressionStatisticSort(String sortRule) {
+        return sortRules.toSort(sortRule, SortedEntity.EXPRESSION_STATISTIC);
+    }
+
+    public Sort toWordStatisticSort(String sortRule) {
+        return sortRules.toSort(sortRule, SortedEntity.WORD_STATISTIC);
     }
 
 

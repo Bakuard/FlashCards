@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 import java.util.UUID;
 
-@Schema(description = "Запрос на повторение слова с родного языка пользователя на англиский.")
-public class WordRepeatFromNativeToEnglishRequest {
+@Schema(description = "Запрос на повторение слова с английского на родной язык пользователя.")
+public class WordRepeatFromEnglishRequest {
 
     @Schema(description = """
             Идентификатор пользователя, с которым связано указанное слово. <br/>
@@ -18,10 +18,12 @@ public class WordRepeatFromNativeToEnglishRequest {
             Огрничения: не должен быть null.
             """)
     private UUID wordId;
-    @Schema(description = "Значение слова на английском языке записанное пользователем по памяти.")
-    private String inputValue;
+    @Schema(description = """
+            Указывает - помнит ли пользователь данное слово или нет.
+            """)
+    private boolean isRemember;
 
-    public WordRepeatFromNativeToEnglishRequest() {
+    public WordRepeatFromEnglishRequest() {
 
     }
 
@@ -29,7 +31,7 @@ public class WordRepeatFromNativeToEnglishRequest {
         return userId;
     }
 
-    public WordRepeatFromNativeToEnglishRequest setUserId(UUID userId) {
+    public WordRepeatFromEnglishRequest setUserId(UUID userId) {
         this.userId = userId;
         return this;
     }
@@ -38,17 +40,17 @@ public class WordRepeatFromNativeToEnglishRequest {
         return wordId;
     }
 
-    public WordRepeatFromNativeToEnglishRequest setWordId(UUID wordId) {
+    public WordRepeatFromEnglishRequest setWordId(UUID wordId) {
         this.wordId = wordId;
         return this;
     }
 
-    public String getInputValue() {
-        return inputValue;
+    public boolean isRemember() {
+        return isRemember;
     }
 
-    public WordRepeatFromNativeToEnglishRequest setInputValue(String inputValue) {
-        this.inputValue = inputValue;
+    public WordRepeatFromEnglishRequest setRemember(boolean remember) {
+        isRemember = remember;
         return this;
     }
 
@@ -56,23 +58,23 @@ public class WordRepeatFromNativeToEnglishRequest {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        WordRepeatFromNativeToEnglishRequest that = (WordRepeatFromNativeToEnglishRequest) o;
-        return Objects.equals(userId, that.userId) &&
-                Objects.equals(wordId, that.wordId) &&
-                Objects.equals(inputValue, that.inputValue);
+        WordRepeatFromEnglishRequest that = (WordRepeatFromEnglishRequest) o;
+        return isRemember == that.isRemember &&
+                Objects.equals(userId, that.userId) &&
+                Objects.equals(wordId, that.wordId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, wordId, inputValue);
+        return Objects.hash(userId, wordId, isRemember);
     }
 
     @Override
     public String toString() {
-        return "WordRepeatFromNativeToEnglishRequest{" +
+        return "WordRepeatRequest{" +
                 "userId=" + userId +
                 ", wordId=" + wordId +
-                ", inputTranslate='" + inputValue + '\'' +
+                ", isRemember=" + isRemember +
                 '}';
     }
 

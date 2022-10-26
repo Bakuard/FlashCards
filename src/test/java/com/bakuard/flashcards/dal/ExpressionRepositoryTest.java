@@ -54,7 +54,12 @@ class ExpressionRepositoryTest {
                 "expressions",
                 "words",
                 "intervals",
-                "users"));
+                "users",
+                "repeat_words_from_english_statistic",
+                "repeat_words_from_native_statistic",
+                "repeat_expressions_from_english_statistic",
+                "repeat_expressions_from_native_statistic"
+        ));
         clock.setDate(2022, 7, 7);
     }
 

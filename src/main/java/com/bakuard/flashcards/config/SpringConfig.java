@@ -4,11 +4,9 @@ import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.config.security.RequestContextImpl;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.controller.message.MessagesImpl;
-import com.bakuard.flashcards.dal.ExpressionRepository;
-import com.bakuard.flashcards.dal.IntervalsRepository;
-import com.bakuard.flashcards.dal.UserRepository;
-import com.bakuard.flashcards.dal.WordsRepository;
-import com.bakuard.flashcards.dal.impl.IntervalsRepositoryImpl;
+import com.bakuard.flashcards.dal.*;
+import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
+import com.bakuard.flashcards.dal.impl.StatisticRepositoryImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
@@ -79,8 +77,13 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public IntervalsRepository intervalsRepository(JdbcTemplate jdbcTemplate) {
-                return new IntervalsRepositoryImpl(jdbcTemplate);
+        public IntervalRepository intervalsRepository(JdbcTemplate jdbcTemplate) {
+                return new IntervalRepositoryImpl(jdbcTemplate);
+        }
+
+        @Bean
+        public StatisticRepository statisticRepository(JdbcTemplate jdbcTemplate) {
+             return new StatisticRepositoryImpl(jdbcTemplate);
         }
 
         @Bean
@@ -94,30 +97,30 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public WordService wordService(WordsRepository wordsRepository,
-                                       IntervalsRepository intervalsRepository,
+        public WordService wordService(WordRepository wordRepository,
+                                       IntervalRepository intervalRepository,
                                        Clock clock,
                                        ConfigData configData) {
-                return new WordService(wordsRepository, intervalsRepository, clock, configData);
+                return new WordService(wordRepository, intervalRepository, clock, configData);
         }
 
         @Bean
         public ExpressionService expressionService(ExpressionRepository expressionRepository,
-                                                   IntervalsRepository intervalsRepository,
+                                                   IntervalRepository intervalRepository,
                                                    Clock clock,
                                                    ConfigData configData) {
-                return new ExpressionService(expressionRepository, intervalsRepository, clock, configData);
+                return new ExpressionService(expressionRepository, intervalRepository, clock, configData);
         }
 
         @Bean
         public AuthService authService(UserRepository userRepository,
-                                       IntervalsRepository intervalsRepository,
+                                       IntervalRepository intervalRepository,
                                        JwsService jwsService,
                                        EmailService emailService,
                                        ConfigData configData,
                                        ValidatorUtil validator) {
              return new AuthService(userRepository,
-                     intervalsRepository,
+                     intervalRepository,
                      jwsService,
                      emailService,
                      configData,
@@ -132,6 +135,16 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public EmailService emailService(ConfigData configData) {
                 return new EmailService(configData);
+        }
+
+        @Bean
+        public IntervalService intervalService(IntervalRepository intervalRepository) {
+             return new IntervalService(intervalRepository);
+        }
+
+        @Bean
+        public StatisticService statisticService(StatisticRepository statisticRepository, Clock clock) {
+                return new StatisticService(statisticRepository, clock);
         }
 
         @Bean

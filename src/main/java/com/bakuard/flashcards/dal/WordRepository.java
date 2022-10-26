@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface WordsRepository extends PagingAndSortingRepository<Word, UUID> {
+public interface WordRepository extends PagingAndSortingRepository<Word, UUID> {
 
     @Query("select * from words where user_id = :userId and word_id = :wordId;")
     public Optional<Word> findById(UUID userId, UUID wordId);

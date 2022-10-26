@@ -12,7 +12,7 @@ import java.util.UUID;
         Данные выражения для списка повторяемых устойчевых выражений
          с родного языка пользователя на английский язык.
         """)
-public class ExpressionForRepetitionNativeToEnglishResponse {
+public class ExpressionForRepetitionFromNativeResponse {
 
     @Schema(description = "Уникальный идентификатор выражения.")
     private UUID expressionId;
@@ -23,7 +23,7 @@ public class ExpressionForRepetitionNativeToEnglishResponse {
     @Schema(description = "Толкования английского устойчевого выражения.")
     private List<InterpretationRequestResponse> interpretations;
 
-    public ExpressionForRepetitionNativeToEnglishResponse() {
+    public ExpressionForRepetitionFromNativeResponse() {
 
     }
 
@@ -31,7 +31,7 @@ public class ExpressionForRepetitionNativeToEnglishResponse {
         return expressionId;
     }
 
-    public ExpressionForRepetitionNativeToEnglishResponse setExpressionId(UUID expressionId) {
+    public ExpressionForRepetitionFromNativeResponse setExpressionId(UUID expressionId) {
         this.expressionId = expressionId;
         return this;
     }
@@ -40,7 +40,7 @@ public class ExpressionForRepetitionNativeToEnglishResponse {
         return userId;
     }
 
-    public ExpressionForRepetitionNativeToEnglishResponse setUserId(UUID userId) {
+    public ExpressionForRepetitionFromNativeResponse setUserId(UUID userId) {
         this.userId = userId;
         return this;
     }
@@ -49,7 +49,7 @@ public class ExpressionForRepetitionNativeToEnglishResponse {
         return translations;
     }
 
-    public ExpressionForRepetitionNativeToEnglishResponse setTranslations(List<TranslateRequestResponse> translations) {
+    public ExpressionForRepetitionFromNativeResponse setTranslations(List<TranslateRequestResponse> translations) {
         this.translations = translations;
         return this;
     }
@@ -58,7 +58,7 @@ public class ExpressionForRepetitionNativeToEnglishResponse {
         return interpretations;
     }
 
-    public ExpressionForRepetitionNativeToEnglishResponse setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public ExpressionForRepetitionFromNativeResponse setInterpretations(List<InterpretationRequestResponse> interpretations) {
         this.interpretations = interpretations;
         return this;
     }
@@ -67,7 +67,7 @@ public class ExpressionForRepetitionNativeToEnglishResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExpressionForRepetitionNativeToEnglishResponse that = (ExpressionForRepetitionNativeToEnglishResponse) o;
+        ExpressionForRepetitionFromNativeResponse that = (ExpressionForRepetitionFromNativeResponse) o;
         return Objects.equals(expressionId, that.expressionId) &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(translations, that.translations) &&

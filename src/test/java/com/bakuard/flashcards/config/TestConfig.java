@@ -4,11 +4,9 @@ import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.config.security.RequestContextImpl;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.controller.message.MessagesImpl;
-import com.bakuard.flashcards.dal.ExpressionRepository;
-import com.bakuard.flashcards.dal.IntervalsRepository;
-import com.bakuard.flashcards.dal.UserRepository;
-import com.bakuard.flashcards.dal.WordsRepository;
-import com.bakuard.flashcards.dal.impl.IntervalsRepositoryImpl;
+import com.bakuard.flashcards.dal.*;
+import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
+import com.bakuard.flashcards.dal.impl.StatisticRepositoryImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
@@ -20,17 +18,11 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import org.flywaydb.core.Flyway;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.data.relational.core.mapping.event.AfterConvertEvent;
@@ -46,8 +38,6 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import javax.sql.DataSource;
 import javax.validation.Validator;
 import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
 
 @TestConfiguration
 @ComponentScan(basePackages = {"com.bakuard.flashcards.controller", "com.bakuard.flashcards.config"})
@@ -82,8 +72,13 @@ public class TestConfig {
     }
 
     @Bean
-    public IntervalsRepository intervalsRepository(JdbcTemplate jdbcTemplate) {
-        return new IntervalsRepositoryImpl(jdbcTemplate);
+    public IntervalRepository intervalsRepository(JdbcTemplate jdbcTemplate) {
+        return new IntervalRepositoryImpl(jdbcTemplate);
+    }
+
+    @Bean
+    public StatisticRepository statisticRepository(JdbcTemplate jdbcTemplate) {
+        return new StatisticRepositoryImpl(jdbcTemplate);
     }
 
     @Bean
@@ -97,30 +92,30 @@ public class TestConfig {
     }
 
     @Bean
-    public WordService wordService(WordsRepository wordsRepository,
-                                   IntervalsRepository intervalsRepository,
+    public WordService wordService(WordRepository wordRepository,
+                                   IntervalRepository intervalRepository,
                                    Clock clock,
                                    ConfigData configData) {
-        return new WordService(wordsRepository, intervalsRepository, clock, configData);
+        return new WordService(wordRepository, intervalRepository, clock, configData);
     }
 
     @Bean
     public ExpressionService expressionService(ExpressionRepository expressionRepository,
-                                               IntervalsRepository intervalsRepository,
+                                               IntervalRepository intervalRepository,
                                                Clock clock,
                                                ConfigData configData) {
-        return new ExpressionService(expressionRepository, intervalsRepository, clock, configData);
+        return new ExpressionService(expressionRepository, intervalRepository, clock, configData);
     }
 
     @Bean
     public AuthService authService(UserRepository userRepository,
-                                   IntervalsRepository intervalsRepository,
+                                   IntervalRepository intervalRepository,
                                    JwsService jwsService,
                                    EmailService emailService,
                                    ConfigData configData,
                                    ValidatorUtil validator) {
         return new AuthService(userRepository,
-                intervalsRepository,
+                intervalRepository,
                 jwsService,
                 emailService,
                 configData,
@@ -135,6 +130,16 @@ public class TestConfig {
     @Bean
     public EmailService emailService(ConfigData configData) {
         return new EmailService(configData);
+    }
+
+    @Bean
+    public IntervalService intervalService(IntervalRepository intervalRepository) {
+        return new IntervalService(intervalRepository);
+    }
+
+    @Bean
+    public StatisticService statisticService(StatisticRepository statisticRepository, Clock clock) {
+        return new StatisticService(statisticRepository, clock);
     }
 
     @Bean
