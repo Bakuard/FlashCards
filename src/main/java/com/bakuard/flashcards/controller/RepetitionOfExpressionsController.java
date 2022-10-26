@@ -5,8 +5,11 @@ import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.common.RepetitionResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.expression.*;
+import com.bakuard.flashcards.dto.word.WordMarkForRepetitionRequest;
+import com.bakuard.flashcards.dto.word.WordResponse;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.StatisticService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -106,7 +109,7 @@ public class RepetitionOfExpressionsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -181,7 +184,7 @@ public class RepetitionOfExpressionsController {
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class))),
                     @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
                             content = @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = ExceptionResponse.class)))
             }
@@ -202,6 +205,72 @@ public class RepetitionOfExpressionsController {
                 mapper.toExpressionResponse(repetitionResult.payload())
         );
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = """
+            Сбрасывает интервал повторения с английского языка для указанного выражения на наименьший
+             и устанавливает в качестве даты повторения текущую дату. Этот запрос удобен в тех случаях,
+             когда пользователь обнаружил, что забыл выражение, и хочет немедленно отметить его для скорейшего
+             повторения, но ближайшая дата повторения этого выражения не совпадает с текущей.
+            """,
+            responses = {
+                    @ApiResponse(responseCode = "200"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "401",
+                            description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class)))
+            }
+    )
+    @PutMapping("/english/markForRepetition")
+    public ResponseEntity<ExpressionResponse> markForRepetitionFromEnglish(ExpressionMarkForRepetitionRequest dto) {
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} mark expression {} of user {} for repetition from english.",
+                userId, dto.getExpressionId(), dto.getUserId());
+
+        Expression expression = expressionService.markForRepetitionFromEnglish(dto.getUserId(), dto.getExpressionId());
+
+        return ResponseEntity.ok(mapper.toExpressionResponse(expression));
+    }
+
+    @Operation(summary = """
+            Сбрасывает интервал повторения с родного языка пользователя для указанного выражения на наименьший
+             и устанавливает в качестве даты повторения текущую дату. Этот запрос удобен в тех случаях,
+             когда пользователь обнаружил, что забыл выражение, и хочет немедленно отметить его для скорейшего
+             повторения, но ближайшая дата повторения этого выражения не совпадает с текущей.
+            """,
+            responses = {
+                    @ApiResponse(responseCode = "200"),
+                    @ApiResponse(responseCode = "400",
+                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "401",
+                            description = "Если передан некорректный токен или токен не указан",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "404",
+                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ExceptionResponse.class)))
+            }
+    )
+    @PutMapping("/native/markForRepetition")
+    public ResponseEntity<ExpressionResponse> markForRepetitionFromNative(ExpressionMarkForRepetitionRequest dto) {
+        UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} mark expression {} of user {} for repetition from native.",
+                userId, dto.getExpressionId(), dto.getUserId());
+
+        Expression expression = expressionService.markForRepetitionFromNative(dto.getUserId(), dto.getExpressionId());
+
+        return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
 }

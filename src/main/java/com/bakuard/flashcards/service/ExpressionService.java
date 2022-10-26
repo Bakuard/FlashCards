@@ -129,6 +129,20 @@ public class ExpressionService {
         return new RepetitionResult<>(expression, isRemember);
     }
 
+    public Expression markForRepetitionFromEnglish(UUID userId, UUID expressionId) {
+        Expression expression = tryFindById(userId, expressionId);
+        expression.markForRepetitionFromEnglish(LocalDate.now(clock), intervalRepository.findAll(userId).get(0));
+        save(expression);
+        return expression;
+    }
+
+    public Expression markForRepetitionFromNative(UUID userId, UUID expressionId) {
+        Expression expression = tryFindById(userId, expressionId);
+        expression.markForRepetitionFromNative(LocalDate.now(clock), intervalRepository.findAll(userId).get(0));
+        save(expression);
+        return expression;
+    }
+
     public boolean isHotRepeatFromEnglish(Expression expression) {
         List<Integer> intervals = intervalRepository.findAll(expression.getUserId());
         return expression.isHotRepeatFromEnglish(intervals.get(0));
