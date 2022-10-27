@@ -62,6 +62,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 antMatchers(
                         "/users/registration/firstStep",
                         "/users/restorePassword/firstStep",
+                        "/users/enter",
                         "/api",
                         "/apiStandardFormat/**",
                         "/swagger-ui/**"

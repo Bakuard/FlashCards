@@ -1,7 +1,6 @@
 package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.config.ConfigData;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -9,7 +8,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 import java.security.KeyPair;
-import java.security.PublicKey;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -86,9 +84,11 @@ public class JwsService {
     }
 
     private String parseKeyPairName(String jws) {
-        return tryCatch(() -> objectMapper.readTree(decodeJwsBody(jws)).
+        final String preparedJws = jws.startsWith("Bearer ") ? jws.substring(7) : jws;
+
+        return tryCatch(() -> objectMapper.readTree(decodeJwsBody(preparedJws))).
                 findPath("keyName").
-                textValue());
+                textValue();
     }
 
     private String decodeJwsBody(String jws) {

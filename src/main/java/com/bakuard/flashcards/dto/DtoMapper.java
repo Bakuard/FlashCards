@@ -1,6 +1,7 @@
 package com.bakuard.flashcards.dto;
 
 import com.bakuard.flashcards.config.ConfigData;
+import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.common.*;
 import com.bakuard.flashcards.dto.credential.*;
 import com.bakuard.flashcards.dto.exceptions.ExceptionReasonResponse;
@@ -50,6 +51,7 @@ public class DtoMapper {
     private SortRules sortRules;
     private ValidatorUtil validator;
     private Clock clock;
+    private Messages messages;
 
     public DtoMapper(WordService wordService,
                      ExpressionService expressionService,
@@ -57,7 +59,8 @@ public class DtoMapper {
                      ConfigData configData,
                      SortRules sortRules,
                      ValidatorUtil validator,
-                     Clock clock) {
+                     Clock clock,
+                     Messages messages) {
         this.wordService = wordService;
         this.authService = authService;
         this.expressionService = expressionService;
@@ -65,6 +68,7 @@ public class DtoMapper {
         this.sortRules = sortRules;
         this.validator = validator;
         this.clock = clock;
+        this.messages = messages;
     }
 
     public WordResponse toWordResponse(Word word) {
@@ -358,14 +362,21 @@ public class DtoMapper {
 
     public ExceptionResponse toExceptionResponse(HttpStatus httpStatus, String... messageKeys) {
         ExceptionResponse response = new ExceptionResponse(httpStatus, clock);
-        Arrays.stream(messageKeys).forEach(message -> response.addReason(new ExceptionReasonResponse(message)));
+        Arrays.stream(messageKeys).
+                forEach(messageKey -> {
+                    String message = messages.getMessage(messageKey);
+                    response.addReason(new ExceptionReasonResponse(message));
+                });
         return response;
     }
 
     public ExceptionResponse toExceptionResponse(HttpStatus httpStatus, ConstraintViolationException exception) {
         ExceptionResponse response = new ExceptionResponse(httpStatus, clock);
         exception.getConstraintViolations().
-                forEach(constraint -> response.addReason(new ExceptionReasonResponse(constraint.getMessage())));
+                forEach(constraint -> {
+                    String message = messages.getMessage(constraint.getMessage());
+                    response.addReason(new ExceptionReasonResponse(message));
+                });
         return response;
     }
 
