@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Objects;
 
-@Schema(description = "Данные запроса на добавление данных пользователя.")
+@Schema(description = "Данные добавляемого пользователя.")
 public class UserAddRequest {
 
     @Schema(description = """

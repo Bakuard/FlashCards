@@ -61,7 +61,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 authorizeRequests().
                 antMatchers(
                         "/users/registration/firstStep",
-                        "/users/restorePassword/firstStep"
+                        "/users/restorePassword/firstStep",
+                        "/api",
+                        "/apiStandardFormat/**",
+                        "/swagger-ui/**"
                 ).permitAll().
                 anyRequest().authenticated().
                 and().

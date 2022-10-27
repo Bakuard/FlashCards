@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,23 +56,22 @@ public class RepetitionOfExpressionsController {
     @Operation(summary = """
             Возвращает часть выборки устойчевых выражений доступных для повторения в текущую дату.
              Используется для повторения слов с английского на родной язык пользователя.
-            """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти пользователя с указанным идентификатором.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя с указанным идентификатором.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @GetMapping("/english")
     public ResponseEntity<Page<ExpressionForRepetitionFromEnglishResponse>> findAllFromEnglishBy(
             @RequestParam
@@ -97,23 +97,22 @@ public class RepetitionOfExpressionsController {
     @Operation(summary = """
             Отмечает - помнит ли пользователь устойчевое выражение или нет. Используется при
              повторении слов с английского на родной язык пользователя.
-            """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @PutMapping("/english")
     public ResponseEntity<ExpressionResponse> repeatFromEnglish(
             @RequestBody ExpressionRepeatFromEnglishRequest dto) {
@@ -130,23 +129,22 @@ public class RepetitionOfExpressionsController {
     @Operation(summary = """
             Возвращает часть выборки выражений доступных для повторения в текущую дату. Используется для
              повторения выражений с родного языка пользователя на английский.
-            """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти пользователя с указанным идентификатором.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя с указанным идентификатором.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @GetMapping("/native")
     public ResponseEntity<Page<ExpressionForRepetitionFromNativeResponse>> findAllFromNativeBy(
             @RequestParam
@@ -172,23 +170,22 @@ public class RepetitionOfExpressionsController {
     @Operation(summary = """
             Отмечает - помнит ли пользователь выражение или нет. Используется при повторении выражений
              с родного языка пользователя на английский.
-            """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @PutMapping("/native")
     public ResponseEntity<RepetitionResponse<ExpressionResponse>> repeatFromNative(
             @RequestBody ExpressionRepeatFromNativeRequest dto) {
@@ -212,23 +209,22 @@ public class RepetitionOfExpressionsController {
              и устанавливает в качестве даты повторения текущую дату. Этот запрос удобен в тех случаях,
              когда пользователь обнаружил, что забыл выражение, и хочет немедленно отметить его для скорейшего
              повторения, но ближайшая дата повторения этого выражения не совпадает с текущей.
-            """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @PutMapping("/english/markForRepetition")
     public ResponseEntity<ExpressionResponse> markForRepetitionFromEnglish(ExpressionMarkForRepetitionRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
@@ -245,23 +241,22 @@ public class RepetitionOfExpressionsController {
              и устанавливает в качестве даты повторения текущую дату. Этот запрос удобен в тех случаях,
              когда пользователь обнаружил, что забыл выражение, и хочет немедленно отметить его для скорейшего
              повторения, но ближайшая дата повторения этого выражения не совпадает с текущей.
-            """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @PutMapping("/native/markForRepetition")
     public ResponseEntity<ExpressionResponse> markForRepetitionFromNative(ExpressionMarkForRepetitionRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
