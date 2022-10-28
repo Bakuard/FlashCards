@@ -23,7 +23,7 @@ public interface WordRepository extends PagingAndSortingRepository<Word, UUID> {
             select * from words
                 where user_id = :userId and distance(:value, value, :maxDistance) != -1;
             """)
-    public List<Word> findByValue(UUID userId, String value, int maxDistance, int limit, int offset);
+    public List<Word> findByValue(UUID userId, String value, int maxDistance, long limit, long offset);
 
     @Query("""
             select * from words
@@ -34,7 +34,7 @@ public interface WordRepository extends PagingAndSortingRepository<Word, UUID> {
                 order by words.value
                 limit :limit offset :offset;
             """)
-    public List<Word> findByTranslate(UUID userId, String translate, int limit, int offset);
+    public List<Word> findByTranslate(UUID userId, String translate, long limit, long offset);
 
     @Modifying
     @Query("delete from words where user_id = :userId and word_id = :wordId;")
@@ -77,6 +77,17 @@ public interface WordRepository extends PagingAndSortingRepository<Word, UUID> {
             """)
     public long countForTranslate(UUID userId, String translate);
 
+    @Query("""
+            select COALESCE(min(row_number) - 1, -1) as result
+                from (
+                    select words.value as word_value, row_number() over (order by value) as row_number
+                        from words
+                        where words.user_id = :userId
+                ) as words_with_row_number
+                where lower(left(word_value, 1)) = lower(:firstCharacter);
+            """)
+    public long getWordIndexByFirstCharacter(UUID userId, String firstCharacter);
+
     public Page<Word> findByUserId(UUID userId, Pageable pageable);
 
     @Query("""
@@ -84,13 +95,13 @@ public interface WordRepository extends PagingAndSortingRepository<Word, UUID> {
              where user_id = :userId and (last_date_of_repeat_from_english + repeat_interval_from_english) <= :date
              order by value limit :limit offset :offset;
             """)
-    public List<Word> findAllForRepeatFromEnglish(UUID userId, LocalDate date, int limit, int offset);
+    public List<Word> findAllForRepeatFromEnglish(UUID userId, LocalDate date, long limit, long offset);
 
     @Query("""
             select * from words
              where user_id = :userId and (last_date_of_repeat_from_native + repeat_interval_from_native) <= :date
              order by value limit :limit offset :offset;
             """)
-    public List<Word> findAllForRepeatFromNative(UUID userId, LocalDate date, int limit, int offset);
+    public List<Word> findAllForRepeatFromNative(UUID userId, LocalDate date, long limit, long offset);
 
 }

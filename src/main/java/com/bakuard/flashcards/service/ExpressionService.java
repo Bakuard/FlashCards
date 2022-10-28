@@ -66,7 +66,7 @@ public class ExpressionService {
         final int distance = maxDistance;
 
         return PageableExecutionUtils.getPage(
-                expressionRepository.findByValue(userId, value, maxDistance, pageable.getPageSize(), pageable.getPageNumber()),
+                expressionRepository.findByValue(userId, value, maxDistance, pageable.getPageSize(), pageable.getOffset()),
                 pageable,
                 () -> expressionRepository.countForValue(userId, value, distance)
         );
@@ -74,7 +74,7 @@ public class ExpressionService {
 
     public Page<Expression> findByTranslate(UUID userId, String translate, Pageable pageable) {
         return PageableExecutionUtils.getPage(
-                expressionRepository.findByTranslate(userId, translate, pageable.getPageSize(), pageable.getPageNumber()),
+                expressionRepository.findByTranslate(userId, translate, pageable.getPageSize(), pageable.getOffset()),
                 pageable,
                 () -> expressionRepository.countForTranslate(userId, translate)
         );
@@ -106,7 +106,7 @@ public class ExpressionService {
         LocalDate date = LocalDate.now(clock);
 
         return PageableExecutionUtils.getPage(
-                expressionRepository.findAllForRepeatFromEnglish(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
+                expressionRepository.findAllForRepeatFromEnglish(userId, date, pageable.getPageSize(), pageable.getOffset()),
                 pageable,
                 () -> expressionRepository.countForRepeatFromEnglish(userId, date)
         );
@@ -116,7 +116,7 @@ public class ExpressionService {
         LocalDate date = LocalDate.now(clock);
 
         return PageableExecutionUtils.getPage(
-                expressionRepository.findAllForRepeatFromNative(userId, date, pageable.getPageSize(), pageable.getPageNumber()),
+                expressionRepository.findAllForRepeatFromNative(userId, date, pageable.getPageSize(), pageable.getOffset()),
                 pageable,
                 () -> expressionRepository.countForRepeatFromNative(userId, date)
         );

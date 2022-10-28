@@ -310,12 +310,17 @@ public class DictionaryOfWordsController {
             UUID userId,
             @RequestParam
             @Parameter(description = "Первый символ значения искомых слов на английском", required = true)
-            char wordFirstCharacter,
+            String wordFirstCharacter,
             @RequestParam(value = "size", required = false)
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
                     schema = @Schema(defaultValue = "20"))
             int size) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get words of user {} by wordFirstCharacter '{}', size {}",
+                jwsUserId, userId, wordFirstCharacter, size);
+
+        Page<Word> words = wordService.jumpToCharacter(userId, wordFirstCharacter, size);
+        return ResponseEntity.ok(mapper.toWordsForDictionaryListResponse(words));
     }
 
     @Operation(summary = "Удаляет слово из словаря пользователя пользователя")
