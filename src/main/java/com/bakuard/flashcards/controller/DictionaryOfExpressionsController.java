@@ -274,7 +274,13 @@ public class DictionaryOfExpressionsController {
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
                     schema = @Schema(defaultValue = "20"))
             int size) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get expressions of user {} by translate '{}', page {}, size {}",
+                jwsUserId, userId, translate, page, size);
+
+        Pageable pageable = mapper.toPageable(page, size);
+        Page<Expression> expressions = expressionService.findByTranslate(userId, translate, pageable);
+        return ResponseEntity.ok(mapper.toExpressionsForDictionaryListResponse(expressions));
     }
 
     @Operation(summary = "Удаляет устойчевое выражение из словаря пользователя")

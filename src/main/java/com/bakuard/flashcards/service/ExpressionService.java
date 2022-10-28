@@ -72,6 +72,14 @@ public class ExpressionService {
         );
     }
 
+    public Page<Expression> findByTranslate(UUID userId, String translate, Pageable pageable) {
+        return PageableExecutionUtils.getPage(
+                expressionRepository.findByTranslate(userId, translate, pageable.getPageSize(), pageable.getPageNumber()),
+                pageable,
+                () -> expressionRepository.countForTranslate(userId, translate)
+        );
+    }
+
     public Expression tryFindById(UUID userId, UUID expressionId) {
         return findById(userId, expressionId).
                 orElseThrow(

@@ -872,9 +872,9 @@ class WordRepositoryTest {
             wordRepository.save(word(user.getId(), "wordA", "noteA", 10));
             wordRepository.save(word(user.getId(), "wordB", "noteB", 10));
             wordRepository.save(word(user.getId(), "wordC", "noteC", 10));
-            wordRepository.save(wordD);
-            wordRepository.save(wordE);
             wordRepository.save(wordF);
+            wordRepository.save(wordE);
+            wordRepository.save(wordD);
         });
 
         List<Word> actual = wordRepository.findByTranslate(user.getId(), "translateX", 10, 0);
