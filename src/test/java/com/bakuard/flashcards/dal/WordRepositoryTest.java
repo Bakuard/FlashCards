@@ -882,6 +882,91 @@ class WordRepositoryTest {
         Assertions.assertThat(actual).containsExactly(wordD, wordE, wordF);
     }
 
+    @Test
+    @DisplayName("""
+            getWordIndexByFirstCharacter(userId, firstCharacter):
+             user with userId hasn't any words
+             => return -1;
+            """)
+    public void getWordIndexByFirstCharacter1() {
+        User user = commit(() -> userRepository.save(user(1)));
+
+        long actual = wordRepository.getWordIndexByFirstCharacter(user.getId(), "A");
+
+        Assertions.assertThat(actual).isEqualTo(-1);
+    }
+
+    @Test
+    @DisplayName("""
+            getWordIndexByFirstCharacter(userId, firstCharacter):
+             user with userId has some words,
+             user hasn't any words with first character = firstCharacter
+             return -1
+            """)
+    public void getWordIndexByFirstCharacter2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> {
+            wordRepository.save(word(user.getId(), "B word", null, 1));
+            wordRepository.save(word(user.getId(), "b word2", null, 1));
+            wordRepository.save(word(user.getId(), "C word", null, 1));
+            wordRepository.save(word(user.getId(), "c word2", null, 1));
+            wordRepository.save(word(user.getId(), "F word", null, 1));
+            wordRepository.save(word(user.getId(), "J word", null, 1));
+            wordRepository.save(word(user.getId(), "k word", null, 1));
+            wordRepository.save(word(user.getId(), "Z word", null, 1));
+        });
+
+        long actual = wordRepository.getWordIndexByFirstCharacter(user.getId(), "A");
+
+        Assertions.assertThat(actual).isEqualTo(-1);
+    }
+
+    @Test
+    @DisplayName("""
+            getWordIndexByFirstCharacter(userId, firstCharacter):
+             user with userId has some words,
+             user has words with first character = firstCharacter
+             => return index first word with first character = firstCharacter
+            """)
+    public void getWordIndexByFirstCharacter3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> {
+            wordRepository.save(word(user.getId(), "A word", null, 1));
+            wordRepository.save(word(user.getId(), "B word", null, 1));
+            wordRepository.save(word(user.getId(), "C word", null, 1));
+            wordRepository.save(word(user.getId(), "D word", null, 1));
+            wordRepository.save(word(user.getId(), "E word", null, 1));
+            wordRepository.save(word(user.getId(), "F word", null, 1));
+            wordRepository.save(word(user.getId(), "G word", null, 1));
+            wordRepository.save(word(user.getId(), "H word", null, 1));
+            wordRepository.save(word(user.getId(), "I word", null, 1));
+            wordRepository.save(word(user.getId(), "J word", null, 1));
+            wordRepository.save(word(user.getId(), "K word", null, 1));
+            wordRepository.save(word(user.getId(), "L word", null, 1));
+            wordRepository.save(word(user.getId(), "M word", null, 1));
+            wordRepository.save(word(user.getId(), "m word2", null, 1));
+            wordRepository.save(word(user.getId(), "M word3", null, 1));
+            wordRepository.save(word(user.getId(), "m word4", null, 1));
+            wordRepository.save(word(user.getId(), "N word", null, 1));
+            wordRepository.save(word(user.getId(), "O word", null, 1));
+            wordRepository.save(word(user.getId(), "P word", null, 1));
+            wordRepository.save(word(user.getId(), "Q word", null, 1));
+            wordRepository.save(word(user.getId(), "R word", null, 1));
+            wordRepository.save(word(user.getId(), "S word", null, 1));
+            wordRepository.save(word(user.getId(), "T word", null, 1));
+            wordRepository.save(word(user.getId(), "U word", null, 1));
+            wordRepository.save(word(user.getId(), "V word", null, 1));
+            wordRepository.save(word(user.getId(), "W word", null, 1));
+            wordRepository.save(word(user.getId(), "X word", null, 1));
+            wordRepository.save(word(user.getId(), "Y word", null, 1));
+            wordRepository.save(word(user.getId(), "Z word", null, 1));
+        });
+
+        long actual = wordRepository.getWordIndexByFirstCharacter(user.getId(), "m");
+
+        Assertions.assertThat(actual).isEqualTo(12);
+    }
+
 
     private UUID toUUID(int number) {
         return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));

@@ -282,6 +282,47 @@ public class DictionaryOfWordsController {
         return ResponseEntity.ok(mapper.toWordsForDictionaryListResponse(words));
     }
 
+    @Operation(summary = """
+            Возвращает часть выборки слов из словаря пользователя. Номер страницы используемый при пагинации
+             автоматчиески подбирается таким образом, чтобы первое слово из всех слов пользователя, которое
+             начинается на указанную букву, было на этой странице. Используется для быстрого перехода к букве
+             в словаре.
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если пользователя с указанным id не существует.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @GetMapping("/firstCharacter")
+    public ResponseEntity<Page<WordForDictionaryListResponse>> jumpToCharacter(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из слов которого делается выборка.", required = true)
+            UUID userId,
+            @RequestParam
+            @Parameter(description = "Первый символ значения искомых слов на английском", required = true)
+            String wordFirstCharacter,
+            @RequestParam(value = "size", required = false)
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
+            int size) {
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get words of user {} by wordFirstCharacter '{}', size {}",
+                jwsUserId, userId, wordFirstCharacter, size);
+
+        Page<Word> words = wordService.jumpToCharacter(userId, wordFirstCharacter, size);
+        return ResponseEntity.ok(mapper.toWordsForDictionaryListResponse(words));
+    }
+
     @Operation(summary = "Удаляет слово из словаря пользователя пользователя")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200"),

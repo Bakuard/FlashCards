@@ -7,6 +7,7 @@ import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.validation.UnknownEntityException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +67,7 @@ public class WordService {
         final int distance = maxDistance;
 
         return PageableExecutionUtils.getPage(
-                wordRepository.findByValue(userId, value, maxDistance, pageable.getPageSize(), pageable.getPageNumber()),
+                wordRepository.findByValue(userId, value, maxDistance, pageable.getPageSize(), pageable.getOffset()),
                 pageable,
                 () -> wordRepository.countForValue(userId, value, distance)
         );
@@ -74,10 +75,27 @@ public class WordService {
 
     public Page<Word> findByTranslate(UUID userId, String translate, Pageable pageable) {
         return PageableExecutionUtils.getPage(
-                wordRepository.findByTranslate(userId, translate, pageable.getPageSize(), pageable.getPageNumber()),
+                wordRepository.findByTranslate(userId, translate, pageable.getPageSize(), pageable.getOffset()),
                 pageable,
                 () -> wordRepository.countForTranslate(userId, translate)
         );
+    }
+
+    public Page<Word> jumpToCharacter(UUID userId, String wordFirstCharacter, int size) {
+        long count = wordRepository.count(userId);
+        if(count > 0) {
+            size = size == 0 ? configData.defaultPageSize() :
+                    Math.max(Math.min(size, configData.maxPageSize()), configData.minPageSize());
+            long pageNumber = wordRepository.getWordIndexByFirstCharacter(userId, wordFirstCharacter) / count;
+            Pageable pageable = PageRequest.of((int) pageNumber, size);
+            return PageableExecutionUtils.getPage(
+                    wordRepository.findByTranslate(userId, wordFirstCharacter, pageable.getPageSize(), pageable.getOffset()),
+                    pageable,
+                    () -> count
+            );
+        } else {
+            return Page.empty();
+        }
     }
 
     public Word tryFindById(UUID userId, UUID wordId) {

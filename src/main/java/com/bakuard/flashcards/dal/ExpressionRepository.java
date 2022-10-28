@@ -23,7 +23,7 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
             select * from expressions
                 where user_id = :userId and distance(:value, value, :maxDistance) != -1;
             """)
-    public List<Expression> findByValue(UUID userId, String value, int maxDistance, int limit, int offset);
+    public List<Expression> findByValue(UUID userId, String value, int maxDistance, long limit, long offset);
 
     @Query("""
             select * from expressions
@@ -34,7 +34,7 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
                 order by expressions.value
                 limit :limit offset :offset;
             """)
-    public List<Expression> findByTranslate(UUID userId, String translate, int limit, int offset);
+    public List<Expression> findByTranslate(UUID userId, String translate, long limit, long offset);
 
     @Modifying
     @Query("delete from expressions where user_id = :userId and expression_id = :expressionId;")
@@ -83,13 +83,13 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
              where user_id = :userId and (last_date_of_repeat_from_english + repeat_interval_from_english) <= :date
              order by value limit :limit offset :offset;
             """)
-    public List<Expression> findAllForRepeatFromEnglish(UUID userId, LocalDate date, int limit, int offset);
+    public List<Expression> findAllForRepeatFromEnglish(UUID userId, LocalDate date, long limit, long offset);
 
     @Query("""
             select * from expressions
              where user_id = :userId and (last_date_of_repeat_from_native + repeat_interval_from_native) <= :date
              order by value limit :limit offset :offset;
             """)
-    public List<Expression> findAllForRepeatFromNative(UUID userId, LocalDate date, int limit, int offset);
+    public List<Expression> findAllForRepeatFromNative(UUID userId, LocalDate date, long limit, long offset);
 
 }
