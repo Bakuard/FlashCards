@@ -273,7 +273,13 @@ public class DictionaryOfWordsController {
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
                     schema = @Schema(defaultValue = "20"))
             int size) {
-        return null;
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get words of user {} by translate '{}', page {}, size {}",
+                jwsUserId, userId, translate, page, size);
+
+        Pageable pageable = mapper.toPageable(page, size);
+        Page<Word> words = wordService.findByTranslate(userId, translate, pageable);
+        return ResponseEntity.ok(mapper.toWordsForDictionaryListResponse(words));
     }
 
     @Operation(summary = "Удаляет слово из словаря пользователя пользователя")

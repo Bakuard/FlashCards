@@ -72,6 +72,14 @@ public class WordService {
         );
     }
 
+    public Page<Word> findByTranslate(UUID userId, String translate, Pageable pageable) {
+        return PageableExecutionUtils.getPage(
+                wordRepository.findByTranslate(userId, translate, pageable.getPageSize(), pageable.getPageNumber()),
+                pageable,
+                () -> wordRepository.countForTranslate(userId, translate)
+        );
+    }
+
     public Word tryFindById(UUID userId, UUID wordId) {
         return findById(userId, wordId).
                 orElseThrow(

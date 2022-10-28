@@ -6,6 +6,9 @@ import com.bakuard.flashcards.model.RepeatDataFromEnglish;
 import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.model.expression.ExpressionExample;
+import com.bakuard.flashcards.model.expression.ExpressionInterpretation;
+import com.bakuard.flashcards.model.expression.ExpressionTranslation;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -127,9 +130,9 @@ class ExpressionRepositoryTest {
              => return 0
             """)
     public void countForValue1() {
-        commit(() -> userRepository.save(user(1)));
+        User user = commit(() -> userRepository.save(user(1)));
 
-        long actual = expressionRepository.countForValue(toUUID(1), "value", 2);
+        long actual = expressionRepository.countForValue(user.getId(), "value", 2);
 
         Assertions.assertThat(actual).isZero();
     }
@@ -369,28 +372,28 @@ class ExpressionRepositoryTest {
              => return correct result
             """)
     public void countForRepeatFromEnglish1() {
-        User user1 = commit(() -> userRepository.save(user(1)));
+        User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value1", "note1", 1)
+                    expression(user.getId(), "value1", "note1", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value2", "note2", 3)
+                    expression(user.getId(), "value2", "note2", 3)
             );
             clock.setDate(2022, 7, 10);
             expressionRepository.save(
-                    expression(user1.getId(), "value3", "note3", 1)
+                    expression(user.getId(), "value3", "note3", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value4", "note4", 10)
+                    expression(user.getId(), "value4", "note4", 10)
             );
         });
 
         long actual = expressionRepository.countForRepeatFromEnglish(
-                user1.getId(), LocalDate.of(2022, 7, 10)
+                user.getId(), LocalDate.of(2022, 7, 10)
         );
 
         Assertions.assertThat(actual).isEqualTo(2);
@@ -403,10 +406,10 @@ class ExpressionRepositoryTest {
              => return 0
             """)
     public void countForRepeatFromEnglish2() {
-        User user1 = commit(() -> userRepository.save(user(1)));
+        User user = commit(() -> userRepository.save(user(1)));
 
         long actual = expressionRepository.countForRepeatFromEnglish(
-                user1.getId(), LocalDate.of(2022, 7, 10)
+                user.getId(), LocalDate.of(2022, 7, 10)
         );
 
         Assertions.assertThat(actual).isZero();
@@ -419,28 +422,28 @@ class ExpressionRepositoryTest {
              => return 0
             """)
     public void countForRepeatFromEnglish3() {
-        User user1 = commit(() -> userRepository.save(user(1)));
+        User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value1", "note1", 1)
+                    expression(user.getId(), "value1", "note1", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value2", "note2", 3)
+                    expression(user.getId(), "value2", "note2", 3)
             );
             clock.setDate(2022, 7, 10);
             expressionRepository.save(
-                    expression(user1.getId(), "value3", "note3", 1)
+                    expression(user.getId(), "value3", "note3", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value4", "note4", 10)
+                    expression(user.getId(), "value4", "note4", 10)
             );
         });
 
         long actual = expressionRepository.countForRepeatFromEnglish(
-                user1.getId(), LocalDate.of(2022, 7, 7)
+                user.getId(), LocalDate.of(2022, 7, 7)
         );
 
         Assertions.assertThat(actual).isZero();
@@ -453,28 +456,28 @@ class ExpressionRepositoryTest {
              => return correct result
             """)
     public void countForRepeatFromNative1() {
-        User user1 = commit(() -> userRepository.save(user(1)));
+        User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value1", "note1", 1)
+                    expression(user.getId(), "value1", "note1", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value2", "note2", 3)
+                    expression(user.getId(), "value2", "note2", 3)
             );
             clock.setDate(2022, 7, 10);
             expressionRepository.save(
-                    expression(user1.getId(), "value3", "note3", 1)
+                    expression(user.getId(), "value3", "note3", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value4", "note4", 10)
+                    expression(user.getId(), "value4", "note4", 10)
             );
         });
 
         long actual = expressionRepository.countForRepeatFromNative(
-                user1.getId(), LocalDate.of(2022, 7, 10)
+                user.getId(), LocalDate.of(2022, 7, 10)
         );
 
         Assertions.assertThat(actual).isEqualTo(2);
@@ -487,10 +490,10 @@ class ExpressionRepositoryTest {
              => return 0
             """)
     public void countForRepeatFromNative2() {
-        User user1 = commit(() -> userRepository.save(user(1)));
+        User user = commit(() -> userRepository.save(user(1)));
 
         long actual = expressionRepository.countForRepeatFromNative(
-                user1.getId(), LocalDate.of(2022, 7, 10)
+                user.getId(), LocalDate.of(2022, 7, 10)
         );
 
         Assertions.assertThat(actual).isZero();
@@ -503,28 +506,28 @@ class ExpressionRepositoryTest {
              => return 0
             """)
     public void countForRepeatFromNative3() {
-        User user1 = commit(() -> userRepository.save(user(1)));
+        User user = commit(() -> userRepository.save(user(1)));
         commit(() -> {
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value1", "note1", 1)
+                    expression(user.getId(), "value1", "note1", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value2", "note2", 3)
+                    expression(user.getId(), "value2", "note2", 3)
             );
             clock.setDate(2022, 7, 10);
             expressionRepository.save(
-                    expression(user1.getId(), "value3", "note3", 1)
+                    expression(user.getId(), "value3", "note3", 1)
             );
             clock.setDate(2022, 7, 7);
             expressionRepository.save(
-                    expression(user1.getId(), "value4", "note4", 10)
+                    expression(user.getId(), "value4", "note4", 10)
             );
         });
 
         long actual = expressionRepository.countForRepeatFromNative(
-                user1.getId(), LocalDate.of(2022, 7, 7)
+                user.getId(), LocalDate.of(2022, 7, 7)
         );
 
         Assertions.assertThat(actual).isZero();
@@ -537,9 +540,9 @@ class ExpressionRepositoryTest {
              => return empty page
             """)
     public void findByUserId1() {
-        User user1 = commit(() -> userRepository.save(user(1)));
+        User user = commit(() -> userRepository.save(user(1)));
 
-        Page<Expression> actual = expressionRepository.findByUserId(user1.getId(), PageRequest.of(0, 20));
+        Page<Expression> actual = expressionRepository.findByUserId(user.getId(), PageRequest.of(0, 20));
 
         Assertions.assertThat(actual).isEmpty();
     }
@@ -753,6 +756,15 @@ class ExpressionRepositoryTest {
                 setNote(note).
                 setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
                 setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
+                addTranslation(new ExpressionTranslation("translateA", "noteA")).
+                addTranslation(new ExpressionTranslation("translateB", "noteB")).
+                addTranslation(new ExpressionTranslation("translateC", "noteC")).
+                addInterpretation(new ExpressionInterpretation("interpretationA")).
+                addInterpretation(new ExpressionInterpretation("interpretationB")).
+                addInterpretation(new ExpressionInterpretation("interpretationC")).
+                addExample(new ExpressionExample("exampleA", "exampleTranslate", "noteA")).
+                addExample(new ExpressionExample("exampleB", "exampleTranslate", "noteA")).
+                addExample(new ExpressionExample("exampleC", "exampleTranslate", "noteA")).
                 build();
     }
 
