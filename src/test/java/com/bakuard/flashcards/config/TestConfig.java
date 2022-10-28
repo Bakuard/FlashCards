@@ -168,8 +168,16 @@ public class TestConfig {
                                ConfigData configData,
                                SortRules sortRules,
                                ValidatorUtil validator,
-                               Clock clock) {
-        return new DtoMapper(wordService, expressionService, authService, configData, sortRules, validator, clock);
+                               Clock clock,
+                               Messages messages) {
+        return new DtoMapper(wordService,
+                expressionService,
+                authService,
+                configData,
+                sortRules,
+                validator,
+                clock,
+                messages);
     }
 
     @Bean

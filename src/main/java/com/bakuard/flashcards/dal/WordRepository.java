@@ -25,6 +25,17 @@ public interface WordRepository extends PagingAndSortingRepository<Word, UUID> {
             """)
     public List<Word> findByValue(UUID userId, String value, int maxDistance, int limit, int offset);
 
+    @Query("""
+            select * from words
+                inner join words_translations
+                    on words.word_id = words_translations.word_id
+                       and words.user_id = :userId
+                       and words_translations.value = :translate
+                order by words.value
+                limit :limit offset :offset;
+            """)
+    public List<Word> findByTranslate(UUID userId, String translate, int limit, int offset);
+
     @Modifying
     @Query("delete from words where user_id = :userId and word_id = :wordId;")
     public void deleteById(UUID userId, UUID wordId);
@@ -55,6 +66,16 @@ public interface WordRepository extends PagingAndSortingRepository<Word, UUID> {
             )
             """)
     public long countForValue(UUID userId, String value, int maxDistance);
+
+    @Query("""
+            select count(*)
+                from words
+                inner join words_translations
+                    on words_translations.word_id = words.word_id
+                       and words_translations.value = :translate
+                       and words.user_id = :userId;
+            """)
+    public long countForTranslate(UUID userId, String translate);
 
     public Page<Word> findByUserId(UUID userId, Pageable pageable);
 

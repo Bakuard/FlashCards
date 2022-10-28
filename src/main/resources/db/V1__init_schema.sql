@@ -112,7 +112,7 @@ CREATE TABLE expressions_examples (
     translate VARCHAR(512),
     note VARCHAR(128),
     index INT NOT NULL,
-    UNIQUE(origin, translate),
+    UNIQUE(expression_id, origin),
     FOREIGN KEY(expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE
 );
 

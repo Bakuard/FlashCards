@@ -25,6 +25,17 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
             """)
     public List<Expression> findByValue(UUID userId, String value, int maxDistance, int limit, int offset);
 
+    @Query("""
+            select * from expressions
+                inner join expressions_translations
+                    on expressions.expression_id = expressions_translations.expression_id
+                       and expressions.user_id = :userId
+                       and expressions_translations.value = :translate
+                order by expressions.value
+                limit :limit offset :offset;
+            """)
+    public List<Expression> findByTranslate(UUID userId, String translate, int limit, int offset);
+
     @Modifying
     @Query("delete from expressions where user_id = :userId and expression_id = :expressionId;")
     public void deleteById(UUID userId, UUID expressionId);
@@ -55,6 +66,15 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
             )
             """)
     public long countForValue(UUID userId, String value, int maxDistance);
+
+    @Query("""
+            select count(*) from expressions
+                inner join expressions_translations
+                    on expressions.expression_id = expressions_translations.expression_id
+                       and expressions.user_id = :userId
+                       and expressions_translations.value = :translate;
+            """)
+    public long countForTranslate(UUID userId, String translate);
 
     public Page<Expression> findByUserId(UUID userId, Pageable pageable);
 

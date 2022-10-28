@@ -8,6 +8,7 @@ import com.bakuard.flashcards.dto.expression.ExpressionAddRequest;
 import com.bakuard.flashcards.dto.expression.ExpressionForDictionaryListResponse;
 import com.bakuard.flashcards.dto.expression.ExpressionResponse;
 import com.bakuard.flashcards.dto.expression.ExpressionUpdateRequest;
+import com.bakuard.flashcards.dto.word.WordForDictionaryListResponse;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
@@ -16,6 +17,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @Tag(name = "Словарь устойчевых выражений пользователя")
+@SecurityRequirement(name = "JWTScheme")
 @RestController
 @RequestMapping("/dictionary/expressions")
 public class DictionaryOfExpressionsController {
@@ -54,18 +58,18 @@ public class DictionaryOfExpressionsController {
         this.messages = messages;
     }
 
-    @Operation(summary = "Добавляет новое устойчевое выражение в словарь пользователя",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            })
+    @Operation(summary = "Добавляет новое устойчевое выражение в словарь пользователя")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @PostMapping
     public ResponseEntity<ExpressionResponse> add(@RequestBody ExpressionAddRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
@@ -76,23 +80,22 @@ public class DictionaryOfExpressionsController {
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
-    @Operation(summary = "Обновляет устойчевое выражение в словаре пользователя",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = "Обновляет устойчевое выражение в словаре пользователя")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @PutMapping
     public ResponseEntity<ExpressionResponse> update(@RequestBody ExpressionUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
@@ -103,23 +106,22 @@ public class DictionaryOfExpressionsController {
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
 
-    @Operation(summary = "Возвращает часть выборки устойчевых выражений из словаря пользователя",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти пользователя с указанным идентификатором.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = "Возвращает часть выборки устойчевых выражений из словаря пользователя")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя с указанным идентификатором.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @GetMapping
     public ResponseEntity<Page<ExpressionForDictionaryListResponse>> findAllBy(
             @RequestParam
@@ -158,23 +160,22 @@ public class DictionaryOfExpressionsController {
         return ResponseEntity.ok(result);
     }
 
-    @Operation(summary = "Возвращает устойчевое выражение из словаря пользователя по его идентификатору",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = "Возвращает устойчевое выражение из словаря пользователя по его идентификатору")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @GetMapping("/id")
     public ResponseEntity<ExpressionResponse> findById(
             @RequestParam
@@ -194,23 +195,22 @@ public class DictionaryOfExpressionsController {
             Возвращает устойчевое выражение и/или наиболее похожие по написанию к нему устойчевые выражения.
              Все выражения будут отсортирвоанны в порядке возрастания редакционного расстояние между искомым
              словом, а затем в лексеграфиечском порядке.
-            """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если пользователя с указанным id не существует.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если пользователя с указанным id не существует.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @GetMapping("/value")
     public ResponseEntity<Page<ExpressionForDictionaryListResponse>> findByValue(
             @RequestParam
@@ -241,23 +241,64 @@ public class DictionaryOfExpressionsController {
         return ResponseEntity.ok(mapper.toExpressionsForDictionaryListResponse(expressions));
     }
 
-    @Operation(summary = "Удаляет устойчевое выражение из словаря пользователя",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = """
+            Возвращает все выражения, один из переводов которых совпадает с указанным пользователем значением.
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если пользователя с указанным id не существует.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @GetMapping("/translate")
+    public ResponseEntity<Page<ExpressionForDictionaryListResponse>> findByTranslate(
+            @RequestParam
+            @Parameter(description = "Идентификатор пользователя, из выражений которого делается выборка.", required = true)
+            UUID userId,
+            @RequestParam
+            @Parameter(description = "Перевод выражения с английского на родной язык пользователя.", required = true)
+            String translate,
+            @RequestParam("page")
+            @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
+            int page,
+            @RequestParam(value = "size", required = false)
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
+            int size) {
+        UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
+        logger.info("user {} get expressions of user {} by translate '{}', page {}, size {}",
+                jwsUserId, userId, translate, page, size);
+
+        Pageable pageable = mapper.toPageable(page, size);
+        Page<Expression> expressions = expressionService.findByTranslate(userId, translate, pageable);
+        return ResponseEntity.ok(mapper.toExpressionsForDictionaryListResponse(expressions));
+    }
+
+    @Operation(summary = "Удаляет устойчевое выражение из словаря пользователя")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @DeleteMapping("/id")
     public ResponseEntity<String> delete(
             @RequestParam

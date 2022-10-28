@@ -14,6 +14,9 @@ import com.bakuard.flashcards.service.*;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
@@ -49,6 +52,7 @@ import java.time.Clock;
 @EnableTransactionManagement
 @EnableJdbcRepositories(basePackages = {"com.bakuard.flashcards.dal"})
 @ConfigurationPropertiesScan
+@SecurityScheme(name = "JWTScheme", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 public class SpringConfig implements WebMvcConfigurer {
 
         @Bean
@@ -173,8 +177,16 @@ public class SpringConfig implements WebMvcConfigurer {
                                    ConfigData configData,
                                    SortRules sortRules,
                                    ValidatorUtil validator,
-                                   Clock clock) {
-                return new DtoMapper(wordService, expressionService, authService, configData, sortRules, validator, clock);
+                                   Clock clock,
+                                   Messages messages) {
+                return new DtoMapper(wordService,
+                        expressionService,
+                        authService,
+                        configData,
+                        sortRules,
+                        validator,
+                        clock,
+                        messages);
         }
 
         @Bean

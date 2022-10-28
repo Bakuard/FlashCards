@@ -14,6 +14,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,15 +50,14 @@ public class AuthController {
         this.messages = messages;
     }
 
-    @Operation(summary = "Выполняет вход для указанного пользователя: возвращает jws если учетные данные верны.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "403",
-                            description = "Если в учетных данных допущена ошибка",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = "Выполняет вход для указанного пользователя: возвращает jws если учетные данные верны.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "403",
+                    description = "Если в учетных данных допущена ошибка",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @PostMapping("/enter")
     public ResponseEntity<JwsResponse> enter(@RequestBody UserEnterRequest dto) {
         logger.info("enter user with email '{}'", dto.getEmail());
@@ -67,24 +68,22 @@ public class AuthController {
         return ResponseEntity.ok(mapper.toJwsResponse(jws));
     }
 
-    @Operation(
-            summary = "Регистрация нового пользователя.",
+    @Operation(summary = "Регистрация нового пользователя.",
             description = """
                     Первый из двух шагов регистрации нового пользователя:
                      принимает учетные данные нового пользователя, проверяет их корректность и запрашивает
                      письмо с подтверждением на указанную почту.
-                    """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = """
+                    """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = """
                                     Если не удалось отправить письмо на почту, или нарушен хотя бы один из инвариантов
                                      тела запроса.
                                     """,
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @PostMapping("/registration/firstStep")
     public ResponseEntity<String> registerFirstStep(@RequestBody UserAddRequest dto) {
         logger.info("register new user with email '{}'. first step.", dto.getEmail());
@@ -96,15 +95,15 @@ public class AuthController {
 
     @Operation(
             summary = "Регистрация нового пользователя.",
-            description = "Завершающий шаг регистрации нового пользователя - проверка почты.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан не корректный токен завершения регистрации или токен не указан.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+            description = "Завершающий шаг регистрации нового пользователя - проверка почты.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан не корректный токен завершения регистрации или токен не указан.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @SecurityRequirement(name = "JWTScheme")
     @PostMapping("/registration/finalStep")
     public ResponseEntity<JwsResponse> registerFinalStep() {
         Credential credential = requestContext.getCurrentJwsBodyAs(Credential.class);
@@ -115,24 +114,22 @@ public class AuthController {
         return ResponseEntity.ok(mapper.toJwsResponse(jws));
     }
 
-    @Operation(
-            summary = "Востановление учетных данных пользователя.",
+    @Operation(summary = "Востановление учетных данных пользователя.",
             description = """
                     Первый из двух шагов востановления учетных данных пользователя:
                      принимает учетные данные и новый пароль пользователя, проверяет их корректность и запрашивает
                      письмо с подтверждением на указанную почту.
-                    """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = """
+                    """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = """
                                     Если не удалось отправить письмо на почту, или нарушен хотя бы один из инвариантов
                                      тела запроса.
                                     """,
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @PostMapping("/restorePassword/firstStep")
     public ResponseEntity<String> restorePasswordFirstStep(@RequestBody PasswordRestoreRequest dto) {
         logger.info("restore password for user with email '{}'. first step.", dto.getEmail());
@@ -142,17 +139,16 @@ public class AuthController {
         return ResponseEntity.ok(messages.getMessage("auth.restorePassword.firstStep"));
     }
 
-    @Operation(
-            summary = "Востановление учетных данных пользователя.",
-            description = "Завершающий шаг востановления учетных данных пользователя - проверка почты.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "403",
-                            description = "Если передан не корректный токен востановления учетных данных или токен не указан.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = "Востановление учетных данных пользователя.",
+            description = "Завершающий шаг востановления учетных данных пользователя - проверка почты.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "403",
+                    description = "Если передан не корректный токен востановления учетных данных или токен не указан.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @SecurityRequirement(name = "JWTScheme")
     @PostMapping("/restorePassword/finalStep")
     public ResponseEntity<JwsResponse> restorePasswordFinalStep() {
         Credential credential = requestContext.getCurrentJwsBodyAs(Credential.class);
@@ -163,23 +159,23 @@ public class AuthController {
         return ResponseEntity.ok(mapper.toJwsResponse(jws));
     }
 
-    @Operation(summary = "Изменяет учетные данные пользователя.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти пользователя по указанному идентификатору.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = "Изменяет учетные данные пользователя.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя по указанному идентификатору.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @SecurityRequirement(name = "JWTScheme")
     @PutMapping
     public ResponseEntity<UserResponse> update(@RequestBody UserUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
@@ -191,16 +187,15 @@ public class AuthController {
         return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 
-    @Operation(
-            summary = "Возвращает пользователя в соответствии с токеном доступа.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = "Возвращает пользователя в соответствии с токеном доступа.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @SecurityRequirement(name = "JWTScheme")
     @GetMapping("/jws")
     public ResponseEntity<UserResponse> getUserByJws() {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
@@ -211,20 +206,19 @@ public class AuthController {
         return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 
-    @Operation(
-            summary = "Возвращает пользователя по его идентификатору.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти пользователя с указанным идентификатором.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = "Возвращает пользователя по его идентификатору.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя с указанным идентификатором.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @SecurityRequirement(name = "JWTScheme")
     @GetMapping("/id")
     public ResponseEntity<UserResponse> getUserById(
             @RequestParam
@@ -238,19 +232,19 @@ public class AuthController {
         return ResponseEntity.ok(mapper.toUserResponse(user));
     }
 
-    @Operation(summary = "Возвращает часть учетных данных пользователей.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+    @Operation(summary = "Возвращает часть учетных данных пользователей.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @SecurityRequirement(name = "JWTScheme")
     @GetMapping
     public ResponseEntity<Page<UserResponse>> findAllBy(
             @RequestParam
@@ -277,29 +271,28 @@ public class AuthController {
         return ResponseEntity.ok(mapper.toUsersResponse(users));
     }
 
-    @Operation(
-            summary = "Безвозвратное удаление всех данных пользователя.",
+    @Operation(summary = "Безвозвратное удаление всех данных пользователя.",
             description = """
                     Первый из двух шагов безвозвратного удаления всех данных пользователя:
                      принимает идентификатор удаляемого пользвоателя и запрашивает
                      письмо с подтверждением на указанную почту.
-                    """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если не удалось отправить письмо на почту.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти пользователя с указанным идентификатором или почтой",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+                    """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если не удалось отправить письмо на почту.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя с указанным идентификатором или почтой",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @SecurityRequirement(name = "JWTScheme")
     @DeleteMapping("/deletion/firstStep")
     public ResponseEntity<String> deleteFirstStep(
             @RequestParam
@@ -316,20 +309,19 @@ public class AuthController {
         return ResponseEntity.ok(messages.getMessage("auth.deleteUser.firstStep"));
     }
 
-    @Operation(
-            summary = "Безвозвратное удаление всех данных пользователя.",
+    @Operation(summary = "Безвозвратное удаление всех данных пользователя.",
             description = """
                     Завершающий из двух шагов безвозвратного удаления всех данных пользователя:
                      безвозвратно удаляет все данные пользователя.
-                    """,
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен удаления учетных данных или токен не указан",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-            }
-    )
+                    """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен удаления учетных данных или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @SecurityRequirement(name = "JWTScheme")
     @DeleteMapping("/deletion/finalStep")
     public ResponseEntity<String> deleteFinalStep() {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
