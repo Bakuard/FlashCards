@@ -118,9 +118,13 @@ public class DictionaryOfWordsController {
             @ApiResponse(responseCode = "401",
                     description = "Если передан некорректный токен или токен не указан",
                     content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя по указанному id.",
+                    content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @PutMapping
+    @PutMapping("/supplement")
     public ResponseEntity<WordResponse> supplement(@RequestBody WordSupplementRequest dto) {
         return null;
     }

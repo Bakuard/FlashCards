@@ -4,11 +4,7 @@ import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
-import com.bakuard.flashcards.dto.expression.ExpressionAddRequest;
-import com.bakuard.flashcards.dto.expression.ExpressionForDictionaryListResponse;
-import com.bakuard.flashcards.dto.expression.ExpressionResponse;
-import com.bakuard.flashcards.dto.expression.ExpressionUpdateRequest;
-import com.bakuard.flashcards.dto.word.WordForDictionaryListResponse;
+import com.bakuard.flashcards.dto.expression.*;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
@@ -108,6 +104,29 @@ public class DictionaryOfExpressionsController {
         Expression expression = mapper.toExpression(dto);
         expression = expressionService.save(expression);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
+    }
+
+    @Operation(summary = """
+            Дополняет переданное выржание из внешних источников переводами, транскрипциями, толкованиями, примерами.
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя по указанному id.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @PutMapping("/supplement")
+    public ResponseEntity<ExpressionResponse> supplement(@RequestBody ExpressionSupplementRequest dto) {
+        return null;
     }
 
     @Operation(summary = "Возвращает часть выборки устойчевых выражений из словаря пользователя")
