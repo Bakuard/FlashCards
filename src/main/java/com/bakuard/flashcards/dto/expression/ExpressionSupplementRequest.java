@@ -1,8 +1,8 @@
 package com.bakuard.flashcards.dto.expression;
 
 import com.bakuard.flashcards.dto.common.ExampleSupplementRequest;
-import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
-import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.common.InterpretationRequest;
+import com.bakuard.flashcards.dto.common.TranslateRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -36,7 +36,7 @@ public class ExpressionSupplementRequest {
             2. Не должен содержать дубликатов <br/>
             Сам список может принимать значение null либо быть пустым.
             """)
-    private List<InterpretationRequestResponse> interpretations;
+    private List<InterpretationRequest> interpretations;
     @Schema(description = """
             Список переводов устойчевого выражения. <br/>
             Ограничения: <br/>
@@ -44,7 +44,7 @@ public class ExpressionSupplementRequest {
             2. Не должен содержать дубликатов <br/>
             Сам список может принимать значение null либо быть пустым.
             """)
-    private List<TranslateRequestResponse> translates;
+    private List<TranslateRequest> translates;
     @Schema(description = """
             Список примеров устойчевого выражения. <br/>
             Ограничения: <br/>
@@ -85,20 +85,20 @@ public class ExpressionSupplementRequest {
         return this;
     }
 
-    public List<InterpretationRequestResponse> getInterpretations() {
+    public List<InterpretationRequest> getInterpretations() {
         return interpretations;
     }
 
-    public ExpressionSupplementRequest setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public ExpressionSupplementRequest setInterpretations(List<InterpretationRequest> interpretations) {
         this.interpretations = interpretations;
         return this;
     }
 
-    public List<TranslateRequestResponse> getTranslates() {
+    public List<TranslateRequest> getTranslates() {
         return translates;
     }
 
-    public ExpressionSupplementRequest setTranslates(List<TranslateRequestResponse> translates) {
+    public ExpressionSupplementRequest setTranslates(List<TranslateRequest> translates) {
         this.translates = translates;
         return this;
     }

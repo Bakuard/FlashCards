@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 
 @Schema(description = "Один из переводов слова или устойчевого выражения.")
-public class TranslateRequestResponse {
+public class TranslateResponse {
 
     @Schema(description = """
             Значение перевода. <br/>
@@ -17,15 +17,21 @@ public class TranslateRequestResponse {
             Должно представлять собой не пустую строку или иметь значение null.
             """)
     private String note;
+    @Schema(description = """
+            Указывает - был ли добавлен данный перевод автоматически при дополнении слова или выражения.
+             Если это так - возвращает true.
+            """)
+    private boolean isNew;
 
-    public TranslateRequestResponse() {
+    public TranslateResponse() {
+
     }
 
     public String getValue() {
         return value;
     }
 
-    public TranslateRequestResponse setValue(String value) {
+    public TranslateResponse setValue(String value) {
         this.value = value;
         return this;
     }
@@ -34,8 +40,17 @@ public class TranslateRequestResponse {
         return note;
     }
 
-    public TranslateRequestResponse setNote(String note) {
+    public TranslateResponse setNote(String note) {
         this.note = note;
+        return this;
+    }
+
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public TranslateResponse setNew(boolean aNew) {
+        isNew = aNew;
         return this;
     }
 
@@ -43,20 +58,23 @@ public class TranslateRequestResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        TranslateRequestResponse that = (TranslateRequestResponse) o;
-        return Objects.equals(value, that.value) && Objects.equals(note, that.note);
+        TranslateResponse that = (TranslateResponse) o;
+        return isNew == that.isNew &&
+                Objects.equals(value, that.value) &&
+                Objects.equals(note, that.note);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note);
+        return Objects.hash(value, note, isNew);
     }
 
     @Override
     public String toString() {
-        return "TranslateRequestResponse{" +
+        return "TranslateResponse{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
+                ", isNew=" + isNew +
                 '}';
     }
 

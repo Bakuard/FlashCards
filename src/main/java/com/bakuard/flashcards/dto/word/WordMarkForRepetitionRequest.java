@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 import java.util.UUID;
 
-@Schema(description = "Данные слова которое необходимо повторить в ближайшее время.")
+@Schema(description = "Данные слова которое необходимо отметить для повторения в ближайшее время.")
 public class WordMarkForRepetitionRequest {
 
     @Schema(description = """

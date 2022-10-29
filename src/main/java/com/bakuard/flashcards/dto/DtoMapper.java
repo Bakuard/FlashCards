@@ -78,16 +78,16 @@ public class DtoMapper {
                 setValue(word.getValue()).
                 setNote(word.getNote()).
                 setTranscriptions(word.getTranscriptions().stream().
-                        map(this::toTranscriptionRequestResponse).
+                        map(this::toTranscriptionResponse).
                         toList()).
                 setInterpretations(word.getInterpretations().stream().
-                        map(this::toInterpretationRequestResponse).
+                        map(this::toInterpretationResponse).
                         toList()).
                 setTranslates(word.getTranslations().stream().
-                        map(this::toTranslateRequestResponse).
+                        map(this::toTranslateResponse).
                         toList()).
                 setExamples(word.getExamples().stream().
-                        map(this::toExampleRequestResponse).
+                        map(this::toExampleResponse).
                         toList());
     }
 
@@ -120,10 +120,10 @@ public class DtoMapper {
                         setWordId(word.getId()).
                         setUserId(word.getUserId()).
                         setInterpretations(word.getInterpretations().stream().
-                                map(this::toInterpretationRequestResponse).
+                                map(this::toInterpretationResponse).
                                 toList()).
                         setTranslations(word.getTranslations().stream().
-                                map(this::toTranslateRequestResponse).
+                                map(this::toTranslateResponse).
                                 toList())
         );
     }
@@ -180,13 +180,13 @@ public class DtoMapper {
                 setValue(expression.getValue()).
                 setNote(expression.getNote()).
                 setInterpretations(expression.getInterpretations().stream().
-                        map(this::toInterpretationRequestResponse).
+                        map(this::toInterpretationResponse).
                         toList()).
                 setTranslates(expression.getTranslations().stream().
-                        map(this::toTranslateRequestResponse).
+                        map(this::toTranslateResponse).
                         toList()).
                 setExamples(expression.getExamples().stream().
-                        map(this::toExampleRequestResponse).
+                        map(this::toExampleResponse).
                         toList());
     }
 
@@ -218,10 +218,10 @@ public class DtoMapper {
                         setExpressionId(expression.getId()).
                         setUserId(expression.getUserId()).
                         setInterpretations(expression.getInterpretations().stream().
-                                map(this::toInterpretationRequestResponse).
+                                map(this::toInterpretationResponse).
                                 toList()).
                         setTranslations(expression.getTranslations().stream().
-                                map(this::toTranslateRequestResponse).
+                                map(this::toTranslateResponse).
                                 toList())
         );
     }
@@ -411,76 +411,76 @@ public class DtoMapper {
     }
 
 
-    private ExampleRequestResponse toExampleRequestResponse(WordExample wordExample) {
-        return new ExampleRequestResponse().
+    private ExampleResponse toExampleResponse(WordExample wordExample) {
+        return new ExampleResponse().
                 setOrigin(wordExample.getOrigin()).
                 setTranslate(wordExample.getTranslate()).
                 setNote(wordExample.getNote());
     }
 
-    private InterpretationRequestResponse toInterpretationRequestResponse(WordInterpretation wordInterpretation) {
-        return new InterpretationRequestResponse().
+    private InterpretationResponse toInterpretationResponse(WordInterpretation wordInterpretation) {
+        return new InterpretationResponse().
                 setValue(wordInterpretation.getValue());
     }
 
-    private TranscriptionRequestResponse toTranscriptionRequestResponse(WordTranscription wordTranscription) {
-        return new TranscriptionRequestResponse().
+    private TranscriptionResponse toTranscriptionResponse(WordTranscription wordTranscription) {
+        return new TranscriptionResponse().
                 setValue(wordTranscription.getValue()).
                 setNote(wordTranscription.getNote());
     }
 
-    private TranslateRequestResponse toTranslateRequestResponse(WordTranslation wordTranslation) {
-        return new TranslateRequestResponse().
+    private TranslateResponse toTranslateResponse(WordTranslation wordTranslation) {
+        return new TranslateResponse().
                 setValue(wordTranslation.getValue()).
                 setNote(wordTranslation.getNote());
     }
 
 
-    private ExampleRequestResponse toExampleRequestResponse(ExpressionExample example) {
-        return new ExampleRequestResponse().
+    private ExampleResponse toExampleResponse(ExpressionExample example) {
+        return new ExampleResponse().
                 setOrigin(example.getOrigin()).
                 setTranslate(example.getTranslate()).
                 setNote(example.getNote());
     }
 
-    private InterpretationRequestResponse toInterpretationRequestResponse(ExpressionInterpretation interpretation) {
-        return new InterpretationRequestResponse().
+    private InterpretationResponse toInterpretationResponse(ExpressionInterpretation interpretation) {
+        return new InterpretationResponse().
                 setValue(interpretation.getValue());
     }
 
-    private TranslateRequestResponse toTranslateRequestResponse(ExpressionTranslation translation) {
-        return new TranslateRequestResponse().
+    private TranslateResponse toTranslateResponse(ExpressionTranslation translation) {
+        return new TranslateResponse().
                 setNote(translation.getNote()).
                 setValue(translation.getValue());
     }
 
 
-    private WordTranscription toWordTranscription(TranscriptionRequestResponse dto) {
+    private WordTranscription toWordTranscription(TranscriptionRequest dto) {
         return new WordTranscription(dto.getValue(), dto.getNote());
     }
 
-    private WordInterpretation toWordInterpretation(InterpretationRequestResponse dto) {
+    private WordInterpretation toWordInterpretation(InterpretationRequest dto) {
         return new WordInterpretation(dto.getValue());
     }
 
-    private WordTranslation toWordTranslation(TranslateRequestResponse dto) {
+    private WordTranslation toWordTranslation(TranslateRequest dto) {
         return new WordTranslation(dto.getValue(), dto.getNote());
     }
 
-    private WordExample toWordExample(ExampleRequestResponse dto) {
+    private WordExample toWordExample(ExampleRequest dto) {
         return new WordExample(dto.getOrigin(), dto.getTranslate(), dto.getNote());
     }
 
 
-    private ExpressionInterpretation toExpressionInterpretation(InterpretationRequestResponse dto) {
+    private ExpressionInterpretation toExpressionInterpretation(InterpretationRequest dto) {
         return new ExpressionInterpretation(dto.getValue());
     }
 
-    private ExpressionTranslation toExpressionTranslation(TranslateRequestResponse dto) {
+    private ExpressionTranslation toExpressionTranslation(TranslateRequest dto) {
         return new ExpressionTranslation(dto.getValue(), dto.getNote());
     }
 
-    private ExpressionExample toExpressionExample(ExampleRequestResponse dto) {
+    private ExpressionExample toExpressionExample(ExampleRequest dto) {
         return new ExpressionExample(dto.getOrigin(), dto.getTranslate(), dto.getNote());
     }
 

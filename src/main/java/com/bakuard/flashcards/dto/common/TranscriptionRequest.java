@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 
 @Schema(description = "Транскрипция слова.")
-public class TranscriptionRequestResponse {
+public class TranscriptionRequest {
 
     @Schema(description = """
             Значение транскрипции слова. <br/>
@@ -18,14 +18,14 @@ public class TranscriptionRequestResponse {
             """)
     private String note;
 
-    public TranscriptionRequestResponse() {
+    public TranscriptionRequest() {
     }
 
     public String getValue() {
         return value;
     }
 
-    public TranscriptionRequestResponse setValue(String value) {
+    public TranscriptionRequest setValue(String value) {
         this.value = value;
         return this;
     }
@@ -34,7 +34,7 @@ public class TranscriptionRequestResponse {
         return note;
     }
 
-    public TranscriptionRequestResponse setNote(String note) {
+    public TranscriptionRequest setNote(String note) {
         this.note = note;
         return this;
     }
@@ -43,7 +43,7 @@ public class TranscriptionRequestResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        TranscriptionRequestResponse that = (TranscriptionRequestResponse) o;
+        TranscriptionRequest that = (TranscriptionRequest) o;
         return Objects.equals(value, that.value) && Objects.equals(note, that.note);
     }
 
