@@ -68,6 +68,10 @@ public class DictionaryOfExpressionsController {
             @ApiResponse(responseCode = "401",
                     description = "Если передан некорректный токен или токен не указан",
                     content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя по указнному id.",
+                    content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
     @PostMapping
@@ -92,7 +96,7 @@ public class DictionaryOfExpressionsController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
-                    description = "Если не удалось найти выражение по указанным id пользователя и самого выражения.",
+                    description = "Если не удалось найти выражение или пользователя по указнным id.",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })

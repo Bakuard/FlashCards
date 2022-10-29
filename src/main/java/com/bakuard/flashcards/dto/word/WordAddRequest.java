@@ -33,7 +33,7 @@ public class WordAddRequest {
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
     private List<TranscriptionRequestResponse> transcriptions;
     @Schema(description = """
@@ -41,7 +41,7 @@ public class WordAddRequest {
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
     private List<InterpretationRequestResponse> interpretations;
     @Schema(description = """
@@ -49,7 +49,7 @@ public class WordAddRequest {
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
     private List<TranslateRequestResponse> translates;
     @Schema(description = """
@@ -57,7 +57,7 @@ public class WordAddRequest {
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
     private List<ExampleRequestResponse> examples;
 

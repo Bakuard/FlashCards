@@ -1,7 +1,8 @@
-package com.bakuard.flashcards.dto.expression;
+package com.bakuard.flashcards.dto.word;
 
-import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
+import com.bakuard.flashcards.dto.common.ExampleSupplementRequest;
 import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
+import com.bakuard.flashcards.dto.common.TranscriptionRequestResponse;
 import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -9,31 +10,36 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-@Schema(description = "Данные обновляемого устойчевого выражения.")
-public class ExpressionUpdateRequest {
+@Schema(description = """
+        Данные слова, которые необходимо дополнить из внешних источников (например, web переводчиков и толковых словарей).
+        """)
+public class WordSupplementRequest {
 
     @Schema(description = """
-            Идентификатор пользователя, с которым связано указанное устойчевое выражение. <br/>
-            Ограничения: не должно быть null.
-            """)
-    private UUID userId;
-    @Schema(description = """
-            Уникальный идентификатор устойчевого выражения. <br/>
+            Идентификатор пользователя, слово которого необходимо дополнить. <br/>
             Ограничения: не должен быть null.
             """)
-    private UUID expressionId;
+    private UUID userID;
     @Schema(description = """
-            Значение устойчевого выражения. <br/>
+            Значение слова. <br/>
             Должно представлять собой не пустую строку.
             """)
     private String value;
     @Schema(description = """
-            Примечание к устойчевого выражения. <br/>
+            Примечание к слову. <br/>
             Ограничения: не должно быть пустой строкой или должно быть null.
             """)
     private String note;
     @Schema(description = """
-            Список интерпретаций устойчевого выражения. <br/>
+            Список транскрипций слова. <br/>
+            Ограничения: <br/>
+            1. Не должен содержать null <br/>
+            2. Не должен содержать дубликатов <br/>
+            Сам список может принимать значение null либо быть пустым.
+            """)
+    private List<TranscriptionRequestResponse> transcriptions;
+    @Schema(description = """
+            Список интерпретаций слова. <br/>
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
@@ -41,7 +47,7 @@ public class ExpressionUpdateRequest {
             """)
     private List<InterpretationRequestResponse> interpretations;
     @Schema(description = """
-            Список переводов устойчевого выражения. <br/>
+            Список переводов слова. <br/>
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
@@ -49,33 +55,24 @@ public class ExpressionUpdateRequest {
             """)
     private List<TranslateRequestResponse> translates;
     @Schema(description = """
-            Список примеров устойчевого выражения. <br/>
+            Список примеров слова. <br/>
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
             Сам список может принимать значение null либо быть пустым.
             """)
-    private List<ExampleRequestResponse> examples;
+    private List<ExampleSupplementRequest> examples;
 
-    public ExpressionUpdateRequest() {
+    public WordSupplementRequest() {
 
     }
 
-    public UUID getUserId() {
-        return userId;
+    public UUID getUserID() {
+        return userID;
     }
 
-    public ExpressionUpdateRequest setUserId(UUID userId) {
-        this.userId = userId;
-        return this;
-    }
-
-    public UUID getExpressionId() {
-        return expressionId;
-    }
-
-    public ExpressionUpdateRequest setExpressionId(UUID expressionId) {
-        this.expressionId = expressionId;
+    public WordSupplementRequest setUserID(UUID userID) {
+        this.userID = userID;
         return this;
     }
 
@@ -83,7 +80,7 @@ public class ExpressionUpdateRequest {
         return value;
     }
 
-    public ExpressionUpdateRequest setValue(String value) {
+    public WordSupplementRequest setValue(String value) {
         this.value = value;
         return this;
     }
@@ -92,8 +89,17 @@ public class ExpressionUpdateRequest {
         return note;
     }
 
-    public ExpressionUpdateRequest setNote(String note) {
+    public WordSupplementRequest setNote(String note) {
         this.note = note;
+        return this;
+    }
+
+    public List<TranscriptionRequestResponse> getTranscriptions() {
+        return transcriptions;
+    }
+
+    public WordSupplementRequest setTranscriptions(List<TranscriptionRequestResponse> transcriptions) {
+        this.transcriptions = transcriptions;
         return this;
     }
 
@@ -101,7 +107,7 @@ public class ExpressionUpdateRequest {
         return interpretations;
     }
 
-    public ExpressionUpdateRequest setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public WordSupplementRequest setInterpretations(List<InterpretationRequestResponse> interpretations) {
         this.interpretations = interpretations;
         return this;
     }
@@ -110,16 +116,16 @@ public class ExpressionUpdateRequest {
         return translates;
     }
 
-    public ExpressionUpdateRequest setTranslates(List<TranslateRequestResponse> translates) {
+    public WordSupplementRequest setTranslates(List<TranslateRequestResponse> translates) {
         this.translates = translates;
         return this;
     }
 
-    public List<ExampleRequestResponse> getExamples() {
+    public List<ExampleSupplementRequest> getExamples() {
         return examples;
     }
 
-    public ExpressionUpdateRequest setExamples(List<ExampleRequestResponse> examples) {
+    public WordSupplementRequest setExamples(List<ExampleSupplementRequest> examples) {
         this.examples = examples;
         return this;
     }
@@ -128,11 +134,11 @@ public class ExpressionUpdateRequest {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExpressionUpdateRequest that = (ExpressionUpdateRequest) o;
-        return Objects.equals(userId, that.userId) &&
-                Objects.equals(expressionId, that.expressionId) &&
+        WordSupplementRequest that = (WordSupplementRequest) o;
+        return Objects.equals(userID, that.userID) &&
                 Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
+                Objects.equals(transcriptions, that.transcriptions) &&
                 Objects.equals(interpretations, that.interpretations) &&
                 Objects.equals(translates, that.translates) &&
                 Objects.equals(examples, that.examples);
@@ -140,16 +146,16 @@ public class ExpressionUpdateRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, expressionId, value, note, interpretations, translates, examples);
+        return Objects.hash(userID, value, note, transcriptions, interpretations, translates, examples);
     }
 
     @Override
     public String toString() {
-        return "ExpressionUpdateRequest{" +
-                "userId=" + userId +
-                ", expressionId=" + expressionId +
+        return "WordSupplementRequest{" +
+                "userID=" + userID +
                 ", value='" + value + '\'' +
                 ", note='" + note + '\'' +
+                ", transcriptions=" + transcriptions +
                 ", interpretations=" + interpretations +
                 ", translates=" + translates +
                 ", examples=" + examples +

@@ -4,10 +4,7 @@ import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
-import com.bakuard.flashcards.dto.word.WordAddRequest;
-import com.bakuard.flashcards.dto.word.WordForDictionaryListResponse;
-import com.bakuard.flashcards.dto.word.WordResponse;
-import com.bakuard.flashcards.dto.word.WordUpdateRequest;
+import com.bakuard.flashcards.dto.word.*;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.WordService;
@@ -67,6 +64,10 @@ public class DictionaryOfWordsController {
             @ApiResponse(responseCode = "401",
                     description = "Если передан некорректный токен или токен не указан",
                     content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя по указнному id.",
+                    content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
     @PostMapping
@@ -91,7 +92,7 @@ public class DictionaryOfWordsController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
-                    description = "Если не удалось найти слово по указанным id пользователя и самого слова.",
+                    description = "Если не удалось найти слово или пользователя по указнным id.",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
@@ -103,6 +104,25 @@ public class DictionaryOfWordsController {
         Word word = mapper.toWord(dto);
         word = wordService.save(word);
         return ResponseEntity.ok(mapper.toWordResponse(word));
+    }
+
+    @Operation(summary = """
+            Дополняет переданное слово из внешних источников переводами, транскрипциями, толкованиями, примерами.
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с телом запроса",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    @PutMapping
+    public ResponseEntity<WordResponse> supplement(@RequestBody WordSupplementRequest dto) {
+        return null;
     }
 
     @Operation(summary = "Возвращает часть выборки слов из словаря пользователя")
