@@ -52,15 +52,15 @@ class WordTest {
              - origin is null,
              - translate is null,
              - note is blank
-             repeatDataFromEnglish is null,
-             repeatDataFromNative is null
+             repeat intervals:
+             - lowest interval < 1
              => exception
             """)
     public void createWord1() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> Word.newBuilder(validator).
-                        setUserId(null).
+                isThrownBy(() -> validator.assertValid(
+                        new Word(null, 0, clock).
                         setValue(null).
                         setNote("    ").
                         addInterpretation(null).
@@ -70,10 +70,8 @@ class WordTest {
                         addTranslation(null).
                         addTranslation(new WordTranslation(null, "    ")).
                         addExample(null).
-                        addExample(new WordExample(null, null, "   ")).
-                        setRepeatData((RepeatDataFromEnglish) null).
-                        setRepeatData((RepeatDataFromNative) null).
-                        build()).
+                        addExample(new WordExample(null, null, "   "))
+                )).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
@@ -97,8 +95,8 @@ class WordTest {
                         "WordExample.translate.notBlank",
                         "WordExample.note.notBlankOrNull",
 
-                        "Word.repeatDataFromEnglish.notNull",
-                        "Word.repeatDataFromNative.notNull"
+                        "RepeatDataFromEnglish.interval.min",
+                        "RepeatDataFromNative.interval.min"
                 );
     }
 
@@ -111,18 +109,14 @@ class WordTest {
              interpretations not contains unique items,
              transcriptions not contains unique items,
              translations not contains unique items,
-             examples not contains unique items,
-             repeatDataFromEnglish.interval < 1,
-             repeatDataFromEnglish.lastDateOfRepeat is not present,
-             repeatDataFromNative.interval < 1,
-             repeatDataFromNative.lastDateOfRepeat is not present
+             examples not contains unique items
              => exception
             """)
     public void createWord2() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> Word.newBuilder(validator).
-                        setUserId(toUUID(1)).
+                isThrownBy(() -> validator.assertValid(
+                        new Word(toUUID(1), 1, clock).
                         setValue("value").
                         setNote("note").
                         addInterpretation(new WordInterpretation("interpretation1")).
@@ -132,10 +126,8 @@ class WordTest {
                         addTranslation(new WordTranslation("translation1", "note1")).
                         addTranslation(new WordTranslation("translation1", "note2")).
                         addExample(new WordExample("example1", "translate1", "note1")).
-                        addExample(new WordExample("example1", "translate2", "note2")).
-                        setRepeatData(new RepeatDataFromEnglish(0, yesterday())).
-                        setRepeatData(new RepeatDataFromNative(0, yesterday())).
-                        build()).
+                        addExample(new WordExample("example1", "translate2", "note2"))
+                )).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
@@ -144,11 +136,7 @@ class WordTest {
                         "Word.interpretations.allUnique",
                         "Word.transcriptions.allUnique",
                         "Word.translations.allUnique",
-                        "Word.examples.allUnique",
-                        "RepeatDataFromEnglish.interval.min",
-                        "RepeatDataFromEnglish.lastDateOfRepeat.present",
-                        "RepeatDataFromNative.interval.min",
-                        "RepeatDataFromNative.lastDateOfRepeat.present");
+                        "Word.examples.allUnique");
     }
 
     @Test
@@ -174,8 +162,8 @@ class WordTest {
     public void createWord3() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> Word.newBuilder(validator).
-                        setUserId(toUUID(1)).
+                isThrownBy(() -> validator.assertValid(
+                        new Word(toUUID(1), 1, clock).
                         setValue("value").
                         setNote("note").
                         addInterpretation(new WordInterpretation("interpretation1")).
@@ -185,10 +173,8 @@ class WordTest {
                         addTranslation(new WordTranslation("translation1", "note1")).
                         addTranslation(new WordTranslation("     ", null)).
                         addExample(new WordExample("example1", "translate1", "note1")).
-                        addExample(new WordExample("    ", "     ", null)).
-                        setRepeatData(new RepeatDataFromEnglish(1, today())).
-                        setRepeatData(new RepeatDataFromNative(1, today())).
-                        build()).
+                        addExample(new WordExample("    ", "     ", null))
+                )).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
@@ -208,17 +194,15 @@ class WordTest {
              => do throw nothing
             """)
     public void createWord4() {
-        Assertions.assertThatCode(() ->  Word.newBuilder(validator).
-                        setUserId(toUUID(1)).
+        Assertions.assertThatCode(() ->  validator.assertValid(
+                new Word(toUUID(1), 1, clock).
                         setValue("value").
                         setNote("note").
                         addInterpretation(new WordInterpretation("interpretation1")).
                         addTranscription(new WordTranscription("transcription1", "note1")).
                         addTranslation(new WordTranslation("translation1", "note1")).
-                        addExample(new WordExample("example1", "translate1", "note1")).
-                        setRepeatData(new RepeatDataFromEnglish(1, today())).
-                        setRepeatData(new RepeatDataFromNative(1, today())).
-                        build()).
+                        addExample(new WordExample("example1", "translate1", "note1"))
+                )).
                 doesNotThrowAnyException();
     }
 

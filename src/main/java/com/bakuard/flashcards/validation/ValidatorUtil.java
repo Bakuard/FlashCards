@@ -15,23 +15,6 @@ public class ValidatorUtil {
         this.validator = validator;
     }
 
-    public <T> Set<ConstraintViolation<T>> check(T entity, Class<?>... groups) {
-        return Arrays.stream(groups).
-                map(g -> validator.validate(entity, g)).
-                filter(s -> !s.isEmpty()).
-                findFirst().
-                orElse(Set.of());
-    }
-
-    public <T> T assertAllEmpty(T entity, Set<ConstraintViolation<T>>... constraints) {
-        Set<ConstraintViolation<T>> violations = new HashSet<>();
-        Arrays.stream(constraints).forEach(violations::addAll);
-
-        assertEmpty(violations);
-
-        return entity;
-    }
-
     public <T> T assertValid(T entity) {
         Set<ConstraintViolation<T>> violations = validator.validate(entity);
 

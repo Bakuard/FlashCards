@@ -6,6 +6,7 @@ import com.bakuard.flashcards.dal.WordRepository;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,15 +26,18 @@ public class WordService {
     private IntervalRepository intervalRepository;
     private Clock clock;
     private ConfigData configData;
+    private ValidatorUtil validator;
 
     public WordService(WordRepository wordRepository,
                        IntervalRepository intervalRepository,
                        Clock clock,
-                       ConfigData configData) {
+                       ConfigData configData,
+                       ValidatorUtil validator) {
         this.wordRepository = wordRepository;
         this.intervalRepository = intervalRepository;
         this.clock = clock;
         this.configData = configData;
+        this.validator = validator;
     }
 
     public int getLowestRepeatInterval(UUID userId) {
@@ -41,6 +45,7 @@ public class WordService {
     }
 
     public Word save(Word word) {
+        validator.assertValid(word);
         return wordRepository.save(word);
     }
 

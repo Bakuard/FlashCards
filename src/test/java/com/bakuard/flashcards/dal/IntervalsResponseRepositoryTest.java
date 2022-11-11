@@ -737,13 +737,9 @@ class IntervalsResponseRepositoryTest {
                       String note,
                       int intervalForEnglish,
                       int intervalForNative) {
-        return Word.newBuilder(validator).
-                setUserId(userId).
+        return new Word(userId, intervalForEnglish, intervalForNative, clock).
                 setValue(value).
-                setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(intervalForEnglish, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(intervalForNative, LocalDate.now(clock))).
-                build();
+                setNote(note);
     }
 
     private Expression expression(UUID userId,

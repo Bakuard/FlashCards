@@ -104,8 +104,9 @@ public class SpringConfig implements WebMvcConfigurer {
         public WordService wordService(WordRepository wordRepository,
                                        IntervalRepository intervalRepository,
                                        Clock clock,
-                                       ConfigData configData) {
-                return new WordService(wordRepository, intervalRepository, clock, configData);
+                                       ConfigData configData,
+                                       ValidatorUtil validator) {
+                return new WordService(wordRepository, intervalRepository, clock, configData, validator);
         }
 
         @Bean

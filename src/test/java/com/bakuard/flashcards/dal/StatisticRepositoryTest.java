@@ -1129,13 +1129,9 @@ class StatisticRepositoryTest {
                       String value,
                       String note,
                       int interval) {
-        return Word.newBuilder(validator).
-                setUserId(userId).
+        return new Word(userId, interval, clock).
                 setValue(value).
-                setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
-                build();
+                setNote(note);
     }
 
 

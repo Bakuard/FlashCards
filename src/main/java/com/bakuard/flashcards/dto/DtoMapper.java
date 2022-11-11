@@ -129,8 +129,7 @@ public class DtoMapper {
     }
 
     public Word toWord(WordAddRequest dto) {
-        return Word.newBuilder(validator).
-                setUserId(dto.getUserID()).
+        return new Word(dto.getUserID(), wordService.getLowestRepeatInterval(dto.getUserID()), clock).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
@@ -144,13 +143,11 @@ public class DtoMapper {
                         toList()).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
-                        toList()).
-                setInitialRepeatData(wordService.getLowestRepeatInterval(dto.getUserID()), clock).
-                build();
+                        toList());
     }
 
     public Word toWord(WordUpdateRequest dto) {
-        return wordService.tryFindById(dto.getUserId(), dto.getWordId()).builder().
+        return wordService.tryFindById(dto.getUserId(), dto.getWordId()).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
@@ -164,8 +161,7 @@ public class DtoMapper {
                         toList()).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
-                        toList()).
-                build();
+                        toList());
     }
 
     public Sort toWordSort(String sortRule) {

@@ -775,24 +775,16 @@ class WordRepositoryTest {
             wordRepository.save(word(user.getId(), "wordB", "noteB", 10));
             wordRepository.save(word(user.getId(), "wordC", "noteC", 10));
             wordRepository.save(
-                    Word.newBuilder(validator).
-                            setUserId(user.getId()).
+                    new Word(user.getId(), 1, clock).
                             setValue("wordD").
                             setNote("noteD").
-                            setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                            setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                            addTranslation(new WordTranslation("translateX", "noteX")).
-                            build()
+                            addTranslation(new WordTranslation("translateX", "noteX"))
             );
             wordRepository.save(
-                    Word.newBuilder(validator).
-                            setUserId(user.getId()).
+                    new Word(user.getId(), 1, clock).
                             setValue("wordE").
                             setNote("noteE").
-                            setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                            setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                            addTranslation(new WordTranslation("translateX", "noteX")).
-                            build()
+                            addTranslation(new WordTranslation("translateX", "noteX"))
             );
         });
 
@@ -844,30 +836,18 @@ class WordRepositoryTest {
             """)
     public void findByTranslate3() {
         User user = commit(() -> userRepository.save(user(1)));
-        Word wordD = Word.newBuilder(validator).
-                setUserId(user.getId()).
+        Word wordD = new Word(user.getId(), 1, clock).
                 setValue("wordD").
                 setNote("noteD").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new WordTranslation("translateX", "noteX")).
-                build();
-        Word wordE =  Word.newBuilder(validator).
-                setUserId(user.getId()).
+                addTranslation(new WordTranslation("translateX", "noteX"));
+        Word wordE = new Word(user.getId(), 1, clock).
                 setValue("wordE").
                 setNote("noteE").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new WordTranslation("translateX", "noteX")).
-                build();
-        Word wordF =  Word.newBuilder(validator).
-                setUserId(user.getId()).
+                addTranslation(new WordTranslation("translateX", "noteX"));
+        Word wordF = new Word(user.getId(), 1, clock).
                 setValue("wordF").
                 setNote("noteF").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new WordTranslation("translateX", "noteX")).
-                build();
+                addTranslation(new WordTranslation("translateX", "noteX"));
         commit(() -> {
             wordRepository.save(word(user.getId(), "wordA", "noteA", 10));
             wordRepository.save(word(user.getId(), "wordB", "noteB", 10));
@@ -984,12 +964,9 @@ class WordRepositoryTest {
                       String value,
                       String note,
                       int interval) {
-        return Word.newBuilder(validator).
-                setUserId(userId).
+        return new Word(userId, interval, clock).
                 setValue(value).
                 setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
                 addTranslation(new WordTranslation("translateA", "noteA")).
                 addTranslation(new WordTranslation("translateB", "noteB")).
                 addTranslation(new WordTranslation("translateC", "noteC")).
@@ -1001,8 +978,7 @@ class WordRepositoryTest {
                 addInterpretation(new WordInterpretation("interpretationC")).
                 addExample(new WordExample("exampleA", "exampleTranslate", "noteA")).
                 addExample(new WordExample("exampleB", "exampleTranslate", "noteB")).
-                addExample(new WordExample("exampleC", "exampleTranslate", "noteC")).
-                build();
+                addExample(new WordExample("exampleC", "exampleTranslate", "noteC"));
     }
 
     private List<Word> words(UUID userId) {

@@ -10,7 +10,6 @@ import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Embedded;
 import org.springframework.data.relational.core.mapping.MappedCollection;
@@ -22,17 +21,11 @@ import javax.validation.constraints.NotNull;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 @Table("words")
 public class Word implements Entity {
-
-    public static Builder newBuilder(ValidatorUtil validator) {
-        return new Builder(validator);
-    }
-
 
     @Id
     @Column("word_id")
@@ -62,16 +55,12 @@ public class Word implements Entity {
     @NotContainsNull(message = "Word.examples.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getOrigin", message = "Word.examples.allUnique")
     private final List<@Valid WordExample> examples;
-    @NotNull(message = "Word.repeatDataFromEnglish.notNull")
     @Embedded.Nullable
     @Valid
     private RepeatDataFromEnglish repeatDataFromEnglish;
-    @NotNull(message = "Word.repeatDataFromNative.notNull")
     @Embedded.Nullable
     @Valid
     private RepeatDataFromNative repeatDataFromNative;
-    @Transient
-    private ValidatorUtil validator;
 
     @PersistenceCreator
     public Word(UUID id,
@@ -96,30 +85,24 @@ public class Word implements Entity {
         this.repeatDataFromNative = repeatDataFromNative;
     }
 
-    private Word(UUID id,
-                 UUID userId,
-                 String value,
-                 String note,
-                 List<WordInterpretation> interpretations,
-                 List<WordTranscription> transcriptions,
-                 List<WordTranslation> translations,
-                 List<WordExample> examples,
-                 RepeatDataFromEnglish repeatDataFromEnglish,
-                 RepeatDataFromNative repeatDataFromNative,
-                 ValidatorUtil validator) {
-        this.id = id;
+    public Word(UUID userId, int lowestInterval, Clock clock) {
         this.userId = userId;
-        this.value = value;
-        this.note = note;
-        this.interpretations = interpretations;
-        this.transcriptions = transcriptions;
-        this.translations = translations;
-        this.examples = examples;
-        this.repeatDataFromEnglish = repeatDataFromEnglish;
-        this.repeatDataFromNative = repeatDataFromNative;
-        this.validator = validator;
+        this.interpretations = new ArrayList<>();
+        this.transcriptions = new ArrayList<>();
+        this.translations = new ArrayList<>();
+        this.examples = new ArrayList<>();
+        this.repeatDataFromEnglish = new RepeatDataFromEnglish(lowestInterval, LocalDate.now(clock));
+        this.repeatDataFromNative = new RepeatDataFromNative(lowestInterval, LocalDate.now(clock));
+    }
 
-        validator.assertValid(this);
+    public Word(UUID userId, int lowestIntervalForEnglish, int lowestIntervalForNative, Clock clock) {
+        this.userId = userId;
+        this.interpretations = new ArrayList<>();
+        this.transcriptions = new ArrayList<>();
+        this.translations = new ArrayList<>();
+        this.examples = new ArrayList<>();
+        this.repeatDataFromEnglish = new RepeatDataFromEnglish(lowestIntervalForEnglish, LocalDate.now(clock));
+        this.repeatDataFromNative = new RepeatDataFromNative(lowestIntervalForNative, LocalDate.now(clock));
     }
 
     @Override
@@ -134,7 +117,7 @@ public class Word implements Entity {
 
     @Override
     public void setValidator(ValidatorUtil validator) {
-        this.validator = validator;
+
     }
 
     public UUID getUserId() {
@@ -150,19 +133,19 @@ public class Word implements Entity {
     }
 
     public List<WordInterpretation> getInterpretations() {
-        return Collections.unmodifiableList(interpretations);
+        return interpretations;
     }
 
     public List<WordTranscription> getTranscriptions() {
-        return Collections.unmodifiableList(transcriptions);
+        return transcriptions;
     }
 
     public List<WordTranslation> getTranslations() {
-        return Collections.unmodifiableList(translations);
+        return translations;
     }
 
     public List<WordExample> getExamples() {
-        return Collections.unmodifiableList(examples);
+        return examples;
     }
 
     public RepeatDataFromEnglish getRepeatDataFromEnglish() {
@@ -186,17 +169,58 @@ public class Word implements Entity {
         if(id == null) id = UUID.randomUUID();
     }
 
-    public Builder builder() {
-        return newBuilder(validator).
-                setOrGenerateId(id).
-                setUserId(userId).
-                setValue(value).
-                setNote(note).
-                setInterpretations(interpretations).
-                setTranscriptions(transcriptions).
-                setTranslations(translations).
-                setExamples(examples).
-                setRepeatData(repeatDataFromEnglish);
+    public Word setValue(String value) {
+        this.value = value;
+        return this;
+    }
+
+    public Word setNote(String note) {
+        this.note = note;
+        return this;
+    }
+
+    public Word setInterpretations(List<WordInterpretation> interpretations) {
+        this.interpretations.clear();
+        if(interpretations != null) this.interpretations.addAll(interpretations);
+        return this;
+    }
+
+    public Word setTranscriptions(List<WordTranscription> transcriptions) {
+        this.transcriptions.clear();
+        if(transcriptions != null) this.transcriptions.addAll(transcriptions);
+        return this;
+    }
+
+    public Word setTranslations(List<WordTranslation> translations) {
+        this.translations.clear();
+        if(translations != null) this.translations.addAll(translations);
+        return this;
+    }
+
+    public Word setExamples(List<WordExample> examples) {
+        this.examples.clear();
+        if(examples != null) this.examples.addAll(examples);
+        return this;
+    }
+
+    public Word addInterpretation(WordInterpretation interpretation) {
+        interpretations.add(interpretation);
+        return this;
+    }
+
+    public Word addTranscription(WordTranscription transcription) {
+        transcriptions.add(transcription);
+        return this;
+    }
+
+    public Word addTranslation(WordTranslation translation) {
+        translations.add(translation);
+        return this;
+    }
+
+    public Word addExample(WordExample example) {
+        examples.add(example);
+        return this;
     }
 
     public void repeatFromEnglish(boolean isRemember, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
@@ -250,129 +274,7 @@ public class Word implements Entity {
                 ", examples=" + examples +
                 ", repeatDataFromEnglish=" + repeatDataFromEnglish +
                 ", repeatDataFromNative=" + repeatDataFromNative +
-                ", validator=" + validator +
                 '}';
-    }
-
-
-    public static class Builder {
-
-        private UUID wordId;
-        private UUID userId;
-        private String value;
-        private String note;
-        private List<WordInterpretation> interpretations;
-        private List<WordTranscription> transcriptions;
-        private List<WordTranslation> translations;
-        private List<WordExample> examples;
-        private RepeatDataFromEnglish repeatDataFromEnglish;
-        private RepeatDataFromNative repeatDataFromNative;
-        private final ValidatorUtil validator;
-
-        private Builder(ValidatorUtil validator) {
-            interpretations = new ArrayList<>();
-            transcriptions = new ArrayList<>();
-            translations = new ArrayList<>();
-            examples = new ArrayList<>();
-            this.validator = validator;
-        }
-
-        public Builder setOrGenerateId(UUID wordId) {
-            this.wordId = wordId == null ? UUID.randomUUID() : wordId;
-            return this;
-        }
-
-        public Builder setUserId(UUID userId) {
-            this.userId = userId;
-            return this;
-        }
-
-        public Builder setValue(String value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder setNote(String note) {
-            this.note = note;
-            return this;
-        }
-
-        public Builder setRepeatData(RepeatDataFromEnglish repeatDataFromEnglish) {
-            this.repeatDataFromEnglish = repeatDataFromEnglish;
-            return this;
-        }
-
-        public Builder setRepeatData(RepeatDataFromNative repeatDataFromNative) {
-            this.repeatDataFromNative = repeatDataFromNative;
-            return this;
-        }
-
-        public Builder setInitialRepeatData(int lowestInterval, Clock clock) {
-            repeatDataFromEnglish = new RepeatDataFromEnglish(lowestInterval, LocalDate.now(clock));
-            repeatDataFromNative = new RepeatDataFromNative(lowestInterval, LocalDate.now(clock));
-            return this;
-        }
-
-        public Builder setInterpretations(List<WordInterpretation> interpretations) {
-            this.interpretations.clear();
-            if(interpretations != null) this.interpretations.addAll(interpretations);
-            return this;
-        }
-
-        public Builder setTranscriptions(List<WordTranscription> transcriptions) {
-            this.transcriptions.clear();
-            if(transcriptions != null) this.transcriptions.addAll(transcriptions);
-            return this;
-        }
-
-        public Builder setTranslations(List<WordTranslation> translations) {
-            this.translations.clear();
-            if(translations != null) this.translations.addAll(translations);
-            return this;
-        }
-
-        public Builder setExamples(List<WordExample> examples) {
-            this.examples.clear();
-            if(examples != null) this.examples.addAll(examples);
-            return this;
-        }
-
-        public Builder addInterpretation(WordInterpretation interpretation) {
-            interpretations.add(interpretation);
-            return this;
-        }
-
-        public Builder addTranscription(WordTranscription transcription) {
-            transcriptions.add(transcription);
-            return this;
-        }
-
-        public Builder addTranslation(WordTranslation translation) {
-            translations.add(translation);
-            return this;
-        }
-
-        public Builder addExample(WordExample example) {
-            examples.add(example);
-            return this;
-        }
-
-        public Word build() {
-            return new Word(
-                    wordId,
-                    userId,
-                    value,
-                    note,
-                    interpretations,
-                    transcriptions,
-                    translations,
-                    examples,
-                    repeatDataFromEnglish,
-                    repeatDataFromNative,
-                    validator
-            );
-        }
-
     }
 
 }
