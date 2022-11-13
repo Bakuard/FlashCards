@@ -6,6 +6,7 @@ import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -24,22 +25,22 @@ public class ExpressionService {
     private IntervalRepository intervalRepository;
     private Clock clock;
     private ConfigData configData;
+    private ValidatorUtil validator;
 
     public ExpressionService(ExpressionRepository expressionRepository,
                              IntervalRepository intervalRepository,
                              Clock clock,
-                             ConfigData configData) {
+                             ConfigData configData,
+                             ValidatorUtil validator) {
         this.expressionRepository = expressionRepository;
         this.intervalRepository = intervalRepository;
         this.clock = clock;
         this.configData = configData;
-    }
-
-    public int getLowestRepeatInterval(UUID userId) {
-        return intervalRepository.findAll(userId).get(0);
+        this.validator = validator;
     }
 
     public Expression save(Expression expression) {
+        validator.assertValid(expression);
         return expressionRepository.save(expression);
     }
 

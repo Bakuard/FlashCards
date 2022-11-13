@@ -40,10 +40,6 @@ public class WordService {
         this.validator = validator;
     }
 
-    public int getLowestRepeatInterval(UUID userId) {
-        return intervalRepository.findAll(userId).get(0);
-    }
-
     public Word save(Word word) {
         validator.assertValid(word);
         return wordRepository.save(word);

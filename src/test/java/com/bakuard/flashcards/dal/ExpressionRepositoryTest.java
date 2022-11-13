@@ -778,24 +778,16 @@ class ExpressionRepositoryTest {
             expressionRepository.save(expression(user.getId(), "expressionB", "noteB", 10));
             expressionRepository.save(expression(user.getId(), "expressionC", "noteC", 10));
             expressionRepository.save(
-                    Expression.newBuilder(validator).
-                            setUserId(user.getId()).
+                    new Expression(user.getId(), 1, 1, clock).
                             setValue("expressionD").
                             setNote("noteD").
-                            setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                            setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                            addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                            build()
+                            addTranslation(new ExpressionTranslation("translateX", "noteX"))
             );
             expressionRepository.save(
-                    Expression.newBuilder(validator).
-                            setUserId(user.getId()).
+                    new Expression(user.getId(), 1, 1, clock).
                             setValue("expressionE").
                             setNote("noteE").
-                            setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                            setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                            addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                            build()
+                            addTranslation(new ExpressionTranslation("translateX", "noteX"))
             );
         });
 
@@ -847,30 +839,18 @@ class ExpressionRepositoryTest {
             """)
     public void findByTranslate3() {
         User user = commit(() -> userRepository.save(user(1)));
-        Expression expressionD = Expression.newBuilder(validator).
-                setUserId(user.getId()).
+        Expression expressionD = new Expression(user.getId(), 1, 1, clock).
                 setValue("expressionD").
                 setNote("noteD").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                build();
-        Expression expressionE =  Expression.newBuilder(validator).
-                setUserId(user.getId()).
+                addTranslation(new ExpressionTranslation("translateX", "noteX"));
+        Expression expressionE = new Expression(user.getId(), 1, 1, clock).
                 setValue("expressionE").
                 setNote("noteE").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                build();
-        Expression expressionF =  Expression.newBuilder(validator).
-                setUserId(user.getId()).
+                addTranslation(new ExpressionTranslation("translateX", "noteX"));
+        Expression expressionF = new Expression(user.getId(), 1, 1, clock).
                 setValue("expressionF").
                 setNote("noteF").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                build();
+                addTranslation(new ExpressionTranslation("translateX", "noteX"));
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "expressionA", "noteA", 10));
             expressionRepository.save(expression(user.getId(), "expressionB", "noteB", 10));
@@ -905,12 +885,9 @@ class ExpressionRepositoryTest {
                                   String value,
                                   String note,
                                   int interval) {
-        return Expression.newBuilder(validator).
-                setUserId(userId).
+        return new Expression(userId, interval, interval, clock).
                 setValue(value).
                 setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
                 addTranslation(new ExpressionTranslation("translateA", "noteA")).
                 addTranslation(new ExpressionTranslation("translateB", "noteB")).
                 addTranslation(new ExpressionTranslation("translateC", "noteC")).
@@ -919,8 +896,7 @@ class ExpressionRepositoryTest {
                 addInterpretation(new ExpressionInterpretation("interpretationC")).
                 addExample(new ExpressionExample("exampleA", "exampleTranslate", "noteA")).
                 addExample(new ExpressionExample("exampleB", "exampleTranslate", "noteA")).
-                addExample(new ExpressionExample("exampleC", "exampleTranslate", "noteA")).
-                build();
+                addExample(new ExpressionExample("exampleC", "exampleTranslate", "noteA"));
     }
 
     private List<Expression> expressions(UUID userId) {

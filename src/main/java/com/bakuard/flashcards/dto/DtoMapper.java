@@ -26,6 +26,7 @@ import com.bakuard.flashcards.model.statistic.WordRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.model.word.*;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
+import com.bakuard.flashcards.service.IntervalService;
 import com.bakuard.flashcards.service.WordService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.springframework.data.domain.Page;
@@ -46,6 +47,7 @@ public class DtoMapper {
 
     private WordService wordService;
     private ExpressionService expressionService;
+    private IntervalService intervalService;
     private AuthService authService;
     private ConfigData configData;
     private SortRules sortRules;
@@ -55,6 +57,7 @@ public class DtoMapper {
 
     public DtoMapper(WordService wordService,
                      ExpressionService expressionService,
+                     IntervalService intervalService,
                      AuthService authService,
                      ConfigData configData,
                      SortRules sortRules,
@@ -63,6 +66,7 @@ public class DtoMapper {
                      Messages messages) {
         this.wordService = wordService;
         this.authService = authService;
+        this.intervalService = intervalService;
         this.expressionService = expressionService;
         this.configData = configData;
         this.sortRules = sortRules;
@@ -129,7 +133,8 @@ public class DtoMapper {
     }
 
     public Word toWord(WordAddRequest dto) {
-        return new Word(dto.getUserID(), wordService.getLowestRepeatInterval(dto.getUserID()), clock).
+        int lowestInterval = intervalService.getLowestInterval(dto.getUserID());
+        return new Word(dto.getUserID(), lowestInterval, lowestInterval, clock).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
@@ -223,8 +228,8 @@ public class DtoMapper {
     }
 
     public Expression toExpression(ExpressionAddRequest dto) {
-        return Expression.newBuilder(validator).
-                setUserId(dto.getUserID()).
+        int lowestInterval = intervalService.getLowestInterval(dto.getUserID());
+        return new Expression(dto.getUserID(), lowestInterval, lowestInterval, clock).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setInterpretations(toStream(dto.getInterpretations()).
@@ -235,13 +240,11 @@ public class DtoMapper {
                         toList()).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
-                        toList()).
-                setInitialRepeatData(expressionService.getLowestRepeatInterval(dto.getUserID()), clock).
-                build();
+                        toList());
     }
 
     public Expression toExpression(ExpressionUpdateRequest dto) {
-        return expressionService.tryFindById(dto.getUserId(), dto.getExpressionId()).builder().
+        return expressionService.tryFindById(dto.getUserId(), dto.getExpressionId()).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setInterpretations(toStream(dto.getInterpretations()).
@@ -252,8 +255,7 @@ public class DtoMapper {
                         toList()).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
-                        toList()).
-                build();
+                        toList());
     }
 
     public Sort toExpressionSort(String sortRule) {

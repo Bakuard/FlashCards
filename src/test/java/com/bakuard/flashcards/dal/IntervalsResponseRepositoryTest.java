@@ -747,13 +747,9 @@ class IntervalsResponseRepositoryTest {
                                   String note,
                                   int intervalForEnglish,
                                   int intervalForNative) {
-        return Expression.newBuilder(validator).
-                setUserId(userId).
+        return new Expression(userId, intervalForEnglish, intervalForNative, clock).
                 setValue(value).
-                setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(intervalForEnglish, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(intervalForNative, LocalDate.now(clock))).
-                build();
+                setNote(note);
     }
 
     private List<Word> findAllWords() {

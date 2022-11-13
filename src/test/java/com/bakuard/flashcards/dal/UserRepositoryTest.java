@@ -128,10 +128,6 @@ class UserRepositoryTest {
     }
 
 
-    private UUID toUUID(int number) {
-        return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
-    }
-
     private String toEmail(int number) {
         return "user" + number + "@gmail.com";
     }

@@ -113,8 +113,9 @@ public class SpringConfig implements WebMvcConfigurer {
         public ExpressionService expressionService(ExpressionRepository expressionRepository,
                                                    IntervalRepository intervalRepository,
                                                    Clock clock,
-                                                   ConfigData configData) {
-                return new ExpressionService(expressionRepository, intervalRepository, clock, configData);
+                                                   ConfigData configData,
+                                                   ValidatorUtil validator) {
+                return new ExpressionService(expressionRepository, intervalRepository, clock, configData, validator);
         }
 
         @Bean
@@ -174,6 +175,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public DtoMapper dtoMapper(WordService wordService,
                                    ExpressionService expressionService,
+                                   IntervalService intervalService,
                                    AuthService authService,
                                    ConfigData configData,
                                    SortRules sortRules,
@@ -182,6 +184,7 @@ public class SpringConfig implements WebMvcConfigurer {
                                    Messages messages) {
                 return new DtoMapper(wordService,
                         expressionService,
+                        intervalService,
                         authService,
                         configData,
                         sortRules,

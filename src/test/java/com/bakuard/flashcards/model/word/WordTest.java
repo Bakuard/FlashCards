@@ -1,8 +1,6 @@
 package com.bakuard.flashcards.model.word;
 
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
-import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -17,8 +15,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.time.Clock;
-import java.time.Duration;
-import java.time.LocalDate;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -60,7 +56,7 @@ class WordTest {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
                 isThrownBy(() -> validator.assertValid(
-                        new Word(null, 0, clock).
+                        new Word(null, 0, 0, clock).
                         setValue(null).
                         setNote("    ").
                         addInterpretation(null).
@@ -116,7 +112,7 @@ class WordTest {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
                 isThrownBy(() -> validator.assertValid(
-                        new Word(toUUID(1), 1, clock).
+                        new Word(toUUID(1), 1, 1, clock).
                         setValue("value").
                         setNote("note").
                         addInterpretation(new WordInterpretation("interpretation1")).
@@ -163,7 +159,7 @@ class WordTest {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
                 isThrownBy(() -> validator.assertValid(
-                        new Word(toUUID(1), 1, clock).
+                        new Word(toUUID(1), 1, 1, clock).
                         setValue("value").
                         setNote("note").
                         addInterpretation(new WordInterpretation("interpretation1")).
@@ -195,7 +191,7 @@ class WordTest {
             """)
     public void createWord4() {
         Assertions.assertThatCode(() ->  validator.assertValid(
-                new Word(toUUID(1), 1, clock).
+                new Word(toUUID(1), 1, 1, clock).
                         setValue("value").
                         setNote("note").
                         addInterpretation(new WordInterpretation("interpretation1")).
@@ -209,14 +205,6 @@ class WordTest {
 
     private UUID toUUID(int number) {
         return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
-    }
-
-    private LocalDate yesterday() {
-        return LocalDate.now(Clock.offset(clock, Duration.ofDays(-1)));
-    }
-
-    private LocalDate today() {
-        return LocalDate.now(clock);
     }
 
 }

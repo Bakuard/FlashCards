@@ -775,13 +775,13 @@ class WordRepositoryTest {
             wordRepository.save(word(user.getId(), "wordB", "noteB", 10));
             wordRepository.save(word(user.getId(), "wordC", "noteC", 10));
             wordRepository.save(
-                    new Word(user.getId(), 1, clock).
+                    new Word(user.getId(), 1, 1, clock).
                             setValue("wordD").
                             setNote("noteD").
                             addTranslation(new WordTranslation("translateX", "noteX"))
             );
             wordRepository.save(
-                    new Word(user.getId(), 1, clock).
+                    new Word(user.getId(), 1, 1, clock).
                             setValue("wordE").
                             setNote("noteE").
                             addTranslation(new WordTranslation("translateX", "noteX"))
@@ -836,15 +836,15 @@ class WordRepositoryTest {
             """)
     public void findByTranslate3() {
         User user = commit(() -> userRepository.save(user(1)));
-        Word wordD = new Word(user.getId(), 1, clock).
+        Word wordD = new Word(user.getId(), 1, 1, clock).
                 setValue("wordD").
                 setNote("noteD").
                 addTranslation(new WordTranslation("translateX", "noteX"));
-        Word wordE = new Word(user.getId(), 1, clock).
+        Word wordE = new Word(user.getId(), 1, 1, clock).
                 setValue("wordE").
                 setNote("noteE").
                 addTranslation(new WordTranslation("translateX", "noteX"));
-        Word wordF = new Word(user.getId(), 1, clock).
+        Word wordF = new Word(user.getId(), 1, 1, clock).
                 setValue("wordF").
                 setNote("noteF").
                 addTranslation(new WordTranslation("translateX", "noteX"));
@@ -964,7 +964,7 @@ class WordRepositoryTest {
                       String value,
                       String note,
                       int interval) {
-        return new Word(userId, interval, clock).
+        return new Word(userId, interval, interval, clock).
                 setValue(value).
                 setNote(note).
                 addTranslation(new WordTranslation("translateA", "noteA")).

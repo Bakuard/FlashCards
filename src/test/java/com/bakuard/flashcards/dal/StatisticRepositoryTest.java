@@ -1129,7 +1129,7 @@ class StatisticRepositoryTest {
                       String value,
                       String note,
                       int interval) {
-        return new Word(userId, interval, clock).
+        return new Word(userId, interval, interval, clock).
                 setValue(value).
                 setNote(note);
     }
@@ -1139,13 +1139,9 @@ class StatisticRepositoryTest {
                                   String value,
                                   String note,
                                   int interval) {
-        return Expression.newBuilder(validator).
-                setUserId(userId).
+        return new Expression(userId, interval, interval, clock).
                 setValue(value).
-                setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
-                build();
+                setNote(note);
     }
 
     private RepeatWordFromEnglishStatistic wordFromEnglish(UUID userId,

@@ -85,16 +85,6 @@ public class Word implements Entity {
         this.repeatDataFromNative = repeatDataFromNative;
     }
 
-    public Word(UUID userId, int lowestInterval, Clock clock) {
-        this.userId = userId;
-        this.interpretations = new ArrayList<>();
-        this.transcriptions = new ArrayList<>();
-        this.translations = new ArrayList<>();
-        this.examples = new ArrayList<>();
-        this.repeatDataFromEnglish = new RepeatDataFromEnglish(lowestInterval, LocalDate.now(clock));
-        this.repeatDataFromNative = new RepeatDataFromNative(lowestInterval, LocalDate.now(clock));
-    }
-
     public Word(UUID userId, int lowestIntervalForEnglish, int lowestIntervalForNative, Clock clock) {
         this.userId = userId;
         this.interpretations = new ArrayList<>();
