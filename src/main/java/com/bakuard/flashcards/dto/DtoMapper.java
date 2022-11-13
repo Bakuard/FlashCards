@@ -283,12 +283,11 @@ public class DtoMapper {
     }
 
     public User toUser(UserUpdateRequest dto) {
-        User user = authService.tryFindById(dto.getUserId());
-        user.setEmail(dto.getEmail());
-        user.changePassword(dto.getPasswordChangeRequest().getCurrentPassword(),
-                dto.getPasswordChangeRequest().getNewPassword());
-        user.setRoles(dto.getRoles().stream().map(this::toRole).toList());
-        return user;
+        return authService.tryFindById(dto.getUserId()).
+                setEmail(dto.getEmail()).
+                setRoles(dto.getRoles().stream().map(this::toRole).toList()).
+                changePassword(dto.getPasswordChangeRequest().getCurrentPassword(),
+                        dto.getPasswordChangeRequest().getNewPassword());
     }
 
     public UserResponse toUserResponse(User user) {

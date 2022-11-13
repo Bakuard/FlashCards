@@ -4,6 +4,7 @@ import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatDataFromEnglish;
 import com.bakuard.flashcards.model.RepeatDataFromNative;
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.filter.SortRules;
@@ -1118,11 +1119,8 @@ class StatisticRepositoryTest {
     }
 
     private User user(int number) {
-        return User.newBuilder(validator).
-                setPassword("password" + number).
-                setEmail("me" + number + "@mail.com").
-                setOrGenerateSalt("salt" + number).
-                build();
+        return new User(new Credential("me" + number + "@mail.com", "password" + number)).
+                setOrGenerateSalt("salt" + number);
     }
 
     private Word word(UUID userId,

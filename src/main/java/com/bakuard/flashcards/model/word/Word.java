@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -105,11 +106,6 @@ public class Word implements Entity {
         return id == null;
     }
 
-    @Override
-    public void setValidator(ValidatorUtil validator) {
-
-    }
-
     public UUID getUserId() {
         return userId;
     }
@@ -123,19 +119,19 @@ public class Word implements Entity {
     }
 
     public List<WordInterpretation> getInterpretations() {
-        return interpretations;
+        return Collections.unmodifiableList(interpretations);
     }
 
     public List<WordTranscription> getTranscriptions() {
-        return transcriptions;
+        return Collections.unmodifiableList(transcriptions);
     }
 
     public List<WordTranslation> getTranslations() {
-        return translations;
+        return Collections.unmodifiableList(translations);
     }
 
     public List<WordExample> getExamples() {
-        return examples;
+        return Collections.unmodifiableList(examples);
     }
 
     public RepeatDataFromEnglish getRepeatDataFromEnglish() {

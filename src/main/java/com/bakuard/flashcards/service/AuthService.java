@@ -56,9 +56,7 @@ public class AuthService {
 
     @Transactional
     public JwsWithUser registerFinalStep(Credential jwsBody) {
-        User user = save(User.newBuilder(validator).
-                setCredential(jwsBody).
-                build());
+        User user = save(new User(jwsBody));
 
         //add default repeat intervals
         intervalRepository.add(user.getId(), 1);
@@ -79,7 +77,6 @@ public class AuthService {
 
     @Transactional
     public JwsWithUser restorePasswordFinalStep(Credential jwsBody) {
-        validator.assertValid(jwsBody);
         User user = tryFindByEmail(jwsBody.email());
         user.setCredential(jwsBody);
         user = save(user);
@@ -89,6 +86,7 @@ public class AuthService {
 
     @Transactional
     public User save(User user) {
+        validator.assertValid(user);
         return userRepository.save(user);
     }
 

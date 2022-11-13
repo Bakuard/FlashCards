@@ -1,6 +1,7 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.TestConfig;
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
@@ -133,14 +134,11 @@ class UserRepositoryTest {
     }
 
     private User user(int number) {
-        return User.newBuilder(validator).
-                setPassword("password" + number).
-                setEmail(toEmail(number)).
+        return new User(new Credential(toEmail(number), "password" + number)).
                 setOrGenerateSalt("salt" + number).
                 addRole("role1").
                 addRole("role2").
-                addRole("role3").
-                build();
+                addRole("role3");
     }
 
     private void commit(Executable executable) {

@@ -27,96 +27,73 @@ class UserTest {
 
     @Test
     @DisplayName("""
-            new User:
+            new Credential:
              email is null,
-             password is null,
-             roles contians null
-             => exception
+             password is null
+            => exception
             """)
-    public void newUser1() {
+    public void newCredential1() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> User.newBuilder(validator).
-                        setEmail(null).
-                        setPassword(null).
-                        addRole((Role) null).
-                        addRole("role1").
-                        build()).
+                isThrownBy(() -> validator.assertValid(new Credential(null, null))).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
                 containsExactlyInAnyOrder("Credential.password.format",
-                        "Credential.email.notNull",
-                        "User.roles.notContainsNull");
+                        "Credential.email.notNull");
     }
 
     @Test
     @DisplayName("""
-            new User:
+            new Credential:
              email string is not email format,
-             password is blank,
-             roles contains duplicates
-             => exception
+             password is blank
+            => exception
             """)
-    public void newUser2() {
+    public void newCredential2() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> User.newBuilder(validator).
-                        setEmail("asdf").
-                        setPassword("      ").
-                        addRole("role1").
-                        addRole("role1").
-                        build()).
+                isThrownBy(() -> validator.assertValid(new Credential("asdf", "     "))).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
                 containsExactlyInAnyOrder("Credential.password.format",
-                        "Credential.email.format",
-                        "User.roles.allUnique");
+                        "Credential.email.format");
     }
 
     @Test
     @DisplayName("""
-            new User:
+            new Credential:
              email is blank,
-             password length < 8,
-             some role is blank
-             => exception
+             password length < 8
+            => exception
             """)
-    public void newUser3() {
+    public void newCredential3() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> User.newBuilder(validator).
-                        setEmail("       ").
-                        setPassword("1234567").
-                        addRole("role1").
-                        addRole("      ").
-                        build()).
+                isThrownBy(() -> validator.assertValid(new Credential("       ", "1234567"))).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
                         InstanceOfAssertFactories.collection(String.class)).
                 containsExactlyInAnyOrder("Credential.password.format",
-                        "Credential.email.format",
-                        "Role.name.notBlank");
+                        "Credential.email.format");
     }
 
     @Test
     @DisplayName("""
-            new User:
+            new Credential:
              email is correct,
              password length > 50
-             => exception
+            => exception
             """)
-    public void newUser4() {
+    public void newCredential4() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> User.newBuilder(validator).
-                        setEmail("me@mail.com").
-                        setPassword("012345678901234567890123456789012345678901234567891").
-                        build()).
+                isThrownBy(() -> validator.assertValid(new Credential("me@mail.com",
+                        "012345678901234567890123456789012345678901234567891"))).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
@@ -126,24 +103,81 @@ class UserTest {
 
     @Test
     @DisplayName("""
+            new User:
+             roles contains null
+             => exception
+            """)
+    public void newUser1() {
+        Assertions.
+                assertThatExceptionOfType(ConstraintViolationException.class).
+                isThrownBy(() -> validator.assertValid(
+                        new User(new Credential("me@mail.com", "password")).
+                                addRole((Role) null).
+                                addRole("role1")
+                )).
+                extracting(ex -> ex.getConstraintViolations().stream().
+                                map(ConstraintViolation::getMessage).
+                                collect(Collectors.toList()),
+                        InstanceOfAssertFactories.collection(String.class)).
+                containsExactlyInAnyOrder("User.roles.notContainsNull");
+    }
+
+    @Test
+    @DisplayName("""
+            new User:
+             roles contains duplicates
+             => exception
+            """)
+    public void newUser2() {
+        Assertions.
+                assertThatExceptionOfType(ConstraintViolationException.class).
+                isThrownBy(() -> validator.assertValid(
+                        new User(new Credential("me@mail.com", "password")).
+                                addRole("role1").
+                                addRole("role1")
+                )).
+                extracting(ex -> ex.getConstraintViolations().stream().
+                                map(ConstraintViolation::getMessage).
+                                collect(Collectors.toList()),
+                        InstanceOfAssertFactories.collection(String.class)).
+                containsExactlyInAnyOrder("User.roles.allUnique");
+    }
+
+    @Test
+    @DisplayName("""
+            new User:
+             some role is blank
+             => exception
+            """)
+    public void newUser3() {
+        Assertions.
+                assertThatExceptionOfType(ConstraintViolationException.class).
+                isThrownBy(() -> validator.assertValid(
+                        new User(new Credential("me@mail.com", "password")).
+                                addRole("role1").
+                                addRole("      ")
+                )).
+                extracting(ex -> ex.getConstraintViolations().stream().
+                                map(ConstraintViolation::getMessage).
+                                collect(Collectors.toList()),
+                        InstanceOfAssertFactories.collection(String.class)).
+                containsExactlyInAnyOrder("Role.name.notBlank");
+    }
+
+    @Test
+    @DisplayName("""
             checkPassword(currentPassword):
              currentPassword is null
              => exception
             """)
     public void checkPassword1() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
-                assertThatExceptionOfType(ConstraintViolationException.class).
+                assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.assertCurrentPassword(null)).
-                extracting(ex -> ex.getConstraintViolations().stream().
-                                map(ConstraintViolation::getMessage).
-                                collect(Collectors.toSet()),
-                        InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("Password.format");
+                extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.password.format");
     }
 
     @Test
@@ -153,19 +187,13 @@ class UserTest {
              => exception
             """)
     public void checkPassword2() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
-                assertThatExceptionOfType(ConstraintViolationException.class).
+                assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.assertCurrentPassword("       ")).
-                extracting(ex -> ex.getConstraintViolations().stream().
-                                map(ConstraintViolation::getMessage).
-                                collect(Collectors.toSet()),
-                        InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("Password.format");
+                extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.password.format");
     }
 
     @Test
@@ -175,19 +203,13 @@ class UserTest {
              => exception
             """)
     public void checkPassword3() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
-                assertThatExceptionOfType(ConstraintViolationException.class).
+                assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.assertCurrentPassword("1234567")).
-                extracting(ex -> ex.getConstraintViolations().stream().
-                                map(ConstraintViolation::getMessage).
-                                collect(Collectors.toSet()),
-                        InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("Password.format");
+                extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.password.format");
     }
 
     @Test
@@ -197,20 +219,14 @@ class UserTest {
              => exception
             """)
     public void checkPassword4() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
-                assertThatExceptionOfType(ConstraintViolationException.class).
+                assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() ->
                         user.assertCurrentPassword("012345678901234567890123456789012345678901234567891")).
-                extracting(ex -> ex.getConstraintViolations().stream().
-                                map(ConstraintViolation::getMessage).
-                                collect(Collectors.toSet()),
-                        InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("Password.format");
+                extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.password.format");
     }
 
     @Test
@@ -220,10 +236,7 @@ class UserTest {
              => do nothing
             """)
     public void checkPassword5() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
                 assertThatCode(() -> user.assertCurrentPassword("password")).
@@ -237,19 +250,13 @@ class UserTest {
              => exception
             """)
     public void changePassword1() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
-                assertThatExceptionOfType(ConstraintViolationException.class).
+                assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.changePassword("password", null)).
-                extracting(ex -> ex.getConstraintViolations().stream().
-                                map(ConstraintViolation::getMessage).
-                                collect(Collectors.toSet()),
-                        InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("NewPassword.format");
+                extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.newPassword.format");
     }
 
     @Test
@@ -259,19 +266,13 @@ class UserTest {
              => exception
             """)
     public void changePassword2() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
-                assertThatExceptionOfType(ConstraintViolationException.class).
+                assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.changePassword("password", "     ")).
-                extracting(ex -> ex.getConstraintViolations().stream().
-                                map(ConstraintViolation::getMessage).
-                                collect(Collectors.toSet()),
-                        InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("NewPassword.format");
+                extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.newPassword.format");
     }
 
     @Test
@@ -281,19 +282,13 @@ class UserTest {
              => exception
             """)
     public void changePassword3() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
-                assertThatExceptionOfType(ConstraintViolationException.class).
+                assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.changePassword("password", "1234567")).
-                extracting(ex -> ex.getConstraintViolations().stream().
-                                map(ConstraintViolation::getMessage).
-                                collect(Collectors.toSet()),
-                        InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("NewPassword.format");
+                extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.newPassword.format");
     }
 
     @Test
@@ -303,20 +298,14 @@ class UserTest {
              => exception
             """)
     public void changePassword4() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
-                assertThatExceptionOfType(ConstraintViolationException.class).
+                assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.changePassword("password",
                                 "01234567890123456789012345678901234567890123456789X")).
-                extracting(ex -> ex.getConstraintViolations().stream().
-                                map(ConstraintViolation::getMessage).
-                                collect(Collectors.toSet()),
-                        InstanceOfAssertFactories.collection(String.class)).
-                containsOnly("NewPassword.format");
+                extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.newPassword.format");
     }
 
     @Test
@@ -326,27 +315,23 @@ class UserTest {
              => exception
             """)
     public void changePassword5() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
                 assertThatExceptionOfType(IncorrectCredentials.class).
-                isThrownBy(() -> user.changePassword("unknown pass", "12345678"));
+                isThrownBy(() -> user.changePassword("unknown pass", "12345678")).
+                extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.password.incorrect");
     }
 
     @Test
     @DisplayName("""
             changePassword:
              currentPassword is correct, newPassword is correct
-             => exception
+             => doesn't throw any exception
             """)
     public void changePassword6() {
-        User user = User.newBuilder(validator).
-                setEmail("me@gmail.com").
-                setPassword("password").
-                build();
+        User user = new User(new Credential("me@gmail.com", "password"));
 
         user.changePassword("password", "12345678");
 

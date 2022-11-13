@@ -4,6 +4,7 @@ import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatDataFromEnglish;
 import com.bakuard.flashcards.model.RepeatDataFromNative;
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.word.*;
 import com.bakuard.flashcards.validation.ValidatorUtil;
@@ -953,11 +954,11 @@ class WordRepositoryTest {
     }
 
     private User user(int number) {
-        return User.newBuilder(validator).
-                setPassword("password" + number).
-                setEmail("me" + number + "@mail.com").
+        return new User(new Credential("me" + number + "@mail.com", "password" + number)).
                 setOrGenerateSalt("salt" + number).
-                build();
+                addRole("role1").
+                addRole("role2").
+                addRole("role3");
     }
 
     private Word word(UUID userId,

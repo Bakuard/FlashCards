@@ -25,7 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
-import org.springframework.data.relational.core.mapping.event.AfterConvertEvent;
 import org.springframework.data.relational.core.mapping.event.BeforeConvertEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -194,15 +193,6 @@ public class TestConfig {
         return event -> {
             if(event.getEntity() instanceof Entity entity) {
                 entity.generateIdIfAbsent();
-            }
-        };
-    }
-
-    @Bean
-    public ApplicationListener<AfterConvertEvent<?>> afterLoad(final ValidatorUtil validator) {
-        return event -> {
-            if(event.getEntity() instanceof Entity entity) {
-                entity.setValidator(validator);
             }
         };
     }

@@ -4,6 +4,7 @@ import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatDataFromEnglish;
 import com.bakuard.flashcards.model.RepeatDataFromNative;
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.expression.ExpressionExample;
@@ -871,14 +872,11 @@ class ExpressionRepositoryTest {
     }
 
     private User user(int number) {
-        return User.newBuilder(validator).
-                setPassword("password" + number).
+        return new User(new Credential("me" + number + "@mail.com", "password" + number)).
                 setOrGenerateSalt("salt" + number).
-                setEmail("me" + number + "@mail.com").
                 addRole("role1").
                 addRole("role2").
-                addRole("role3").
-                build();
+                addRole("role3");
     }
 
     private Expression expression(UUID userId,

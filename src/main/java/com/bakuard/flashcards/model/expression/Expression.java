@@ -106,11 +106,6 @@ public class Expression implements Entity {
         return id == null;
     }
 
-    @Override
-    public void setValidator(ValidatorUtil validator) {
-
-    }
-
     public UUID getUserId() {
         return userId;
     }
