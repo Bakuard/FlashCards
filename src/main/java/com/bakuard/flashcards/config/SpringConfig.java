@@ -16,6 +16,7 @@ import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.*;
+import com.bakuard.flashcards.service.wordSupplementation.WordSupplementationService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -171,6 +172,11 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public StatisticService statisticService(StatisticRepository statisticRepository, Clock clock) {
                 return new StatisticService(statisticRepository, clock);
+        }
+
+        @Bean
+        public WordSupplementationService wordSupplementationService() {
+             return new WordSupplementationService();
         }
 
         @Bean

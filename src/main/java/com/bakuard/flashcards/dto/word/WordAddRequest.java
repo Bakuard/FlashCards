@@ -17,7 +17,7 @@ public class WordAddRequest {
             Идентификатор пользователя, в словарь которого будет добавленно слово. <br/>
             Ограничения: не должен быть null.
             """)
-    private UUID userID;
+    private UUID userId;
     @Schema(description = """
             Значение слова. <br/>
             Должно представлять собой не пустую строку.
@@ -65,12 +65,12 @@ public class WordAddRequest {
 
     }
 
-    public UUID getUserID() {
-        return userID;
+    public UUID getUserId() {
+        return userId;
     }
 
-    public WordAddRequest setUserID(UUID userID) {
-        this.userID = userID;
+    public WordAddRequest setUserId(UUID userId) {
+        this.userId = userId;
         return this;
     }
 
@@ -133,7 +133,7 @@ public class WordAddRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WordAddRequest that = (WordAddRequest) o;
-        return Objects.equals(userID, that.userID) &&
+        return Objects.equals(userId, that.userId) &&
                 Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
                 Objects.equals(transcriptions, that.transcriptions) &&
@@ -144,13 +144,13 @@ public class WordAddRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(userID, value, note, transcriptions, interpretations, translates, examples);
+        return Objects.hash(userId, value, note, transcriptions, interpretations, translates, examples);
     }
 
     @Override
     public String toString() {
         return "WordAddRequest{" +
-                "userID=" + userID +
+                "userId=" + userId +
                 ", value='" + value + '\'' +
                 ", note='" + note + '\'' +
                 ", transcriptions=" + transcriptions +

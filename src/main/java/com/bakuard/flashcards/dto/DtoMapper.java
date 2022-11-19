@@ -133,8 +133,8 @@ public class DtoMapper {
     }
 
     public Word toWord(WordAddRequest dto) {
-        int lowestInterval = intervalService.getLowestInterval(dto.getUserID());
-        return new Word(dto.getUserID(), lowestInterval, lowestInterval, clock).
+        int lowestInterval = intervalService.getLowestInterval(dto.getUserId());
+        return new Word(dto.getUserId(), lowestInterval, lowestInterval, clock).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
