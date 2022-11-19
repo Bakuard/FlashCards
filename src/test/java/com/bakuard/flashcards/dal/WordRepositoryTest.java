@@ -36,7 +36,7 @@ import java.util.function.Supplier;
 class WordRepositoryTest {
 
     @Autowired
-    private WordRepository wordRepository;
+    private WordOuterRepository wordRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired

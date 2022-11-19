@@ -13,17 +13,17 @@ import java.sql.SQLException;
 import java.time.Clock;
 import java.util.*;
 
-public class WordSourceInfoImpl implements WordSourceInfo<Word> {
+public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer<Word> {
 
     private JdbcTemplate jdbcTemplate;
     private JdbcAggregateOperations jdbcAggregateOperations;
     private ConfigData configData;
     private Clock clock;
 
-    public WordSourceInfoImpl(JdbcTemplate jdbcTemplate,
-                              JdbcAggregateOperations jdbcAggregateOperations,
-                              ConfigData configData,
-                              Clock clock) {
+    public WordOuterSourceBufferImpl(JdbcTemplate jdbcTemplate,
+                                     JdbcAggregateOperations jdbcAggregateOperations,
+                                     ConfigData configData,
+                                     Clock clock) {
         this.jdbcTemplate = jdbcTemplate;
         this.jdbcAggregateOperations = jdbcAggregateOperations;
         this.configData = configData;

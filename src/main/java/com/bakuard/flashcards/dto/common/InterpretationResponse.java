@@ -2,6 +2,8 @@ package com.bakuard.flashcards.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Schema(description = "Толкование слова или устойчевого выражения")
@@ -12,14 +14,11 @@ public class InterpretationResponse {
             Должно представлять собой не пустую строку.
             """)
     private String value;
-    @Schema(description = """
-            Указывает - была ли добавлена данная интерпретация автоматически при дополнении слова.
-             Если это так - возвращает true.
-            """)
-    private boolean isNew;
+    @Schema(description = "Данные всех внешних источников из которых получено данное толкование.")
+    private List<SourceInfoResponse> sourceInfo;
 
     public InterpretationResponse() {
-
+        sourceInfo = new ArrayList<>();
     }
 
     public String getValue() {
@@ -31,12 +30,12 @@ public class InterpretationResponse {
         return this;
     }
 
-    public boolean isNew() {
-        return isNew;
+    public List<SourceInfoResponse> getSourceInfo() {
+        return sourceInfo;
     }
 
-    public InterpretationResponse setNew(boolean aNew) {
-        isNew = aNew;
+    public InterpretationResponse setSourceInfo(List<SourceInfoResponse> sourceInfo) {
+        this.sourceInfo = sourceInfo;
         return this;
     }
 
@@ -45,19 +44,19 @@ public class InterpretationResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         InterpretationResponse that = (InterpretationResponse) o;
-        return isNew == that.isNew && Objects.equals(value, that.value);
+        return Objects.equals(value, that.value) && Objects.equals(sourceInfo, that.sourceInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, isNew);
+        return Objects.hash(value, sourceInfo);
     }
 
     @Override
     public String toString() {
         return "InterpretationResponse{" +
                 "value='" + value + '\'' +
-                ", isNew=" + isNew +
+                ", sourceInfo=" + sourceInfo +
                 '}';
     }
 

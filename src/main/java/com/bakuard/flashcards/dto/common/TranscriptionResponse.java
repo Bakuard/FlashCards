@@ -2,6 +2,7 @@ package com.bakuard.flashcards.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.List;
 import java.util.Objects;
 
 @Schema(description = "Транскрипция слова.")
@@ -17,11 +18,8 @@ public class TranscriptionResponse {
             Должно представлять собой не пустую строку или иметь значение null.
             """)
     private String note;
-    @Schema(description = """
-            Указывает - была ли добавлена данная транскрипция автоматически при дополнении слова.
-             Если это так - возвращает true.
-            """)
-    private boolean isNew;
+    @Schema(description = "Данные всех внешних источников из которых получена данная транскрипция.")
+    private List<SourceInfoResponse> sourceInfo;
 
     public TranscriptionResponse() {
 
@@ -45,12 +43,12 @@ public class TranscriptionResponse {
         return this;
     }
 
-    public boolean isNew() {
-        return isNew;
+    public List<SourceInfoResponse> getSourceInfo() {
+        return sourceInfo;
     }
 
-    public TranscriptionResponse setNew(boolean aNew) {
-        isNew = aNew;
+    public TranscriptionResponse setSourceInfo(List<SourceInfoResponse> sourceInfo) {
+        this.sourceInfo = sourceInfo;
         return this;
     }
 
@@ -59,14 +57,14 @@ public class TranscriptionResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TranscriptionResponse that = (TranscriptionResponse) o;
-        return isNew == that.isNew &&
-                Objects.equals(value, that.value) &&
-                Objects.equals(note, that.note);
+        return Objects.equals(value, that.value) &&
+                Objects.equals(note, that.note) &&
+                Objects.equals(sourceInfo, that.sourceInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note, isNew);
+        return Objects.hash(value, note, sourceInfo);
     }
 
     @Override
@@ -74,7 +72,7 @@ public class TranscriptionResponse {
         return "TranscriptionResponse{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
-                ", isNew=" + isNew +
+                ", sourceInfo=" + sourceInfo +
                 '}';
     }
 

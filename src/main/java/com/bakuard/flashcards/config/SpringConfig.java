@@ -10,8 +10,8 @@ import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.StatisticRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.fragment.UserSaver;
 import com.bakuard.flashcards.dal.impl.fragment.UserSaverImpl;
-import com.bakuard.flashcards.dal.impl.fragment.WordSourceInfo;
-import com.bakuard.flashcards.dal.impl.fragment.WordSourceInfoImpl;
+import com.bakuard.flashcards.dal.impl.fragment.WordOuterSourceBuffer;
+import com.bakuard.flashcards.dal.impl.fragment.WordOuterSourceBufferImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
@@ -96,11 +96,11 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public WordSourceInfo wordSourceInfo(JdbcTemplate jdbcTemplate,
-                                             JdbcAggregateOperations jdbcAggregateOperations,
-                                             ConfigData configData,
-                                             Clock clock) {
-                return new WordSourceInfoImpl(jdbcTemplate, jdbcAggregateOperations, configData, clock);
+        public WordOuterSourceBuffer wordSourceInfo(JdbcTemplate jdbcTemplate,
+                                                    JdbcAggregateOperations jdbcAggregateOperations,
+                                                    ConfigData configData,
+                                                    Clock clock) {
+                return new WordOuterSourceBufferImpl(jdbcTemplate, jdbcAggregateOperations, configData, clock);
         }
 
         @Bean
@@ -121,7 +121,7 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public WordService wordService(WordRepository wordRepository,
+        public WordService wordService(WordOuterRepository wordRepository,
                                        IntervalRepository intervalRepository,
                                        Clock clock,
                                        ConfigData configData,

@@ -2,8 +2,6 @@ package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
-import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
@@ -30,7 +28,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.Clock;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -45,7 +42,7 @@ class IntervalsResponseRepositoryTest {
     @Autowired
     private IntervalRepository intervalRepository;
     @Autowired
-    private WordRepository wordRepository;
+    private WordOuterRepository wordRepository;
     @Autowired
     private ExpressionRepository expressionRepository;
     @Autowired

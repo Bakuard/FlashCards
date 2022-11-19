@@ -412,24 +412,42 @@ public class DtoMapper {
         return new ExampleResponse().
                 setOrigin(wordExample.getOrigin()).
                 setTranslate(wordExample.getTranslate()).
-                setNote(wordExample.getNote());
+                setNote(wordExample.getNote()).
+                setSourceInfo(wordExample.getSourceInfo().stream().
+                        map(this::toSourceInfoResponse).
+                        toList());
     }
 
     private InterpretationResponse toInterpretationResponse(WordInterpretation wordInterpretation) {
         return new InterpretationResponse().
-                setValue(wordInterpretation.getValue());
+                setValue(wordInterpretation.getValue()).
+                setSourceInfo(wordInterpretation.getSourceInfo().stream().
+                        map(this::toSourceInfoResponse).
+                        toList());
     }
 
     private TranscriptionResponse toTranscriptionResponse(WordTranscription wordTranscription) {
         return new TranscriptionResponse().
                 setValue(wordTranscription.getValue()).
-                setNote(wordTranscription.getNote());
+                setNote(wordTranscription.getNote()).
+                setSourceInfo(wordTranscription.getSourceInfo().stream().
+                        map(this::toSourceInfoResponse).
+                        toList());
     }
 
     private TranslateResponse toTranslateResponse(WordTranslation wordTranslation) {
         return new TranslateResponse().
                 setValue(wordTranslation.getValue()).
-                setNote(wordTranslation.getNote());
+                setNote(wordTranslation.getNote()).
+                setSourceInfo(wordTranslation.getSourceInfo().stream().
+                        map(this::toSourceInfoResponse).
+                        toList());
+    }
+
+    private SourceInfoResponse toSourceInfoResponse(SourceInfo sourceInfo) {
+        return new SourceInfoResponse().
+                setOuterSourceName(sourceInfo.sourceName()).
+                setOuterSourceUrl(sourceInfo.url());
     }
 
 

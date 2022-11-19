@@ -8,7 +8,7 @@ import com.bakuard.flashcards.model.word.WordTranslation;
 import java.util.List;
 import java.util.UUID;
 
-public interface WordSourceInfo<T> {
+public interface WordOuterSourceBuffer<T> {
 
     public T save(T word);
 

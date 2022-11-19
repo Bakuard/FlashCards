@@ -2,6 +2,8 @@ package com.bakuard.flashcards.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Schema(description = "Пример использования слова или устойчевого выражения.")
@@ -13,14 +15,11 @@ public class ExampleResponse {
     private String translate;
     @Schema(description = "Примечание к примеру.")
     private String note;
-    @Schema(description = """
-            Указывает - был ли переведен данный пример автоматически при дополнении слова или выражения.
-             Если это так - возвращает true.
-            """)
-    private boolean isNew;
+    @Schema(description = "Данные всех внешних источников из которых получен перевод для данного примера.")
+    private List<SourceInfoResponse> sourceInfo;
 
     public ExampleResponse() {
-
+        sourceInfo = new ArrayList<>();
     }
 
     public String getOrigin() {
@@ -50,12 +49,12 @@ public class ExampleResponse {
         return this;
     }
 
-    public boolean isNew() {
-        return isNew;
+    public List<SourceInfoResponse> getSourceInfo() {
+        return sourceInfo;
     }
 
-    public ExampleResponse setNew(boolean aNew) {
-        isNew = aNew;
+    public ExampleResponse setSourceInfo(List<SourceInfoResponse> sourceInfo) {
+        this.sourceInfo = sourceInfo;
         return this;
     }
 
@@ -64,15 +63,15 @@ public class ExampleResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExampleResponse that = (ExampleResponse) o;
-        return isNew == that.isNew &&
-                Objects.equals(origin, that.origin) &&
+        return Objects.equals(origin, that.origin) &&
                 Objects.equals(translate, that.translate) &&
-                Objects.equals(note, that.note);
+                Objects.equals(note, that.note) &&
+                Objects.equals(sourceInfo, that.sourceInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(origin, translate, note, isNew);
+        return Objects.hash(origin, translate, note, sourceInfo);
     }
 
     @Override
@@ -81,7 +80,7 @@ public class ExampleResponse {
                 "origin='" + origin + '\'' +
                 ", translate='" + translate + '\'' +
                 ", note='" + note + '\'' +
-                ", isNew=" + isNew +
+                ", sourceInfo=" + sourceInfo +
                 '}';
     }
 

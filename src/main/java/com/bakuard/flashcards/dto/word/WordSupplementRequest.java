@@ -22,7 +22,7 @@ public class WordSupplementRequest {
     private UUID userID;
     @Schema(description = """
             Значение слова. <br/>
-            Должно представлять собой не пустую строку.
+            Ограничения: не должно быть пустой строкой.
             """)
     private String value;
     @Schema(description = """

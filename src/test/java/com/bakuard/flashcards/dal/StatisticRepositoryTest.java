@@ -3,8 +3,6 @@ package com.bakuard.flashcards.dal;
 import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
-import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
@@ -49,7 +47,7 @@ class StatisticRepositoryTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private WordRepository wordRepository;
+    private WordOuterRepository wordRepository;
     @Autowired
     private ExpressionRepository expressionRepository;
     @Autowired

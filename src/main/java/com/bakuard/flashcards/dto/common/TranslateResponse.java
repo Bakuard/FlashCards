@@ -2,6 +2,8 @@ package com.bakuard.flashcards.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Schema(description = "Один из переводов слова или устойчевого выражения.")
@@ -17,14 +19,11 @@ public class TranslateResponse {
             Должно представлять собой не пустую строку или иметь значение null.
             """)
     private String note;
-    @Schema(description = """
-            Указывает - был ли добавлен данный перевод автоматически при дополнении слова или выражения.
-             Если это так - возвращает true.
-            """)
-    private boolean isNew;
+    @Schema(description = "Данные всех внешних источников из которых получен данный перевод.")
+    private List<SourceInfoResponse> sourceInfo;
 
     public TranslateResponse() {
-
+        sourceInfo = new ArrayList<>();
     }
 
     public String getValue() {
@@ -45,12 +44,12 @@ public class TranslateResponse {
         return this;
     }
 
-    public boolean isNew() {
-        return isNew;
+    public List<SourceInfoResponse> getSourceInfo() {
+        return sourceInfo;
     }
 
-    public TranslateResponse setNew(boolean aNew) {
-        isNew = aNew;
+    public TranslateResponse setSourceInfo(List<SourceInfoResponse> sourceInfo) {
+        this.sourceInfo = sourceInfo;
         return this;
     }
 
@@ -59,14 +58,14 @@ public class TranslateResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TranslateResponse that = (TranslateResponse) o;
-        return isNew == that.isNew &&
-                Objects.equals(value, that.value) &&
-                Objects.equals(note, that.note);
+        return Objects.equals(value, that.value) &&
+                Objects.equals(note, that.note) &&
+                Objects.equals(sourceInfo, that.sourceInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note, isNew);
+        return Objects.hash(value, note, sourceInfo);
     }
 
     @Override
@@ -74,7 +73,7 @@ public class TranslateResponse {
         return "TranslateResponse{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
-                ", isNew=" + isNew +
+                ", sourceInfo=" + sourceInfo +
                 '}';
     }
 
