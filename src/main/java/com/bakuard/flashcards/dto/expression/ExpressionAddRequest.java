@@ -19,7 +19,7 @@ public class ExpressionAddRequest {
     private UUID userID;
     @Schema(description = """
             Значение устойчевого выражения. <br/>
-            Должно представлять собой не пустую строку.
+            Ограничения: не должно быть пустой строкой.
             """)
     private String value;
     @Schema(description = """

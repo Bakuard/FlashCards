@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.model.word;
 
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class WordTest {
 
     @Autowired
@@ -46,7 +47,7 @@ class WordTest {
              - note is blank,
              examples contains items with:
              - origin is null,
-             - translate is null,
+             - translate is blank,
              - note is blank
              repeat intervals:
              - lowest interval < 1
@@ -66,7 +67,7 @@ class WordTest {
                         addTranslation(null).
                         addTranslation(new WordTranslation(null, "    ")).
                         addExample(null).
-                        addExample(new WordExample(null, null, "   "))
+                        addExample(new WordExample(null, "    ", "   "))
                 )).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
@@ -88,7 +89,7 @@ class WordTest {
                         "WordTranslation.value.notBlank",
                         "WordTranslation.note.notBlankOrNull",
                         "WordExample.origin.notBlank",
-                        "WordExample.translate.notBlank",
+                        "WordExample.translate.notBlankOrNull",
                         "WordExample.note.notBlankOrNull",
 
                         "RepeatDataFromEnglish.interval.min",
@@ -151,7 +152,7 @@ class WordTest {
              - note is null,
              examples contains items with:
              - origin is blank,
-             - translate is blank,
+             - translate is null,
              - note is null
              => exception
             """)
@@ -169,7 +170,7 @@ class WordTest {
                         addTranslation(new WordTranslation("translation1", "note1")).
                         addTranslation(new WordTranslation("     ", null)).
                         addExample(new WordExample("example1", "translate1", "note1")).
-                        addExample(new WordExample("    ", "     ", null))
+                        addExample(new WordExample("    ", null, null))
                 )).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
@@ -179,8 +180,7 @@ class WordTest {
                         "WordInterpretation.value.notBlank",
                         "WordTranscription.value.notBlank",
                         "WordTranslation.value.notBlank",
-                        "WordExample.origin.notBlank",
-                        "WordExample.translate.notBlank");
+                        "WordExample.origin.notBlank");
     }
 
     @Test

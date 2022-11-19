@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.model.auth.credential;
 
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.validation.IncorrectCredentials;
 import com.bakuard.flashcards.validation.ValidatorUtil;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class UserTest {
 
     @Autowired

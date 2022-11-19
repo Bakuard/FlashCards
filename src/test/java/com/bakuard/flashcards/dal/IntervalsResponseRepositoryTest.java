@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.dal;
 
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatDataFromEnglish;
 import com.bakuard.flashcards.model.RepeatDataFromNative;
@@ -36,7 +37,7 @@ import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class IntervalsResponseRepositoryTest {
 
     @Autowired
@@ -66,7 +67,10 @@ class IntervalsResponseRepositoryTest {
                 "repeat_words_from_english_statistic",
                 "repeat_words_from_native_statistic",
                 "repeat_expressions_from_english_statistic",
-                "repeat_expressions_from_native_statistic"
+                "repeat_expressions_from_native_statistic",
+                "words_interpretations_outer_source",
+                "words_transcriptions_outer_source",
+                "words_translations_outer_source"
         ));
     }
 

@@ -80,27 +80,30 @@ CREATE TABLE words_examples (
 );
 
 CREATE TABLE words_interpretations_outer_source (
-    word_id UUID NOT NULL,
+    word_value VARCHAR(64) NOT NULL,
     interpretation VARCHAR(512) NOT NULL,
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
-    FOREIGN KEY (word_id, interpretation) REFERENCES words_interpretations(word_id, value) ON DELETE CASCADE ON UPDATE CASCADE
+    recent_update_date DATE NOT NULL,
+    UNIQUE(word_value, interpretation, outer_source_name, outer_source_url)
 );
 
 CREATE TABLE words_transcriptions_outer_source (
-    word_id UUID NOT NULL,
-    transcription VARCHAR(512) NOT NULL,
+    word_value VARCHAR(64) NOT NULL,
+    transcription VARCHAR(128) NOT NULL,
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
-    FOREIGN KEY (word_id, transcription) REFERENCES words_transcriptions(word_id, value) ON DELETE CASCADE ON UPDATE CASCADE
+    recent_update_date DATE NOT NULL,
+    UNIQUE(word_value, transcription, outer_source_name, outer_source_url)
 );
 
 CREATE TABLE words_translations_outer_source (
-    word_id UUID NOT NULL,
-    translation VARCHAR(512) NOT NULL,
+    word_value VARCHAR(64) NOT NULL,
+    translation VARCHAR(64) NOT NULL,
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
-    FOREIGN KEY (word_id, translation) REFERENCES words_translations(word_id, value) ON DELETE CASCADE ON UPDATE CASCADE
+    recent_update_date DATE NOT NULL,
+    UNIQUE(word_value, translation, outer_source_name, outer_source_url)
 );
 
 CREATE TABLE words_examples_outer_source (
@@ -108,7 +111,10 @@ CREATE TABLE words_examples_outer_source (
     example VARCHAR(512) NOT NULL,
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
-    FOREIGN KEY (word_id, example) REFERENCES words_examples(word_id, origin) ON DELETE CASCADE ON UPDATE CASCADE
+    recent_update_date DATE NOT NULL,
+    index INT NOT NULL,
+    FOREIGN KEY(word_id, example) REFERENCES words_examples(word_id, origin) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE(word_id, example, outer_source_name, outer_source_url)
 );
 
 ---------------------------------------------EXPRESSIONS-------------------------------------------------

@@ -18,7 +18,7 @@ public class WordExample {
     @NotBlank(message = "WordExample.origin.notBlank")
     private String origin;
     @Column("translate")
-    @NotBlank(message = "WordExample.translate.notBlank")
+    @NotBlankOrNull(message = "WordExample.translate.notBlankOrNull")
     private String translate;
     @Column("note")
     @NotBlankOrNull(message = "WordExample.note.notBlankOrNull")

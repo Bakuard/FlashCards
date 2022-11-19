@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.dto.expression;
 
-import com.bakuard.flashcards.dto.common.ExampleSupplementRequest;
+import com.bakuard.flashcards.dto.common.ExampleRequest;
 import com.bakuard.flashcards.dto.common.InterpretationRequest;
 import com.bakuard.flashcards.dto.common.TranslateRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -52,7 +52,7 @@ public class ExpressionSupplementRequest {
             2. Не должен содержать дубликатов <br/>
             Сам список может принимать значение null либо быть пустым.
             """)
-    private List<ExampleSupplementRequest> examples;
+    private List<ExampleRequest> examples;
 
     public ExpressionSupplementRequest() {
 
@@ -103,11 +103,11 @@ public class ExpressionSupplementRequest {
         return this;
     }
 
-    public List<ExampleSupplementRequest> getExamples() {
+    public List<ExampleRequest> getExamples() {
         return examples;
     }
 
-    public ExpressionSupplementRequest setExamples(List<ExampleSupplementRequest> examples) {
+    public ExpressionSupplementRequest setExamples(List<ExampleRequest> examples) {
         this.examples = examples;
         return this;
     }

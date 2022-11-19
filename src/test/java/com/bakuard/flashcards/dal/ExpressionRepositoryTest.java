@@ -1,6 +1,7 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.MutableClock;
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatDataFromEnglish;
 import com.bakuard.flashcards.model.RepeatDataFromNative;
@@ -36,7 +37,7 @@ import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class ExpressionRepositoryTest {
 
     @Autowired
@@ -62,7 +63,10 @@ class ExpressionRepositoryTest {
                 "repeat_words_from_english_statistic",
                 "repeat_words_from_native_statistic",
                 "repeat_expressions_from_english_statistic",
-                "repeat_expressions_from_native_statistic"
+                "repeat_expressions_from_native_statistic",
+                "words_interpretations_outer_source",
+                "words_transcriptions_outer_source",
+                "words_translations_outer_source"
         ));
         clock.setDate(2022, 7, 7);
     }
@@ -81,7 +85,7 @@ class ExpressionRepositoryTest {
         commit(() -> expressionRepository.save(expected));
 
         Expression actual = expressionRepository.findById(expected.getId()).orElseThrow();
-        org.assertj.core.api.Assertions.
+        Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
                 isEqualTo(actual);
@@ -118,10 +122,10 @@ class ExpressionRepositoryTest {
 
         Expression actual = expressionRepository.findById(user.getId(), expected.getId()).orElseThrow();
 
-        org.assertj.core.api.Assertions.
-                assertThat(expected).
+        Assertions.
+                assertThat(actual).
                 usingRecursiveComparison().
-                isEqualTo(actual);
+                isEqualTo(expected);
     }
 
     @Test
@@ -179,7 +183,7 @@ class ExpressionRepositoryTest {
 
         long actual = expressionRepository.countForValue(user.getId(), "frog", 2);
 
-        org.assertj.core.api.Assertions.assertThat(actual).isEqualTo(2);
+        Assertions.assertThat(actual).isEqualTo(2);
     }
 
     @Test
@@ -267,10 +271,10 @@ class ExpressionRepositoryTest {
              => do nothing
             """)
     public void deleteById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expected = commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
 
         commit(() -> expressionRepository.deleteById(user.getId(), toUUID(1)));
 
@@ -284,10 +288,10 @@ class ExpressionRepositoryTest {
              => delete this expression
             """)
     public void deleteById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expected = commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
 
         commit(() -> expressionRepository.deleteById(user.getId(), expected.getId()));
 
@@ -301,10 +305,10 @@ class ExpressionRepositoryTest {
              => return false
             """)
     public void existsById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Assertions.assertThat(expressionRepository.existsById(user.getId(), toUUID(1))).isFalse();
     }
@@ -316,10 +320,10 @@ class ExpressionRepositoryTest {
              => return true
             """)
     public void existsById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expected = commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Assertions.assertThat(expressionRepository.existsById(user.getId(), expected.getId())).isTrue();
     }

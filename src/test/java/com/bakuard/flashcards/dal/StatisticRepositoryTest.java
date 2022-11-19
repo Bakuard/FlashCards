@@ -1,6 +1,7 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.MutableClock;
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatDataFromEnglish;
 import com.bakuard.flashcards.model.RepeatDataFromNative;
@@ -40,7 +41,7 @@ import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class StatisticRepositoryTest {
 
     @Autowired
@@ -68,7 +69,10 @@ class StatisticRepositoryTest {
                 "expressions",
                 "words",
                 "intervals",
-                "users"
+                "users",
+                "words_interpretations_outer_source",
+                "words_transcriptions_outer_source",
+                "words_translations_outer_source"
         ));
         clock.setDate(2022, 7, 7);
     }

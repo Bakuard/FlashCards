@@ -1,9 +1,8 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.MutableClock;
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
-import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.word.*;
@@ -33,7 +32,7 @@ import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class WordRepositoryTest {
 
     @Autowired
@@ -59,7 +58,10 @@ class WordRepositoryTest {
                 "repeat_words_from_english_statistic",
                 "repeat_words_from_native_statistic",
                 "repeat_expressions_from_english_statistic",
-                "repeat_expressions_from_native_statistic"
+                "repeat_expressions_from_native_statistic",
+                "words_interpretations_outer_source",
+                "words_transcriptions_outer_source",
+                "words_translations_outer_source"
         ));
         clock.setDate(2022, 7, 7);
     }
@@ -70,7 +72,7 @@ class WordRepositoryTest {
              there are not words in DB with such value
              => success save word
             """)
-    public void save() {
+    public void save1() {
         User user = user(1);
         commit(() -> userRepository.save(user));
         Word expected = word(user.getId(), "value 1", "note 1", 1);
@@ -78,10 +80,259 @@ class WordRepositoryTest {
         commit(() -> wordRepository.save(expected));
 
         Word actual = wordRepository.findById(expected.getId()).orElseThrow();
-        org.assertj.core.api.Assertions.
+        Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
                 isEqualTo(actual);
+    }
+
+    @Test
+    @DisplayName("""
+            save(word):
+             word hasn't any example source info
+             => getExamplesFromOuterSourceFor(wordId) return empty list
+            """)
+    public void save2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = word(user.getId(), "wordA", "noteA", 1);
+
+        commit(() -> wordRepository.save(word));
+
+        List<WordExample> actual = wordRepository.getExamplesFromOuterSourceFor(word.getId());
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            save(word):
+             word has some example source info
+             => getExamplesFromOuterSourceFor(wordId) examples of word which contains SourceInfo
+            """)
+    public void save3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = new Word(user.getId(), 1, 1, clock).
+                setValue("wordA").
+                setNote("noteA").
+                addTranslation(new WordTranslation("translateA", "noteA")).
+                addTranslation(new WordTranslation("translateB", "noteB")).
+                addTranslation(new WordTranslation("translateC", "noteC")).
+                addTranscription(new WordTranscription("transcriptionA", "noteA")).
+                addTranscription(new WordTranscription("transcriptionB", "noteB")).
+                addTranscription(new WordTranscription("transcriptionC", "noteC")).
+                addInterpretation(new WordInterpretation("interpretationA")).
+                addInterpretation(new WordInterpretation("interpretationB")).
+                addInterpretation(new WordInterpretation("interpretationC")).
+                addExample(new WordExample("exampleA", "exampleTranslate", "noteA").
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))).
+                addExample(new WordExample("exampleB", "exampleTranslate", "noteB")).
+                addExample(new WordExample("exampleC", "exampleTranslate", "noteC").
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())));
+
+        commit(() -> wordRepository.save(word));
+
+        List<WordExample> actual = wordRepository.getExamplesFromOuterSourceFor(word.getId());
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                containsExactly(
+                        new WordExample("exampleA", "exampleTranslate", "noteA").
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
+                        new WordExample("exampleC", "exampleTranslate", "noteC").
+                                addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
+                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            saveTranscriptionsToBuffer(wordValue, transcriptions):
+             there are not such transcriptions and wordValue combination in DB
+             => save this transcriptions and wordValue combination
+            """)
+    public void saveTranscriptionsToBuffer1() {
+        List<WordTranscription> expected = List.of(
+                new WordTranscription("valueA", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
+                new WordTranscription("valueB", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
+                new WordTranscription("valueC", null).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+        );
+
+        commit(() -> wordRepository.saveTranscriptionsToBuffer("wordValueA", expected));
+
+        List<WordTranscription> actual = wordRepository.getTranscriptionsFromOuterSourceFor("wordValueA");
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("note").
+                containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    @Test
+    @DisplayName("""
+            saveTranscriptionsToBuffer(wordValue, transcriptions):
+             there are some equal transcriptions and wordValue combination in DB
+             => save missing transcriptions and wordValue combination
+            """)
+    public void saveTranscriptionsToBuffer2() {
+        commit(() -> wordRepository.saveTranscriptionsToBuffer("wordValueA", List.of(
+                new WordTranscription("valueA", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
+                new WordTranscription("valueB", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
+                new WordTranscription("valueC", null).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+        )));
+        List<WordTranscription> expected = List.of(
+                new WordTranscription("valueA", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source20.com", "source20", toDay())),
+                new WordTranscription("valueB", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source30.com", "source30", toDay())),
+                new WordTranscription("valueC", null).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay()))
+        );
+
+        commit(() -> wordRepository.saveTranscriptionsToBuffer("wordValueA", expected));
+
+        List<WordTranscription> actual = wordRepository.getTranscriptionsFromOuterSourceFor("wordValueA");
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("note").
+                containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    @Test
+    @DisplayName("""
+            saveInterpretationsToBuffer(wordValue, interpretations):
+             there are not such interpretations and wordValue combination in DB
+             => save this interpretations and wordValue combination
+            """)
+    public void saveInterpretationsToBuffer1() {
+        List<WordInterpretation> expected = List.of(
+                new WordInterpretation("valueA").
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
+                new WordInterpretation("valueB").
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
+                new WordInterpretation("valueC").
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+        );
+
+        commit(() -> wordRepository.saveInterpretationsToBuffer("wordValueA", expected));
+
+        List<WordInterpretation> actual = wordRepository.getInterpretationsFromOuterSourceFor("wordValueA");
+        Assertions.assertThat(actual).
+                containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    @Test
+    @DisplayName("""
+            saveInterpretationsToBuffer(wordValue, interpretations):
+             there are some equal interpretations and wordValue combination in DB
+             => save missing interpretations and wordValue combination
+            """)
+    public void saveInterpretationsToBuffer2() {
+        commit(() -> wordRepository.saveInterpretationsToBuffer("wordValueA", List.of(
+                new WordInterpretation("valueA").
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
+                new WordInterpretation("valueB").
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
+                new WordInterpretation("valueC").
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+        )));
+        List<WordInterpretation> expected = List.of(
+                new WordInterpretation("valueA").
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source20.com", "source20", toDay())),
+                new WordInterpretation("valueB").
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source30.com", "source30", toDay())),
+                new WordInterpretation("valueC").
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay()))
+        );
+
+        commit(() -> wordRepository.saveInterpretationsToBuffer("wordValueA", expected));
+
+        List<WordInterpretation> actual = wordRepository.getInterpretationsFromOuterSourceFor("wordValueA");
+        Assertions.assertThat(actual).
+                containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    @Test
+    @DisplayName("""
+            saveTranslationsToBuffer(wordValue, translations):
+             there are not such translations and wordValue combination in DB
+             => save this translations and wordValue combination
+            """)
+    public void saveTranslationsToBuffer1() {
+        List<WordTranslation> expected = List.of(
+                new WordTranslation("valueA", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
+                new WordTranslation("valueB", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
+                new WordTranslation("valueC", null).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+        );
+
+        commit(() -> wordRepository.saveTranslationsToBuffer("wordValueA", expected));
+
+        List<WordTranslation> actual = wordRepository.getTranslationsFromOuterSourceFor("wordValueA");
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("note").
+                containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    @Test
+    @DisplayName("""
+            saveTranslationsToBuffer(wordValue, translations):
+             there are some equal translations and wordValue combination in DB
+             => save missing translations and wordValue combination
+            """)
+    public void saveTranslationsToBuffer2() {
+        commit(() -> wordRepository.saveTranslationsToBuffer("wordValueA", List.of(
+                new WordTranslation("valueA", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
+                new WordTranslation("valueB", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
+                new WordTranslation("valueC", null).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
+                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+        )));
+        List<WordTranslation> expected = List.of(
+                new WordTranslation("valueA", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source20.com", "source20", toDay())),
+                new WordTranslation("valueB", null).
+                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                        addSourceInfo(new SourceInfo("https://source30.com", "source30", toDay())),
+                new WordTranslation("valueC", null).
+                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay()))
+        );
+
+        commit(() -> wordRepository.saveTranslationsToBuffer("wordValueA", expected));
+
+        List<WordTranslation> actual = wordRepository.getTranslationsFromOuterSourceFor("wordValueA");
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("note").
+                containsExactlyInAnyOrderElementsOf(expected);
     }
 
     @Test
@@ -91,10 +342,10 @@ class WordRepositoryTest {
              => return empty Optional
             """)
     public void findById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1))
+        );
 
         Optional<Word> actual = wordRepository.findById(user.getId(), toUUID(1));
 
@@ -108,17 +359,16 @@ class WordRepositoryTest {
              => return correct word
             """)
     public void findById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Word actual = wordRepository.findById(user.getId(), expected.getId()).orElseThrow();
 
-        org.assertj.core.api.Assertions.
-                assertThat(expected).
+        Assertions.assertThat(actual).
                 usingRecursiveComparison().
-                isEqualTo(actual);
+                isEqualTo(expected);
     }
 
     @Test
@@ -264,10 +514,10 @@ class WordRepositoryTest {
              => do nothing
             """)
     public void deleteById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         commit(() -> wordRepository.deleteById(user.getId(), toUUID(1)));
 
@@ -281,10 +531,10 @@ class WordRepositoryTest {
              => delete this word
             """)
     public void deleteById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         commit(() -> wordRepository.deleteById(user.getId(), expected.getId()));
 
@@ -298,10 +548,10 @@ class WordRepositoryTest {
              => return false
             """)
     public void existsById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Assertions.assertThat(wordRepository.existsById(user.getId(), toUUID(1))).isFalse();
     }
@@ -313,10 +563,10 @@ class WordRepositoryTest {
              => return true
             """)
     public void existsById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Assertions.assertThat(wordRepository.existsById(user.getId(), expected.getId())).isTrue();
     }
@@ -959,6 +1209,10 @@ class WordRepositoryTest {
                 addRole("role1").
                 addRole("role2").
                 addRole("role3");
+    }
+
+    private LocalDate toDay() {
+        return LocalDate.now(clock);
     }
 
     private Word word(UUID userId,

@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.service;
 
-import com.bakuard.flashcards.config.ConfigData;
+import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.model.auth.JwsWithUser;
@@ -36,6 +36,22 @@ public class AuthService {
         this.emailService = emailService;
         this.configData = configData;
         this.validator = validator;
+    }
+
+    public void initialize() {
+        long countUserWithRole = userRepository.countForRole(configData.superAdmin().roleName());
+        if(countUserWithRole < 1) {
+            Credential credential = new Credential(configData.superAdmin().mail(), configData.superAdmin().password());
+            save(
+                    new User(validator.assertValid(credential)).
+                            addRole(configData.superAdmin().roleName())
+            );
+        } else if(configData.superAdmin().recreate()) {
+            User superAdmin = userRepository.findByRole(configData.superAdmin().roleName(), 1, 0).get(0);
+            Credential credential = new Credential(configData.superAdmin().mail(), configData.superAdmin().password());
+            superAdmin.setCredential(validator.assertValid(credential));
+            save(superAdmin);
+        }
     }
 
     @Transactional

@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.service;
 
-import com.bakuard.flashcards.config.ConfigData;
+import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.dal.WordRepository;
 import com.bakuard.flashcards.model.word.Word;
@@ -85,8 +85,8 @@ public class WordService {
     public Page<Word> jumpToCharacter(UUID userId, String wordFirstCharacter, int size) {
         long count = wordRepository.count(userId);
         if(count > 0) {
-            size = size == 0 ? configData.defaultPageSize() :
-                    Math.max(Math.min(size, configData.maxPageSize()), configData.minPageSize());
+            size = size == 0 ? configData.pagination().defaultPageSize() :
+                    Math.max(Math.min(size, configData.pagination().maxPageSize()), configData.pagination().minPageSize());
             long pageNumber = wordRepository.getWordIndexByFirstCharacter(userId, wordFirstCharacter) / count;
             Pageable pageable = PageRequest.of((int) pageNumber, size);
             return PageableExecutionUtils.getPage(

@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.dal;
 
+import com.bakuard.flashcards.dal.impl.fragment.WordSourceInfo;
 import com.bakuard.flashcards.model.word.Word;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface WordRepository extends PagingAndSortingRepository<Word, UUID> {
+public interface WordRepository extends PagingAndSortingRepository<Word, UUID>, WordSourceInfo<Word> {
 
     @Query("select * from words where user_id = :userId and word_id = :wordId;")
     public Optional<Word> findById(UUID userId, UUID wordId);

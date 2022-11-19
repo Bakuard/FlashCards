@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.dto.word;
 
-import com.bakuard.flashcards.dto.common.ExampleSupplementRequest;
+import com.bakuard.flashcards.dto.common.ExampleRequest;
 import com.bakuard.flashcards.dto.common.InterpretationRequest;
 import com.bakuard.flashcards.dto.common.TranscriptionRequest;
 import com.bakuard.flashcards.dto.common.TranslateRequest;
@@ -61,7 +61,7 @@ public class WordSupplementRequest {
             2. Не должен содержать дубликатов <br/>
             Сам список может принимать значение null либо быть пустым.
             """)
-    private List<ExampleSupplementRequest> examples;
+    private List<ExampleRequest> examples;
 
     public WordSupplementRequest() {
 
@@ -121,11 +121,11 @@ public class WordSupplementRequest {
         return this;
     }
 
-    public List<ExampleSupplementRequest> getExamples() {
+    public List<ExampleRequest> getExamples() {
         return examples;
     }
 
-    public WordSupplementRequest setExamples(List<ExampleSupplementRequest> examples) {
+    public WordSupplementRequest setExamples(List<ExampleRequest> examples) {
         this.examples = examples;
         return this;
     }

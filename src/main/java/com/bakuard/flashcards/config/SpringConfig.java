@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.config;
 
+import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.config.security.RequestContextImpl;
 import com.bakuard.flashcards.controller.message.Messages;
@@ -7,6 +8,10 @@ import com.bakuard.flashcards.controller.message.MessagesImpl;
 import com.bakuard.flashcards.dal.*;
 import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.StatisticRepositoryImpl;
+import com.bakuard.flashcards.dal.impl.fragment.UserSaver;
+import com.bakuard.flashcards.dal.impl.fragment.UserSaverImpl;
+import com.bakuard.flashcards.dal.impl.fragment.WordSourceInfo;
+import com.bakuard.flashcards.dal.impl.fragment.WordSourceInfoImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
@@ -27,6 +32,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.data.jdbc.core.JdbcAggregateOperations;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.data.relational.core.mapping.event.BeforeConvertEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -57,7 +63,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public DataSource dataSource(ConfigData configData) {
                 HikariConfig hikariConfig = new HikariConfig();
-                hikariConfig.setJdbcUrl(configData.jdbcUrl());
+                hikariConfig.setJdbcUrl(configData.database().jdbcUrl());
                 hikariConfig.setAutoCommit(false);
                 hikariConfig.setMaximumPoolSize(10);
                 hikariConfig.setMinimumIdle(5);
@@ -90,6 +96,21 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
+        public WordSourceInfo wordSourceInfo(JdbcTemplate jdbcTemplate,
+                                             JdbcAggregateOperations jdbcAggregateOperations,
+                                             ConfigData configData,
+                                             Clock clock) {
+                return new WordSourceInfoImpl(jdbcTemplate, jdbcAggregateOperations, configData, clock);
+        }
+
+        @Bean
+        public UserSaver userSaver(JdbcTemplate jdbcTemplate,
+                                   JdbcAggregateOperations jdbcAggregateOperation,
+                                   ConfigData configData) {
+                return new UserSaverImpl(jdbcTemplate, jdbcAggregateOperation, configData);
+        }
+
+        @Bean
         public Clock clock() {
                 return Clock.systemUTC();
         }
@@ -117,7 +138,7 @@ public class SpringConfig implements WebMvcConfigurer {
                 return new ExpressionService(expressionRepository, intervalRepository, clock, configData, validator);
         }
 
-        @Bean
+        @Bean(initMethod = "initialize")
         public AuthService authService(UserRepository userRepository,
                                        IntervalRepository intervalRepository,
                                        JwsService jwsService,

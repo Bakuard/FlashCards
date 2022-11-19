@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.dto;
 
-import com.bakuard.flashcards.config.ConfigData;
+import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.common.*;
 import com.bakuard.flashcards.dto.credential.*;
@@ -392,17 +392,17 @@ public class DtoMapper {
     }
 
     public Pageable toPageable(int page, int size) {
-        size = Math.min(size, configData.maxPageSize());
-        if(size == 0) size = configData.defaultPageSize();
-        size = Math.max(configData.minPageSize(), size);
+        size = Math.min(size, configData.pagination().maxPageSize());
+        if(size == 0) size = configData.pagination().defaultPageSize();
+        size = Math.max(configData.pagination().minPageSize(), size);
 
         return PageRequest.of(page, size);
     }
 
     public Pageable toPageable(int page, int size, Sort sort) {
-        size = Math.min(size, configData.maxPageSize());
-        if(size == 0) size = configData.defaultPageSize();
-        size = Math.max(configData.minPageSize(), size);
+        size = Math.min(size, configData.pagination().maxPageSize());
+        if(size == 0) size = configData.pagination().defaultPageSize();
+        size = Math.max(configData.pagination().minPageSize(), size);
 
         return PageRequest.of(page, size, sort);
     }

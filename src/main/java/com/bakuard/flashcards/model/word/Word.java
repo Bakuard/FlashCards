@@ -20,10 +20,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Table("words")
 public class Word implements Entity {
@@ -132,6 +129,30 @@ public class Word implements Entity {
 
     public List<WordExample> getExamples() {
         return Collections.unmodifiableList(examples);
+    }
+
+    public Optional<WordInterpretation> getInterpretation(String value) {
+        return interpretations.stream().
+                filter(interpretation -> interpretation.getValue().equals(value)).
+                findAny();
+    }
+
+    public Optional<WordTranscription> getTranscription(String value) {
+        return transcriptions.stream().
+                filter(transcription -> transcription.getValue().equals(value)).
+                findAny();
+    }
+
+    public Optional<WordTranslation> getTranslation(String value) {
+        return translations.stream().
+                filter(translation -> translation.getValue().equals(value)).
+                findAny();
+    }
+
+    public Optional<WordExample> getExample(String origin) {
+        return examples.stream().
+                filter(example -> example.getOrigin().equals(origin)).
+                findAny();
     }
 
     public RepeatDataFromEnglish getRepeatDataFromEnglish() {

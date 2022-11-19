@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.service;
 
-import com.bakuard.flashcards.config.ConfigData;
+import com.bakuard.flashcards.config.configData.ConfigData;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
@@ -22,8 +22,8 @@ public class EmailService {
     public void confirmEmailForRegistration(String jws, String email) {
         try {
             sendEmail(
-                    configData.pathToGmailLetterForRegistration(),
-                    configData.gmailLetterReturnAddress() + '/' + jws,
+                    configData.confirmationMail().registration(),
+                    configData.confirmationMail().returnAddress() + '/' + jws,
                     email
             );
         } catch(MessagingException e) {
@@ -34,8 +34,8 @@ public class EmailService {
     public void confirmEmailForRestorePass(String jws, String email) {
         try {
             sendEmail(
-                    configData.pathToGmailLetterForRestorePass(),
-                    configData.gmailLetterReturnAddress() + '/' + jws,
+                    configData.confirmationMail().restorePass(),
+                    configData.confirmationMail().returnAddress() + '/' + jws,
                     email
             );
         } catch(MessagingException e) {
@@ -46,8 +46,8 @@ public class EmailService {
     public void confirmEmailForDeletion(String jws, String email) {
         try {
             sendEmail(
-                    configData.pathToGmailLetterForDeletion(),
-                    configData.gmailLetterReturnAddress() + '/' + jws,
+                    configData.confirmationMail().deletion(),
+                    configData.confirmationMail().returnAddress() + '/' + jws,
                     email
             );
         } catch(MessagingException e) {
@@ -68,12 +68,15 @@ public class EmailService {
         Session session = Session.getInstance(properties, new Authenticator() {
             @Override
             public PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(configData.gmailService(), configData.gmailPassword());
+                return new PasswordAuthentication(
+                        configData.smtp().gmailService(),
+                        configData.smtp().gmailPassword()
+                );
             }
         });
 
         Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(configData.gmailService()));
+        message.setFrom(new InternetAddress(configData.smtp().gmailService()));
         message.setRecipient(Message.RecipientType.TO, new InternetAddress(email));
         message.setSubject("Flash cards");
 

@@ -76,6 +76,10 @@ public class User implements Entity {
         return Collections.unmodifiableList(roles);
     }
 
+    public boolean hasRole(String role) {
+        return roles.stream().anyMatch(r -> r.name().equals(role));
+    }
+
     @Override
     public void generateIdIfAbsent() {
         if(id == null) id = UUID.randomUUID();
