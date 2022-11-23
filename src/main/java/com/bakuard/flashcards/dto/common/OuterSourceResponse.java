@@ -6,16 +6,16 @@ import java.util.Objects;
 
 @Schema(description = """
         Данные об одном из внешних источников, из которого был получен перевод слова,
-         транскрипция, толкование или перевод примера к слову.
+         транскрипция или толкование.
         """)
-public class SourceInfoResponse {
+public class OuterSourceResponse {
 
     @Schema(description = "URL внешнего источника.")
     private String outerSourceUrl;
     @Schema(description = "Имя внешнего источника.")
     private String outerSourceName;
 
-    public SourceInfoResponse() {
+    public OuterSourceResponse() {
 
     }
 
@@ -23,7 +23,7 @@ public class SourceInfoResponse {
         return outerSourceUrl;
     }
 
-    public SourceInfoResponse setOuterSourceUrl(String outerSourceUrl) {
+    public OuterSourceResponse setOuterSourceUrl(String outerSourceUrl) {
         this.outerSourceUrl = outerSourceUrl;
         return this;
     }
@@ -32,7 +32,7 @@ public class SourceInfoResponse {
         return outerSourceName;
     }
 
-    public SourceInfoResponse setOuterSourceName(String outerSourceName) {
+    public OuterSourceResponse setOuterSourceName(String outerSourceName) {
         this.outerSourceName = outerSourceName;
         return this;
     }
@@ -41,7 +41,7 @@ public class SourceInfoResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SourceInfoResponse that = (SourceInfoResponse) o;
+        OuterSourceResponse that = (OuterSourceResponse) o;
         return Objects.equals(outerSourceUrl, that.outerSourceUrl) &&
                 Objects.equals(outerSourceName, that.outerSourceName);
     }

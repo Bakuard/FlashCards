@@ -20,7 +20,7 @@ public class TranslateResponse {
             """)
     private String note;
     @Schema(description = "Данные всех внешних источников из которых получен данный перевод.")
-    private List<SourceInfoResponse> sourceInfo;
+    private List<OuterSourceResponse> sourceInfo;
 
     public TranslateResponse() {
         sourceInfo = new ArrayList<>();
@@ -44,11 +44,11 @@ public class TranslateResponse {
         return this;
     }
 
-    public List<SourceInfoResponse> getSourceInfo() {
+    public List<OuterSourceResponse> getSourceInfo() {
         return sourceInfo;
     }
 
-    public TranslateResponse setSourceInfo(List<SourceInfoResponse> sourceInfo) {
+    public TranslateResponse setSourceInfo(List<OuterSourceResponse> sourceInfo) {
         this.sourceInfo = sourceInfo;
         return this;
     }

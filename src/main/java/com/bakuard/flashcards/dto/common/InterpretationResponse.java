@@ -15,7 +15,7 @@ public class InterpretationResponse {
             """)
     private String value;
     @Schema(description = "Данные всех внешних источников из которых получено данное толкование.")
-    private List<SourceInfoResponse> sourceInfo;
+    private List<OuterSourceResponse> sourceInfo;
 
     public InterpretationResponse() {
         sourceInfo = new ArrayList<>();
@@ -30,11 +30,11 @@ public class InterpretationResponse {
         return this;
     }
 
-    public List<SourceInfoResponse> getSourceInfo() {
+    public List<OuterSourceResponse> getSourceInfo() {
         return sourceInfo;
     }
 
-    public InterpretationResponse setSourceInfo(List<SourceInfoResponse> sourceInfo) {
+    public InterpretationResponse setSourceInfo(List<OuterSourceResponse> sourceInfo) {
         this.sourceInfo = sourceInfo;
         return this;
     }

@@ -15,8 +15,8 @@ public class ExampleResponse {
     private String translate;
     @Schema(description = "Примечание к примеру.")
     private String note;
-    @Schema(description = "Данные всех внешних источников из которых получен перевод для данного примера.")
-    private List<SourceInfoResponse> sourceInfo;
+    @Schema(description = "Данные всех внешних источников из которых получены переводы для данного примера.")
+    private List<ExampleOuterSourceResponse> sourceInfo;
 
     public ExampleResponse() {
         sourceInfo = new ArrayList<>();
@@ -49,11 +49,11 @@ public class ExampleResponse {
         return this;
     }
 
-    public List<SourceInfoResponse> getSourceInfo() {
+    public List<ExampleOuterSourceResponse> getSourceInfo() {
         return sourceInfo;
     }
 
-    public ExampleResponse setSourceInfo(List<SourceInfoResponse> sourceInfo) {
+    public ExampleResponse setSourceInfo(List<ExampleOuterSourceResponse> sourceInfo) {
         this.sourceInfo = sourceInfo;
         return this;
     }

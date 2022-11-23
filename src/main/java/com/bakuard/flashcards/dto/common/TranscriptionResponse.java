@@ -19,7 +19,7 @@ public class TranscriptionResponse {
             """)
     private String note;
     @Schema(description = "Данные всех внешних источников из которых получена данная транскрипция.")
-    private List<SourceInfoResponse> sourceInfo;
+    private List<OuterSourceResponse> sourceInfo;
 
     public TranscriptionResponse() {
 
@@ -43,11 +43,11 @@ public class TranscriptionResponse {
         return this;
     }
 
-    public List<SourceInfoResponse> getSourceInfo() {
+    public List<OuterSourceResponse> getSourceInfo() {
         return sourceInfo;
     }
 
-    public TranscriptionResponse setSourceInfo(List<SourceInfoResponse> sourceInfo) {
+    public TranscriptionResponse setSourceInfo(List<OuterSourceResponse> sourceInfo) {
         this.sourceInfo = sourceInfo;
         return this;
     }
