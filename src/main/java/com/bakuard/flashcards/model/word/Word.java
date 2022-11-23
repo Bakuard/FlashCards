@@ -6,7 +6,6 @@ import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.validation.AllUnique;
 import com.bakuard.flashcards.validation.NotBlankOrNull;
 import com.bakuard.flashcards.validation.NotContainsNull;
-import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
@@ -21,6 +20,7 @@ import javax.validation.constraints.NotNull;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Table("words")
 public class Word implements Entity {
@@ -119,40 +119,44 @@ public class Word implements Entity {
         return Collections.unmodifiableList(interpretations);
     }
 
+    public List<WordInterpretation> getInterpretationsBy(String outerSourceName) {
+        return interpretations.stream().
+                filter(interpretation -> interpretation.getSourceInfo().stream().
+                        anyMatch(sourceInfo -> sourceInfo.sourceName().equals(outerSourceName))).
+                collect(Collectors.toCollection(ArrayList::new));
+    }
+
     public List<WordTranscription> getTranscriptions() {
         return Collections.unmodifiableList(transcriptions);
+    }
+
+    public List<WordTranscription> getTranscriptionsBy(String outerSourceName) {
+        return transcriptions.stream().
+                filter(transcription -> transcription.getSourceInfo().stream().
+                        anyMatch(sourceInfo -> sourceInfo.sourceName().equals(outerSourceName))).
+                collect(Collectors.toCollection(ArrayList::new));
     }
 
     public List<WordTranslation> getTranslations() {
         return Collections.unmodifiableList(translations);
     }
 
+    public List<WordTranslation> getTranslationsBy(String outerSourceName) {
+        return translations.stream().
+                filter(translation -> translation.getSourceInfo().stream().
+                        anyMatch(sourceInfo -> sourceInfo.sourceName().equals(outerSourceName))).
+                collect(Collectors.toCollection(ArrayList::new));
+    }
+
     public List<WordExample> getExamples() {
         return Collections.unmodifiableList(examples);
     }
 
-    public Optional<WordInterpretation> getInterpretation(String value) {
-        return interpretations.stream().
-                filter(interpretation -> interpretation.getValue().equals(value)).
-                findAny();
-    }
-
-    public Optional<WordTranscription> getTranscription(String value) {
-        return transcriptions.stream().
-                filter(transcription -> transcription.getValue().equals(value)).
-                findAny();
-    }
-
-    public Optional<WordTranslation> getTranslation(String value) {
-        return translations.stream().
-                filter(translation -> translation.getValue().equals(value)).
-                findAny();
-    }
-
-    public Optional<WordExample> getExample(String origin) {
+    public List<WordExample> getExamplesBy(String outerSourceName) {
         return examples.stream().
-                filter(example -> example.getOrigin().equals(origin)).
-                findAny();
+                filter(example -> example.getSourceInfo().stream().
+                        anyMatch(sourceInfo -> sourceInfo.sourceName().equals(outerSourceName))).
+                collect(Collectors.toCollection(ArrayList::new));
     }
 
     public RepeatDataFromEnglish getRepeatDataFromEnglish() {
@@ -210,6 +214,42 @@ public class Word implements Entity {
         return this;
     }
 
+    public Word mergeInterpretation(WordInterpretation interpretation) {
+        boolean isMerged = false;
+        for(int i = 0; i < interpretations.size() && !isMerged; i++) {
+            isMerged = interpretations.get(i).merge(interpretation);
+        }
+        if(!isMerged) interpretations.add(interpretation);
+        return this;
+    }
+
+    public Word mergeTranscription(WordTranscription transcription) {
+        boolean isMerged = false;
+        for(int i = 0; i < transcriptions.size() && !isMerged; i++) {
+            isMerged = transcriptions.get(i).merge(transcription);
+        }
+        if(!isMerged) transcriptions.add(transcription);
+        return this;
+    }
+
+    public Word mergeTranslation(WordTranslation translation) {
+        boolean isMerged = false;
+        for(int i = 0; i < translations.size() && !isMerged; i++) {
+            isMerged = translations.get(i).merge(translation);
+        }
+        if(!isMerged) translations.add(translation);
+        return this;
+    }
+
+    public Word mergeExample(WordExample example) {
+        boolean isMerged = false;
+        for(int i = 0; i < examples.size() && !isMerged; i++) {
+            isMerged = examples.get(i).merge(example);
+        }
+        if(!isMerged) examples.add(example);
+        return this;
+    }
+
     public Word addInterpretation(WordInterpretation interpretation) {
         interpretations.add(interpretation);
         return this;
@@ -260,12 +300,12 @@ public class Word implements Entity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Word word = (Word) o;
-        return id.equals(word.id);
+        return Objects.equals(id, word.id);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return Objects.hashCode(id);
     }
 
     @Override

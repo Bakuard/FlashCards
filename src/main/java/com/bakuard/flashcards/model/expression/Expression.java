@@ -20,10 +20,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Table("expressions")
 public class Expression implements Entity {
@@ -224,12 +221,12 @@ public class Expression implements Entity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Expression that = (Expression) o;
-        return id.equals(that.id);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return Objects.hash(id);
     }
 
     @Override

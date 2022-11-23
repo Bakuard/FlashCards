@@ -75,9 +75,11 @@ CREATE TABLE words_examples (
     translate VARCHAR(512),
     note VARCHAR(128),
     index INT NOT NULL,
-    UNIQUE(word_id, origin),
-    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE
+    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE,
+    UNIQUE(word_id, origin)
 );
+
+-----------------------------------WORD-OUTER-SOURCE-BUFFER-----------------------------------
 
 CREATE TABLE words_interpretations_outer_source (
     word_value VARCHAR(64) NOT NULL,
@@ -112,7 +114,6 @@ CREATE TABLE words_examples_outer_source (
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
     recent_update_date DATE NOT NULL,
-    index INT NOT NULL,
     FOREIGN KEY(word_id, example) REFERENCES words_examples(word_id, origin) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE(word_id, example, outer_source_name, outer_source_url)
 );

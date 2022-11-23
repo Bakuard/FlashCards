@@ -3,11 +3,14 @@ package com.bakuard.flashcards.dal;
 import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
+import com.bakuard.flashcards.model.RepeatDataFromEnglish;
+import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.word.*;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +39,7 @@ import java.util.function.Supplier;
 class WordRepositoryTest {
 
     @Autowired
-    private WordOuterRepository wordRepository;
+    private WordRepository wordRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -90,23 +93,29 @@ class WordRepositoryTest {
     @DisplayName("""
             save(word):
              word hasn't any example source info
-             => getExamplesFromOuterSourceFor(wordId) return empty list
+             => mergeFromOuterSource(word) don't load any example source info
             """)
     public void save2() {
         User user = commit(() -> userRepository.save(user(1)));
-        Word word = word(user.getId(), "wordA", "noteA", 1);
+        Word word = new Word(user.getId(), 1, 1, clock).
+                setValue("wordA").
+                setNote("noteA").
+                addExample(new WordExample("exampleA", "exampleTranslateA", "noteA")).
+                addExample(new WordExample("exampleB", "exampleTranslateB", "noteA")).
+                addExample(new WordExample("exampleC", "exampleTranslateC", "noteA"));
 
         commit(() -> wordRepository.save(word));
 
-        List<WordExample> actual = wordRepository.getExamplesFromOuterSourceFor(word.getId());
-        Assertions.assertThat(actual).isEmpty();
+        Word actual = emptyWord(word.getId(), user.getId(), "wordA", "noteA", 1);
+        wordRepository.mergeFromOuterSource(actual);
+        Assertions.assertThat(actual.getExamples()).isEmpty();
     }
 
     @Test
     @DisplayName("""
             save(word):
              word has some example source info
-             => getExamplesFromOuterSourceFor(wordId) examples of word which contains SourceInfo
+             => mergeFromOuterSource(word) load SourceInfo for this word examples
             """)
     public void save3() {
         User user = commit(() -> userRepository.save(user(1)));
@@ -132,13 +141,15 @@ class WordRepositoryTest {
 
         commit(() -> wordRepository.save(word));
 
-        List<WordExample> actual = wordRepository.getExamplesFromOuterSourceFor(word.getId());
-        Assertions.assertThat(actual).
+        Word actual = wordRepository.findById(user.getId(), word.getId()).orElseThrow();
+        wordRepository.mergeFromOuterSource(actual);
+        Assertions.assertThat(actual.getExamples()).
                 usingRecursiveFieldByFieldElementComparator().
                 containsExactly(
                         new WordExample("exampleA", "exampleTranslate", "noteA").
                                 addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
                                 addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
+                        new WordExample("exampleB", "exampleTranslate", "noteB"),
                         new WordExample("exampleC", "exampleTranslate", "noteC").
                                 addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
                                 addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
@@ -147,192 +158,261 @@ class WordRepositoryTest {
 
     @Test
     @DisplayName("""
-            saveTranscriptionsToBuffer(wordValue, transcriptions):
-             there are not such transcriptions and wordValue combination in DB
-             => save this transcriptions and wordValue combination
+            saveDataFromOuterSourceExcludeExamples(word):
+             outer source buffer doesn't contains transcriptions,
+             outer source buffer doesn't contains interpretations,
+             outer source buffer doesn't contains translates
+             => mergeFromOuterSource(word) don't load transcriptions, interpretations or translates from buffer
             """)
-    public void saveTranscriptionsToBuffer1() {
-        List<WordTranscription> expected = List.of(
-                new WordTranscription("valueA", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
-                new WordTranscription("valueB", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
-                new WordTranscription("valueC", null).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
-        );
+    public void saveDataFromOuterSourceExcludeExamples1() {
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+                word(user.getId(), "wordA", "noteA", 1)
+        ));
 
-        commit(() -> wordRepository.saveTranscriptionsToBuffer("wordValueA", expected));
+        Word actual = emptyWord(user.getId(), "wordA", "noteA", 1);
+        wordRepository.mergeFromOuterSource(actual);
 
-        List<WordTranscription> actual = wordRepository.getTranscriptionsFromOuterSourceFor("wordValueA");
-        Assertions.assertThat(actual).
+        SoftAssertions softAssertions = new SoftAssertions();
+        softAssertions.assertThat(actual.getTranslations()).isEmpty();
+        softAssertions.assertThat(actual.getTranscriptions()).isEmpty();
+        softAssertions.assertThat(actual.getInterpretations()).isEmpty();
+        softAssertions.assertAll();
+    }
+
+    @Test
+    @DisplayName("""
+            saveDataFromOuterSourceExcludeExamples(word):
+             outer source buffer contains transcriptions,
+             filled word doesn't contain any transcriptions
+             => mergeFromOuterSource(word) load transcriptions from buffer
+            """)
+    public void saveDataFromOuterSourceExcludeExamples2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+                emptyWord(user.getId(), "wordA", "noteA", 1).
+                        addTranscription(new WordTranscription("transcriptionA", "noteA").
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                        addTranscription(new WordTranscription("transcriptionB", "noteB")).
+                        addTranscription(new WordTranscription("transcriptionC", "noteC").
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())))
+        ));
+
+        Word actual = emptyWord(user.getId(), "wordA", "noteA", 1);
+        wordRepository.mergeFromOuterSource(actual);
+
+        Assertions.assertThat(actual.getTranscriptions()).
+                containsExactly(
+                        new WordTranscription("transcriptionA", null).
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())),
+                        new WordTranscription("transcriptionC", null).
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            saveDataFromOuterSourceExcludeExamples(word):
+             outer source buffer contains interpretations,
+             filled word doesn't contain any interpretations
+             => mergeFromOuterSource(word) load interpretations from buffer
+            """)
+    public void saveDataFromOuterSourceExcludeExamples3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+                emptyWord(user.getId(), "wordA", "noteA", 1).
+                        addInterpretation(new WordInterpretation("interpretationA").
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                        addInterpretation(new WordInterpretation("interpretationB")).
+                        addInterpretation(new WordInterpretation("interpretationC").
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())))
+        ));
+
+        Word actual = emptyWord(user.getId(), "wordA", "noteA", 1);
+        wordRepository.mergeFromOuterSource(actual);
+
+        Assertions.assertThat(actual.getInterpretations()).
+                containsExactly(
+                        new WordInterpretation("interpretationA").
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())),
+                        new WordInterpretation("interpretationC").
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            saveDataFromOuterSourceExcludeExamples(word):
+             outer source buffer contains translates,
+             filled word doesn't contain any translates
+             => mergeFromOuterSource(word) load translates from buffer
+            """)
+    public void saveDataFromOuterSourceExcludeExamples4() {
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+                emptyWord(user.getId(), "wordA", "noteA", 1).
+                        addTranslation(new WordTranslation("translateA", "noteA").
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay()))).
+                        addTranslation(new WordTranslation("translateB", "noteB")).
+                        addTranslation(new WordTranslation("translateC", "noteC").
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())))
+        ));
+
+        Word actual = emptyWord(user.getId(), "wordA", "noteA", 1);
+        wordRepository.mergeFromOuterSource(actual);
+
+        Assertions.assertThat(actual.getTranslations()).
                 usingRecursiveFieldByFieldElementComparatorIgnoringFields("note").
-                containsExactlyInAnyOrderElementsOf(expected);
+                containsExactly(
+                        new WordTranslation("translateA", null).
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())),
+                        new WordTranslation("translateC", null).
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))
+                );
     }
 
     @Test
     @DisplayName("""
-            saveTranscriptionsToBuffer(wordValue, transcriptions):
-             there are some equal transcriptions and wordValue combination in DB
-             => save missing transcriptions and wordValue combination
+            saveDataFromOuterSourceExcludeExamples(word):
+             outer source buffer contains transcriptions,
+             filled word already contain some transcriptions
+             => mergeFromOuterSource(word) merge transcriptions from buffer to word
             """)
-    public void saveTranscriptionsToBuffer2() {
-        commit(() -> wordRepository.saveTranscriptionsToBuffer("wordValueA", List.of(
-                new WordTranscription("valueA", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
-                new WordTranscription("valueB", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
-                new WordTranscription("valueC", null).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
-        )));
-        List<WordTranscription> expected = List.of(
-                new WordTranscription("valueA", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source20.com", "source20", toDay())),
-                new WordTranscription("valueB", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source30.com", "source30", toDay())),
-                new WordTranscription("valueC", null).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay()))
-        );
+    public void saveDataFromOuterSourceExcludeExamples5() {
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+                emptyWord(user.getId(), "wordA", "noteA", 1).
+                        addTranscription(new WordTranscription("transcriptionA", null).
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                        addTranscription(new WordTranscription("transcriptionB", null)).
+                        addTranscription(new WordTranscription("transcriptionC", null).
+                                addSourceInfo(new SourceInfo("https://source4.com", "source4", toDay())).
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                        addTranscription(new WordTranscription("transcriptionE", null).
+                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())))
+        ));
 
-        commit(() -> wordRepository.saveTranscriptionsToBuffer("wordValueA", expected));
+        Word actual = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addTranscription(new WordTranscription("transcriptionA", "noteA").
+                        addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
+                        addSourceInfo(new SourceInfo("https://source6.com", "source6", toDay()))).
+                addTranscription(new WordTranscription("transcriptionD", "noteD")).
+                addTranscription(new WordTranscription("transcriptionC", "noteC").
+                        addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
+                        addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())));
+        wordRepository.mergeFromOuterSource(actual);
 
-        List<WordTranscription> actual = wordRepository.getTranscriptionsFromOuterSourceFor("wordValueA");
-        Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("note").
-                containsExactlyInAnyOrderElementsOf(expected);
+        Assertions.assertThat(actual.getTranscriptions()).
+                containsExactly(
+                        new WordTranscription("transcriptionA", "noteA").
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
+                                addSourceInfo(new SourceInfo("https://source6.com", "source6", toDay())),
+                        new WordTranscription("transcriptionD", "noteD"),
+                        new WordTranscription("transcriptionC", "noteC").
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
+                                addSourceInfo(new SourceInfo("https://source4.com", "source4", toDay())),
+                        new WordTranscription("transcriptionE", null).
+                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+                );
     }
 
     @Test
     @DisplayName("""
-            saveInterpretationsToBuffer(wordValue, interpretations):
-             there are not such interpretations and wordValue combination in DB
-             => save this interpretations and wordValue combination
+            saveDataFromOuterSourceExcludeExamples(word):
+             outer source buffer contains interpretations,
+             filled word already contain some interpretations
+             => mergeFromOuterSource(word) merge interpretations from buffer to word
             """)
-    public void saveInterpretationsToBuffer1() {
-        List<WordInterpretation> expected = List.of(
-                new WordInterpretation("valueA").
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
-                new WordInterpretation("valueB").
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
-                new WordInterpretation("valueC").
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
-        );
+    public void saveDataFromOuterSourceExcludeExamples6() {
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+                emptyWord(user.getId(), "wordA", "noteA", 1).
+                        addInterpretation(new WordInterpretation("interpretationA").
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                        addInterpretation(new WordInterpretation("interpretationB")).
+                        addInterpretation(new WordInterpretation("interpretationC").
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))).
+                        addInterpretation(new WordInterpretation("interpretationE").
+                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())))
+        ));
 
-        commit(() -> wordRepository.saveInterpretationsToBuffer("wordValueA", expected));
+        Word actual = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addInterpretation(new WordInterpretation("interpretationA").
+                        addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
+                        addSourceInfo(new SourceInfo("https://source7.com", "source7", toDay()))).
+                addInterpretation(new WordInterpretation("interpretationD")).
+                addInterpretation(new WordInterpretation("interpretationC").
+                        addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
+                        addSourceInfo(new SourceInfo("https://source11.com", "source11", toDay())));
+        wordRepository.mergeFromOuterSource(actual);
 
-        List<WordInterpretation> actual = wordRepository.getInterpretationsFromOuterSourceFor("wordValueA");
-        Assertions.assertThat(actual).
-                containsExactlyInAnyOrderElementsOf(expected);
+        Assertions.assertThat(actual.getInterpretations()).
+                containsExactly(
+                        new WordInterpretation("interpretationA").
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
+                                addSourceInfo(new SourceInfo("https://source7.com", "source7", toDay())),
+                        new WordInterpretation("interpretationD"),
+                        new WordInterpretation("interpretationC").
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
+                                addSourceInfo(new SourceInfo("https://source11.com", "source11", toDay())).
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())),
+                        new WordInterpretation("interpretationE").
+                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+                );
     }
 
     @Test
     @DisplayName("""
-            saveInterpretationsToBuffer(wordValue, interpretations):
-             there are some equal interpretations and wordValue combination in DB
-             => save missing interpretations and wordValue combination
+            saveDataFromOuterSourceExcludeExamples(word):
+             outer source buffer contains translates,
+             filled word already contain some translates
+             => mergeFromOuterSource(word) merge translates from buffer to word
             """)
-    public void saveInterpretationsToBuffer2() {
-        commit(() -> wordRepository.saveInterpretationsToBuffer("wordValueA", List.of(
-                new WordInterpretation("valueA").
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
-                new WordInterpretation("valueB").
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
-                new WordInterpretation("valueC").
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
-        )));
-        List<WordInterpretation> expected = List.of(
-                new WordInterpretation("valueA").
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source20.com", "source20", toDay())),
-                new WordInterpretation("valueB").
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source30.com", "source30", toDay())),
-                new WordInterpretation("valueC").
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay()))
-        );
+    public void saveDataFromOuterSourceExcludeExamples7() {
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+                emptyWord(user.getId(), "wordA", "noteA", 1).
+                        addTranslation(new WordTranslation("translateA", null).
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                        addTranslation(new WordTranslation("translateB", null)).
+                        addTranslation(new WordTranslation("translateC", null).
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))).
+                        addTranslation(new WordTranslation("translateE", null).
+                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())))
+        ));
 
-        commit(() -> wordRepository.saveInterpretationsToBuffer("wordValueA", expected));
+        Word actual = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addTranslation(new WordTranslation("translateA", "noteA").
+                        addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
+                        addSourceInfo(new SourceInfo("https://source7.com", "source7", toDay()))).
+                addTranslation(new WordTranslation("translateD", "noteD")).
+                addTranslation(new WordTranslation("translateC", "noteC").
+                        addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
+                        addSourceInfo(new SourceInfo("https://source11.com", "source11", toDay())));
+        wordRepository.mergeFromOuterSource(actual);
 
-        List<WordInterpretation> actual = wordRepository.getInterpretationsFromOuterSourceFor("wordValueA");
-        Assertions.assertThat(actual).
-                containsExactlyInAnyOrderElementsOf(expected);
-    }
-
-    @Test
-    @DisplayName("""
-            saveTranslationsToBuffer(wordValue, translations):
-             there are not such translations and wordValue combination in DB
-             => save this translations and wordValue combination
-            """)
-    public void saveTranslationsToBuffer1() {
-        List<WordTranslation> expected = List.of(
-                new WordTranslation("valueA", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
-                new WordTranslation("valueB", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
-                new WordTranslation("valueC", null).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
-        );
-
-        commit(() -> wordRepository.saveTranslationsToBuffer("wordValueA", expected));
-
-        List<WordTranslation> actual = wordRepository.getTranslationsFromOuterSourceFor("wordValueA");
-        Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("note").
-                containsExactlyInAnyOrderElementsOf(expected);
-    }
-
-    @Test
-    @DisplayName("""
-            saveTranslationsToBuffer(wordValue, translations):
-             there are some equal translations and wordValue combination in DB
-             => save missing translations and wordValue combination
-            """)
-    public void saveTranslationsToBuffer2() {
-        commit(() -> wordRepository.saveTranslationsToBuffer("wordValueA", List.of(
-                new WordTranslation("valueA", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())),
-                new WordTranslation("valueB", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
-                new WordTranslation("valueC", null).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
-        )));
-        List<WordTranslation> expected = List.of(
-                new WordTranslation("valueA", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source20.com", "source20", toDay())),
-                new WordTranslation("valueB", null).
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source30.com", "source30", toDay())),
-                new WordTranslation("valueC", null).
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay()))
-        );
-
-        commit(() -> wordRepository.saveTranslationsToBuffer("wordValueA", expected));
-
-        List<WordTranslation> actual = wordRepository.getTranslationsFromOuterSourceFor("wordValueA");
-        Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("note").
-                containsExactlyInAnyOrderElementsOf(expected);
+        Assertions.assertThat(actual.getTranslations()).
+                containsExactly(
+                        new WordTranslation("translateA", "noteA").
+                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
+                                addSourceInfo(new SourceInfo("https://source7.com", "source7", toDay())),
+                        new WordTranslation("translateD", "noteD"),
+                        new WordTranslation("translateC", "noteC").
+                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
+                                addSourceInfo(new SourceInfo("https://source11.com", "source11", toDay())).
+                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())),
+                        new WordTranslation("translateE", null).
+                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+                );
     }
 
     @Test
@@ -1234,6 +1314,34 @@ class WordRepositoryTest {
                 addExample(new WordExample("exampleA", "exampleTranslate", "noteA")).
                 addExample(new WordExample("exampleB", "exampleTranslate", "noteB")).
                 addExample(new WordExample("exampleC", "exampleTranslate", "noteC"));
+    }
+
+    private Word emptyWord(UUID userId,
+                           String value,
+                           String note,
+                           int interval) {
+        return new Word(userId, interval, interval, clock).
+                setValue(value).
+                setNote(note);
+    }
+
+    private Word emptyWord(UUID wordId,
+                           UUID userId,
+                           String value,
+                           String note,
+                           int interval) {
+        return new Word(
+                wordId,
+                userId,
+                value,
+                note,
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new RepeatDataFromEnglish(interval, LocalDate.now(clock)),
+                new RepeatDataFromNative(interval, LocalDate.now(clock))
+        );
     }
 
     private List<Word> words(UUID userId) {

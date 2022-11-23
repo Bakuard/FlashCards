@@ -42,7 +42,7 @@ class IntervalsResponseRepositoryTest {
     @Autowired
     private IntervalRepository intervalRepository;
     @Autowired
-    private WordOuterRepository wordRepository;
+    private WordRepository wordRepository;
     @Autowired
     private ExpressionRepository expressionRepository;
     @Autowired

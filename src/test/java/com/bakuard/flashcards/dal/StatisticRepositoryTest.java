@@ -47,7 +47,7 @@ class StatisticRepositoryTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private WordOuterRepository wordRepository;
+    private WordRepository wordRepository;
     @Autowired
     private ExpressionRepository expressionRepository;
     @Autowired

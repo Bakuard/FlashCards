@@ -50,19 +50,41 @@ public class WordExample {
         return sourceInfo;
     }
 
-    public WordExample setAll(List<SourceInfo> sourceInfo) {
-        this.sourceInfo.clear();
-        if(sourceInfo != null) this.sourceInfo.addAll(sourceInfo);
+    public WordExample setOrigin(String origin) {
+        this.origin = origin;
         return this;
+    }
+
+    public WordExample setTranslate(String translate) {
+        this.translate = translate;
+        return this;
+    }
+
+    public WordExample setNote(String note) {
+        this.note = note;
+        return this;
+    }
+
+    public boolean merge(WordExample other) {
+        boolean isMerged = origin.equals(other.origin);
+        if(isMerged) {
+            for(int i = 0; i < other.sourceInfo.size(); i++) {
+                SourceInfo otherInfo = other.sourceInfo.get(i);
+                boolean isFind = false;
+                int index = 0;
+                for(int j = 0; j < sourceInfo.size() && !isFind; j++) {
+                    isFind = sourceInfo.get(j).sourceName().equals(otherInfo.sourceName());
+                    index = j;
+                }
+                if(isFind) sourceInfo.set(index, otherInfo);
+                else sourceInfo.add(otherInfo);
+            }
+        }
+        return isMerged;
     }
 
     public WordExample addSourceInfo(SourceInfo info) {
         sourceInfo.add(info);
-        return this;
-    }
-
-    public WordExample removeSourceInfo(String sourceName) {
-        sourceInfo.removeIf(info -> Objects.equals(info.sourceName(), sourceName));
         return this;
     }
 

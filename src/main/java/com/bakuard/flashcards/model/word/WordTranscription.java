@@ -42,19 +42,36 @@ public class WordTranscription {
         return sourceInfo;
     }
 
-    public WordTranscription setAll(List<SourceInfo> sourceInfo) {
-        this.sourceInfo.clear();
-        if(sourceInfo != null) this.sourceInfo.addAll(sourceInfo);
+    public WordTranscription setValue(String value) {
+        this.value = value;
         return this;
+    }
+
+    public WordTranscription setNote(String note) {
+        this.note = note;
+        return this;
+    }
+
+    public boolean merge(WordTranscription other) {
+        boolean isMerged = value.equals(other.value);
+        if(isMerged) {
+            for(int i = 0; i < other.sourceInfo.size(); i++) {
+                SourceInfo otherInfo = other.sourceInfo.get(i);
+                boolean isFind = false;
+                int index = 0;
+                for(int j = 0; j < sourceInfo.size() && !isFind; j++) {
+                    isFind = sourceInfo.get(j).sourceName().equals(otherInfo.sourceName());
+                    index = j;
+                }
+                if(isFind) sourceInfo.set(index, otherInfo);
+                else sourceInfo.add(otherInfo);
+            }
+        }
+        return isMerged;
     }
 
     public WordTranscription addSourceInfo(SourceInfo info) {
         sourceInfo.add(info);
-        return this;
-    }
-
-    public WordTranscription removeSourceInfo(String sourceName) {
-        sourceInfo.removeIf(info -> Objects.equals(info.sourceName(), sourceName));
         return this;
     }
 

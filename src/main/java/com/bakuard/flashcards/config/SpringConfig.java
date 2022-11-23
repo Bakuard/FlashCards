@@ -18,6 +18,7 @@ import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.*;
 import com.bakuard.flashcards.service.wordSupplementation.WordSupplementationService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
@@ -98,10 +99,8 @@ public class SpringConfig implements WebMvcConfigurer {
 
         @Bean
         public WordOuterSourceBuffer wordSourceInfo(JdbcTemplate jdbcTemplate,
-                                                    JdbcAggregateOperations jdbcAggregateOperations,
-                                                    ConfigData configData,
-                                                    Clock clock) {
-                return new WordOuterSourceBufferImpl(jdbcTemplate, jdbcAggregateOperations, configData, clock);
+                                                    JdbcAggregateOperations jdbcAggregateOperations) {
+                return new WordOuterSourceBufferImpl(jdbcTemplate, jdbcAggregateOperations);
         }
 
         @Bean
@@ -122,7 +121,7 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public WordService wordService(WordOuterRepository wordRepository,
+        public WordService wordService(WordRepository wordRepository,
                                        IntervalRepository intervalRepository,
                                        Clock clock,
                                        ConfigData configData,
@@ -175,8 +174,11 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public WordSupplementationService wordSupplementationService() {
-             return new WordSupplementationService();
+        public WordSupplementationService wordSupplementationService(WordRepository wordRepository,
+                                                                     Clock clock,
+                                                                     ObjectMapper mapper,
+                                                                     ValidatorUtil validator) {
+             return new WordSupplementationService(wordRepository, clock, mapper, validator);
         }
 
         @Bean

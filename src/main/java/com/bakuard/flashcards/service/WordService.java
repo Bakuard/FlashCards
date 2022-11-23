@@ -2,7 +2,7 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.dal.IntervalRepository;
-import com.bakuard.flashcards.dal.WordOuterRepository;
+import com.bakuard.flashcards.dal.WordRepository;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.validation.UnknownEntityException;
@@ -22,13 +22,13 @@ import java.util.UUID;
 @Transactional
 public class WordService {
 
-    private WordOuterRepository wordRepository;
+    private WordRepository wordRepository;
     private IntervalRepository intervalRepository;
     private Clock clock;
     private ConfigData configData;
     private ValidatorUtil validator;
 
-    public WordService(WordOuterRepository wordRepository,
+    public WordService(WordRepository wordRepository,
                        IntervalRepository intervalRepository,
                        Clock clock,
                        ConfigData configData,

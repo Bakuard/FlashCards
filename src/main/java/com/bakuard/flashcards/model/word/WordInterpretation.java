@@ -33,19 +33,31 @@ public class WordInterpretation {
         return sourceInfo;
     }
 
-    public WordInterpretation setAll(List<SourceInfo> sourceInfo) {
-        this.sourceInfo.clear();
-        if(sourceInfo != null) this.sourceInfo.addAll(sourceInfo);
+    public WordInterpretation setValue(String value) {
+        this.value = value;
         return this;
+    }
+
+    public boolean merge(WordInterpretation other) {
+        boolean isMerged = value.equals(other.value);
+        if(isMerged) {
+            for(int i = 0; i < other.sourceInfo.size(); i++) {
+                SourceInfo otherInfo = other.sourceInfo.get(i);
+                boolean isFind = false;
+                int index = 0;
+                for(int j = 0; j < sourceInfo.size() && !isFind; j++) {
+                    isFind = sourceInfo.get(j).sourceName().equals(otherInfo.sourceName());
+                    index = j;
+                }
+                if(isFind) sourceInfo.set(index, otherInfo);
+                else sourceInfo.add(otherInfo);
+            }
+        }
+        return isMerged;
     }
 
     public WordInterpretation addSourceInfo(SourceInfo info) {
         sourceInfo.add(info);
-        return this;
-    }
-
-    public WordInterpretation removeSourceInfo(String sourceName) {
-        sourceInfo.removeIf(info -> Objects.equals(info.sourceName(), sourceName));
         return this;
     }
 
