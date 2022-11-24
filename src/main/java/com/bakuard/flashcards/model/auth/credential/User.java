@@ -5,6 +5,7 @@ import com.bakuard.flashcards.validation.*;
 import com.google.common.hash.Hashing;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.MappedCollection;
 import org.springframework.data.relational.core.mapping.Table;
@@ -33,6 +34,8 @@ public class User implements Entity {
     @NotContainsNull(message = "User.roles.notContainsNull")
     @AllUnique(message = "User.roles.allUnique", nameOfGetterMethod = "name")
     private final List<@Valid Role> roles;
+    @Transient
+    private boolean isNew;
 
     @PersistenceCreator
     public User(UUID id, String email, String passwordHash, String salt, List<Role> roles) {
@@ -41,13 +44,16 @@ public class User implements Entity {
         this.passwordHash = passwordHash;
         this.salt = salt;
         this.roles = roles;
+        this.isNew = false;
     }
 
     public User(Credential credential) {
+        this.id = UUID.randomUUID();
         this.email = credential.email();
         this.salt = generateSalt();
         this.roles = new ArrayList<>();
         this.passwordHash = calculatePasswordHash(credential.password(), salt);
+        this.isNew = true;
     }
 
     @Override
@@ -57,7 +63,7 @@ public class User implements Entity {
 
     @Override
     public boolean isNew() {
-        return id == null;
+        return isNew;
     }
 
     public String getPasswordHash() {
@@ -81,8 +87,8 @@ public class User implements Entity {
     }
 
     @Override
-    public void generateIdIfAbsent() {
-        if(id == null) id = UUID.randomUUID();
+    public void markAsSaved() {
+        isNew = false;
     }
 
     public User setEmail(String email) {
@@ -164,6 +170,8 @@ public class User implements Entity {
                 ", email='" + email + '\'' +
                 ", passwordHash='" + passwordHash + '\'' +
                 ", salt='" + salt + '\'' +
+                ", roles=" + roles +
+                ", isNew=" + isNew +
                 '}';
     }
 

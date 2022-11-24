@@ -96,6 +96,7 @@ class UserRepositoryTest {
         Assertions.assertThat(actual).
                 isPresent().get().
                 usingRecursiveComparison().
+                ignoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -103,8 +104,8 @@ class UserRepositoryTest {
     @DisplayName("""
             save(user):
              saved user has role super_admin,
-             user with role super_admin already exists in db,
-             saved user is super admin
+             saved user is super admin,
+             user with role super_admin already exists in db
              => save user
             """)
     public void save3() {
@@ -118,6 +119,7 @@ class UserRepositoryTest {
         Assertions.assertThat(actual).
                 isPresent().get().
                 usingRecursiveComparison().
+                ignoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -140,6 +142,7 @@ class UserRepositoryTest {
         Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
+                ignoringFields("isNew").
                 isEqualTo(actual);
     }
 
@@ -296,7 +299,9 @@ class UserRepositoryTest {
 
         List<User> actual = userRepository.findByRole("admin", 10, 0);
 
-        Assertions.assertThat(actual).containsExactly(users.get(1), users.get(2));
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                containsExactly(users.get(1), users.get(2));
     }
 
 

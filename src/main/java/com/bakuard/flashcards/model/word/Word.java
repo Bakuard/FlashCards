@@ -9,6 +9,7 @@ import com.bakuard.flashcards.validation.NotContainsNull;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Embedded;
 import org.springframework.data.relational.core.mapping.MappedCollection;
@@ -59,6 +60,8 @@ public class Word implements Entity {
     @Embedded.Nullable
     @Valid
     private RepeatDataFromNative repeatDataFromNative;
+    @Transient
+    private boolean isNew;
 
     @PersistenceCreator
     public Word(UUID id,
@@ -81,16 +84,41 @@ public class Word implements Entity {
         this.examples = examples;
         this.repeatDataFromEnglish = repeatDataFromEnglish;
         this.repeatDataFromNative = repeatDataFromNative;
+        this.isNew = false;
     }
 
     public Word(UUID userId, int lowestIntervalForEnglish, int lowestIntervalForNative, Clock clock) {
         this.userId = userId;
+        this.id = UUID.randomUUID();
         this.interpretations = new ArrayList<>();
         this.transcriptions = new ArrayList<>();
         this.translations = new ArrayList<>();
         this.examples = new ArrayList<>();
         this.repeatDataFromEnglish = new RepeatDataFromEnglish(lowestIntervalForEnglish, LocalDate.now(clock));
         this.repeatDataFromNative = new RepeatDataFromNative(lowestIntervalForNative, LocalDate.now(clock));
+        this.isNew = true;
+    }
+
+    public Word(Word other) {
+        this.id = other.id;
+        this.userId = other.userId;
+        this.value = other.value;
+        this.note = other.note;
+        this.interpretations = other.interpretations.stream().
+                map(WordInterpretation::new).
+                collect(Collectors.toCollection(ArrayList::new));
+        this.transcriptions = other.transcriptions.stream().
+                map(WordTranscription::new).
+                collect(Collectors.toCollection(ArrayList::new));
+        this.translations = other.translations.stream().
+                map(WordTranslation::new).
+                collect(Collectors.toCollection(ArrayList::new));
+        this.examples = other.examples.stream().
+                map(WordExample::new).
+                collect(Collectors.toCollection(ArrayList::new));
+        this.repeatDataFromEnglish = RepeatDataFromEnglish.copy(other.repeatDataFromEnglish);
+        this.repeatDataFromNative = RepeatDataFromNative.copy(other.repeatDataFromNative);
+        this.isNew = other.isNew;
     }
 
     @Override
@@ -100,7 +128,7 @@ public class Word implements Entity {
 
     @Override
     public boolean isNew() {
-        return id == null;
+        return isNew;
     }
 
     public UUID getUserId() {
@@ -176,8 +204,8 @@ public class Word implements Entity {
     }
 
     @Override
-    public void generateIdIfAbsent() {
-        if(id == null) id = UUID.randomUUID();
+    public void markAsSaved() {
+        isNew = false;
     }
 
     public Word setValue(String value) {
@@ -246,7 +274,6 @@ public class Word implements Entity {
         for(int i = 0; i < examples.size() && !isMerged; i++) {
             isMerged = examples.get(i).merge(example);
         }
-        if(!isMerged) examples.add(example);
         return this;
     }
 
@@ -321,6 +348,7 @@ public class Word implements Entity {
                 ", examples=" + examples +
                 ", repeatDataFromEnglish=" + repeatDataFromEnglish +
                 ", repeatDataFromNative=" + repeatDataFromNative +
+                ", isNew=" + isNew +
                 '}';
     }
 

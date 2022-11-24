@@ -86,87 +86,298 @@ class WordRepositoryTest {
         Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
+                ignoringFields("isNew").
                 isEqualTo(actual);
     }
 
     @Test
     @DisplayName("""
-            save(word):
-             word hasn't any example source info
-             => mergeFromOuterSource(word) don't load any example source info
+            deleteUnusedOuterSourceExamples():
+             outer source buffer contains examples for deleted user
+             => remove this examples
             """)
-    public void save2() {
+    public void deleteUnusedOuterSourceExamples1() {
         User user = commit(() -> userRepository.save(user(1)));
-        Word word = new Word(user.getId(), 1, 1, clock).
-                setValue("wordA").
-                setNote("noteA").
-                addExample(new WordExample("exampleA", "exampleTranslateA", "noteA")).
-                addExample(new WordExample("exampleB", "exampleTranslateB", "noteA")).
-                addExample(new WordExample("exampleC", "exampleTranslateC", "noteA"));
+        Word wordA = commit(() -> {
+            Word word = emptyWord(user.getId(), "wordA", "noteA", 1).
+                    addExample(new WordExample("exampleA", "translateA", null).
+                            addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                    addExample(new WordExample("exampleB", "translateB", null).
+                            addSourceInfo(exampleOuterSource("source1", "translate1")).
+                            addSourceInfo(exampleOuterSource("source2", "translate2")).
+                            addSourceInfo(exampleOuterSource("source3", "translate3"))).
+                    addExample(new WordExample("exampleC", "translateC", null).
+                            addSourceInfo(exampleOuterSource("source5", "translate5")).
+                            addSourceInfo(exampleOuterSource("source6", "translate6")));
+            wordRepository.saveDataFromOuterSource(word);
+            wordRepository.save(word);
+            return word;
+        });
+        Word wordB = commit(() -> {
+            Word word = emptyWord(user.getId(), "wordB", "noteB", 1).
+                    addExample(new WordExample("exampleA", "translateA", null).
+                            addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                    addExample(new WordExample("exampleD", "translateD", null).
+                            addSourceInfo(exampleOuterSource("source10", "translate10")).
+                            addSourceInfo(exampleOuterSource("source20", "translate20")).
+                            addSourceInfo(exampleOuterSource("source3", "translate3"))).
+                    addExample(new WordExample("exampleE", "translateE", null).
+                            addSourceInfo(exampleOuterSource("source5", "translate5")).
+                            addSourceInfo(exampleOuterSource("source7", "translate7")));
+            wordRepository.saveDataFromOuterSource(word);
+            wordRepository.save(word);
+            return word;
+        });
 
-        commit(() -> wordRepository.save(word));
+        commit(() -> {
+            userRepository.deleteById(user.getId());
+            wordRepository.deleteUnusedOuterSourceExamples();
+        });
 
-        Word actual = emptyWord(word.getId(), user.getId(), "wordA", "noteA", 1);
-        wordRepository.mergeFromOuterSource(actual);
-        Assertions.assertThat(actual.getExamples()).isEmpty();
+        Word actualA = emptyWord(wordA.getId(), user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", "noteA")).
+                addExample(new WordExample("exampleB", "translateB", "noteB")).
+                addExample(new WordExample("exampleC", "translateC", "noteC"));
+        Word actualB = emptyWord(wordB.getId(), user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", "noteA")).
+                addExample(new WordExample("exampleD", "translateD", "noteD")).
+                addExample(new WordExample("exampleE", "translateE", "noteE"));
+        wordRepository.mergeFromOuterSource(actualA);
+        wordRepository.mergeFromOuterSource(actualB);
+        SoftAssertions softAssertions = new SoftAssertions();
+        softAssertions.assertThat(actualA.getExamples()).
+                extracting(example -> example.getSourceInfo().size()).
+                containsExactly(0, 0, 0);
+        softAssertions.assertThat(actualB.getExamples()).
+                extracting(example -> example.getSourceInfo().size()).
+                containsExactly(0, 0, 0);
+        softAssertions.assertAll();
     }
 
     @Test
     @DisplayName("""
-            save(word):
-             word has some example source info
-             => mergeFromOuterSource(word) load SourceInfo for this word examples
+            deleteUnusedOuterSourceExamples():
+             outer source buffer contains examples for deleted word
+             => remove this examples
             """)
-    public void save3() {
+    public void deleteUnusedOuterSourceExamples2() {
         User user = commit(() -> userRepository.save(user(1)));
-        Word word = new Word(user.getId(), 1, 1, clock).
-                setValue("wordA").
-                setNote("noteA").
-                addTranslation(new WordTranslation("translateA", "noteA")).
-                addTranslation(new WordTranslation("translateB", "noteB")).
-                addTranslation(new WordTranslation("translateC", "noteC")).
-                addTranscription(new WordTranscription("transcriptionA", "noteA")).
-                addTranscription(new WordTranscription("transcriptionB", "noteB")).
-                addTranscription(new WordTranscription("transcriptionC", "noteC")).
-                addInterpretation(new WordInterpretation("interpretationA")).
-                addInterpretation(new WordInterpretation("interpretationB")).
-                addInterpretation(new WordInterpretation("interpretationC")).
-                addExample(new WordExample("exampleA", "exampleTranslate", "noteA").
-                        addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))).
-                addExample(new WordExample("exampleB", "exampleTranslate", "noteB")).
-                addExample(new WordExample("exampleC", "exampleTranslate", "noteC").
-                        addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
-                        addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())));
+        Word word = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", null).
+                        addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                addExample(new WordExample("exampleB", "translateB", null).
+                        addSourceInfo(exampleOuterSource("source1", "translate1")).
+                        addSourceInfo(exampleOuterSource("source2", "translate2")).
+                        addSourceInfo(exampleOuterSource("source3", "translate3"))).
+                addExample(new WordExample("exampleC", "translateC", null).
+                        addSourceInfo(exampleOuterSource("source5", "translate5")).
+                        addSourceInfo(exampleOuterSource("source6", "translate6")));
+        commit(() -> {
+            wordRepository.saveDataFromOuterSource(word);
+            wordRepository.save(word);
+        });
 
-        commit(() -> wordRepository.save(word));
+        commit(() -> {
+            wordRepository.deleteById(user.getId(), word.getId());
+            wordRepository.deleteUnusedOuterSourceExamples();
+        });
 
-        Word actual = wordRepository.findById(user.getId(), word.getId()).orElseThrow();
+        Word actual = emptyWord(word.getId(), user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", "noteA")).
+                addExample(new WordExample("exampleB", "translateB", "noteB")).
+                addExample(new WordExample("exampleC", "translateC", "noteC"));
         wordRepository.mergeFromOuterSource(actual);
         Assertions.assertThat(actual.getExamples()).
-                usingRecursiveFieldByFieldElementComparator().
+                extracting(example -> example.getSourceInfo().size()).
+                containsExactly(0, 0, 0);
+    }
+
+    @Test
+    @DisplayName("""
+            deleteUnusedOuterSourceExamples():
+             outer source buffer contains examples for deleted word example
+             => remove this examples
+            """)
+    public void deleteUnusedOuterSourceExamples3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", null).
+                        addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                addExample(new WordExample("exampleB", "translateB", null).
+                        addSourceInfo(exampleOuterSource("source1", "translate1")).
+                        addSourceInfo(exampleOuterSource("source2", "translate2")).
+                        addSourceInfo(exampleOuterSource("source3", "translate3"))).
+                addExample(new WordExample("exampleC", "translateC", null).
+                        addSourceInfo(exampleOuterSource("source5", "translate5")).
+                        addSourceInfo(exampleOuterSource("source6", "translate6")));
+        commit(() -> {
+            wordRepository.saveDataFromOuterSource(word);
+            wordRepository.save(word);
+        });
+
+        commit(() -> {
+            wordRepository.save(
+                    word.setExamples(List.of(
+                            new WordExample("exampleA", "translateA", null),
+                            new WordExample("exampleC", "translateC", null)
+                    ))
+            );
+            wordRepository.deleteUnusedOuterSourceExamples();
+        });
+
+        Word actual = emptyWord(word.getId(), user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", "noteA")).
+                addExample(new WordExample("exampleB", "translateB", "noteB")).
+                addExample(new WordExample("exampleC", "translateC", "noteC"));
+        wordRepository.mergeFromOuterSource(actual);
+        Assertions.assertThat(actual.getExamples()).
                 containsExactly(
-                        new WordExample("exampleA", "exampleTranslate", "noteA").
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())),
-                        new WordExample("exampleB", "exampleTranslate", "noteB"),
-                        new WordExample("exampleC", "exampleTranslate", "noteC").
-                                addSourceInfo(new SourceInfo("https://source2.com", "source2", toDay())).
-                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+                        new WordExample("exampleA", "translateA", "noteA").
+                                addSourceInfo(exampleOuterSource("source1", "translate1")),
+                        new WordExample("exampleB", "translateB", "noteB"),
+                        new WordExample("exampleC", "translateC", "noteC").
+                                addSourceInfo(exampleOuterSource("source5", "translate5")).
+                                addSourceInfo(exampleOuterSource("source6", "translate6"))
                 );
     }
 
     @Test
     @DisplayName("""
-            saveDataFromOuterSourceExcludeExamples(word):
+            deleteUnusedOuterSourceExamples():
+             outer source buffer contains examples for deleted user
+             => doesn't remove examples of existed users
+            """)
+    public void deleteUnusedOuterSourceExamples4() {
+        User deletedUser = commit(() -> userRepository.save(user(1)));
+        User existedUser = commit(() -> userRepository.save(user(2)));
+        commit(() -> {
+            Word word = emptyWord(deletedUser.getId(), "wordA", "noteA", 1).
+                    addExample(new WordExample("exampleA", "translateA", null).
+                            addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                    addExample(new WordExample("exampleB", "translateB", null).
+                            addSourceInfo(exampleOuterSource("source1", "translate1")).
+                            addSourceInfo(exampleOuterSource("source2", "translate2")).
+                            addSourceInfo(exampleOuterSource("source3", "translate3"))).
+                    addExample(new WordExample("exampleC", "translateC", null).
+                            addSourceInfo(exampleOuterSource("source5", "translate5")).
+                            addSourceInfo(exampleOuterSource("source6", "translate6")));
+            wordRepository.saveDataFromOuterSource(word);
+            wordRepository.save(word);
+        });
+        Word wordB = commit(() -> {
+            Word word = emptyWord(existedUser.getId(), "wordB", "noteB", 1).
+                    addExample(new WordExample("exampleA", "translateA", null).
+                            addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                    addExample(new WordExample("exampleD", "translateD", null).
+                            addSourceInfo(exampleOuterSource("source10", "translate10")).
+                            addSourceInfo(exampleOuterSource("source20", "translate20")).
+                            addSourceInfo(exampleOuterSource("source3", "translate3"))).
+                    addExample(new WordExample("exampleE", "translateE", null).
+                            addSourceInfo(exampleOuterSource("source5", "translate5")).
+                            addSourceInfo(exampleOuterSource("source7", "translate7")));
+            wordRepository.saveDataFromOuterSource(word);
+            wordRepository.save(word);
+            return word;
+        });
+
+        commit(() -> {
+            userRepository.deleteById(deletedUser.getId());
+            wordRepository.deleteUnusedOuterSourceExamples();
+        });
+
+        Word actual = emptyWord(wordB.getId(), existedUser.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", "noteA")).
+                addExample(new WordExample("exampleD", "translateD", "noteD")).
+                addExample(new WordExample("exampleE", "translateE", "noteE"));
+        wordRepository.mergeFromOuterSource(actual);
+        Assertions.assertThat(actual.getExamples()).
+                containsExactly(
+                        new WordExample("exampleA", "translateA", "noteA").
+                                addSourceInfo(exampleOuterSource("source1", "translate1")),
+                        new WordExample("exampleD", "translateD", "noteD").
+                                addSourceInfo(exampleOuterSource("source10", "translate10")).
+                                addSourceInfo(exampleOuterSource("source20", "translate20")).
+                                addSourceInfo(exampleOuterSource("source3", "translate3")),
+                        new WordExample("exampleE", "translateE", "noteE").
+                                addSourceInfo(exampleOuterSource("source5", "translate5")).
+                                addSourceInfo(exampleOuterSource("source7", "translate7"))
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            deleteUnusedOuterSourceExamples():
+             outer source buffer contains examples for deleted word
+             => doesn't remove examples of existed words
+            """)
+    public void deleteUnusedOuterSourceExamples5() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word deletedWord = commit(() -> {
+            Word word = emptyWord(user.getId(), "deletedWord", "note", 1).
+                    addExample(new WordExample("exampleA", "translateA", null).
+                            addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                    addExample(new WordExample("exampleB", "translateB", null).
+                            addSourceInfo(exampleOuterSource("source1", "translate1")).
+                            addSourceInfo(exampleOuterSource("source2", "translate2")).
+                            addSourceInfo(exampleOuterSource("source3", "translate3"))).
+                    addExample(new WordExample("exampleC", "translateC", null).
+                            addSourceInfo(exampleOuterSource("source5", "translate5")).
+                            addSourceInfo(exampleOuterSource("source6", "translate6")));
+            wordRepository.saveDataFromOuterSource(word);
+            wordRepository.save(word);
+            return word;
+        });
+        Word existedWord = commit(() -> {
+            Word word = emptyWord(user.getId(), "existedWord", "note", 1).
+                    addExample(new WordExample("exampleA", "translateA", null).
+                            addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                    addExample(new WordExample("exampleD", "translateD", null).
+                            addSourceInfo(exampleOuterSource("source10", "translate10")).
+                            addSourceInfo(exampleOuterSource("source20", "translate20")).
+                            addSourceInfo(exampleOuterSource("source3", "translate3"))).
+                    addExample(new WordExample("exampleE", "translateE", null).
+                            addSourceInfo(exampleOuterSource("source5", "translate5")).
+                            addSourceInfo(exampleOuterSource("source7", "translate7")));
+            wordRepository.saveDataFromOuterSource(word);
+            wordRepository.save(word);
+            return word;
+        });
+
+        commit(() -> {
+            wordRepository.deleteById(user.getId(), deletedWord.getId());
+            wordRepository.deleteUnusedOuterSourceExamples();
+        });
+
+        Word actual = emptyWord(existedWord.getId(), user.getId(), "existedWord", "note", 1).
+                addExample(new WordExample("exampleA", "translateA", "noteA")).
+                addExample(new WordExample("exampleD", "translateD", "noteD")).
+                addExample(new WordExample("exampleE", "translateE", "noteE"));
+        wordRepository.mergeFromOuterSource(actual);
+        Assertions.assertThat(actual.getExamples()).
+                containsExactly(
+                        new WordExample("exampleA", "translateA", "noteA").
+                                addSourceInfo(exampleOuterSource("source1", "translate1")),
+                        new WordExample("exampleD", "translateD", "noteD").
+                                addSourceInfo(exampleOuterSource("source10", "translate10")).
+                                addSourceInfo(exampleOuterSource("source20", "translate20")).
+                                addSourceInfo(exampleOuterSource("source3", "translate3")),
+                        new WordExample("exampleE", "translateE", "noteE").
+                                addSourceInfo(exampleOuterSource("source5", "translate5")).
+                                addSourceInfo(exampleOuterSource("source7", "translate7"))
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            mergeFromOuterSource(word):
              outer source buffer doesn't contains transcriptions,
              outer source buffer doesn't contains interpretations,
              outer source buffer doesn't contains translates
-             => mergeFromOuterSource(word) don't load transcriptions, interpretations or translates from buffer
+             => don't load transcriptions, interpretations or translates from buffer
             """)
-    public void saveDataFromOuterSourceExcludeExamples1() {
+    public void mergeFromOuterSource1() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+        commit(() -> wordRepository.saveDataFromOuterSource(
                 word(user.getId(), "wordA", "noteA", 1)
         ));
 
@@ -182,21 +393,21 @@ class WordRepositoryTest {
 
     @Test
     @DisplayName("""
-            saveDataFromOuterSourceExcludeExamples(word):
+            mergeFromOuterSource(word):
              outer source buffer contains transcriptions,
              filled word doesn't contain any transcriptions
-             => mergeFromOuterSource(word) load transcriptions from buffer
+             => load transcriptions from buffer
             """)
-    public void saveDataFromOuterSourceExcludeExamples2() {
+    public void mergeFromOuterSource2() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+        commit(() -> wordRepository.saveDataFromOuterSource(
                 emptyWord(user.getId(), "wordA", "noteA", 1).
                         addTranscription(new WordTranscription("transcriptionA", "noteA").
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                                addSourceInfo(outerSource("source5"))).
                         addTranscription(new WordTranscription("transcriptionB", "noteB")).
                         addTranscription(new WordTranscription("transcriptionC", "noteC").
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())))
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10")))
         ));
 
         Word actual = emptyWord(user.getId(), "wordA", "noteA", 1);
@@ -205,30 +416,30 @@ class WordRepositoryTest {
         Assertions.assertThat(actual.getTranscriptions()).
                 containsExactly(
                         new WordTranscription("transcriptionA", null).
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())),
+                                addSourceInfo(outerSource("source5")),
                         new WordTranscription("transcriptionC", null).
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10"))
                 );
     }
 
     @Test
     @DisplayName("""
-            saveDataFromOuterSourceExcludeExamples(word):
+            mergeFromOuterSource(word):
              outer source buffer contains interpretations,
              filled word doesn't contain any interpretations
-             => mergeFromOuterSource(word) load interpretations from buffer
+             => load interpretations from buffer
             """)
-    public void saveDataFromOuterSourceExcludeExamples3() {
+    public void mergeFromOuterSource3() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+        commit(() -> wordRepository.saveDataFromOuterSource(
                 emptyWord(user.getId(), "wordA", "noteA", 1).
                         addInterpretation(new WordInterpretation("interpretationA").
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                                addSourceInfo(outerSource("source5"))).
                         addInterpretation(new WordInterpretation("interpretationB")).
                         addInterpretation(new WordInterpretation("interpretationC").
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())))
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10")))
         ));
 
         Word actual = emptyWord(user.getId(), "wordA", "noteA", 1);
@@ -237,184 +448,377 @@ class WordRepositoryTest {
         Assertions.assertThat(actual.getInterpretations()).
                 containsExactly(
                         new WordInterpretation("interpretationA").
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())),
+                                addSourceInfo(outerSource("source5")),
                         new WordInterpretation("interpretationC").
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10"))
                 );
     }
 
     @Test
     @DisplayName("""
-            saveDataFromOuterSourceExcludeExamples(word):
+            mergeFromOuterSource(word):
              outer source buffer contains translates,
              filled word doesn't contain any translates
-             => mergeFromOuterSource(word) load translates from buffer
+             => load translates from buffer
             """)
-    public void saveDataFromOuterSourceExcludeExamples4() {
+    public void mergeFromOuterSource4() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+        commit(() -> wordRepository.saveDataFromOuterSource(
                 emptyWord(user.getId(), "wordA", "noteA", 1).
                         addTranslation(new WordTranslation("translateA", "noteA").
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay()))).
+                                addSourceInfo(outerSource("source1"))).
                         addTranslation(new WordTranslation("translateB", "noteB")).
                         addTranslation(new WordTranslation("translateC", "noteC").
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())))
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10")))
         ));
 
         Word actual = emptyWord(user.getId(), "wordA", "noteA", 1);
         wordRepository.mergeFromOuterSource(actual);
 
         Assertions.assertThat(actual.getTranslations()).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("note").
                 containsExactly(
                         new WordTranslation("translateA", null).
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())),
+                                addSourceInfo(outerSource("source1")),
                         new WordTranslation("translateC", null).
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10"))
                 );
     }
 
     @Test
     @DisplayName("""
-            saveDataFromOuterSourceExcludeExamples(word):
+            mergeFromOuterSource(word):
+             outer source buffer contains examples,
+             all buffer examples not match the filled word examples
+             => doesn't match examples from buffer
+            """)
+    public void mergeFromOuterSource5() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word =  emptyWord(user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", null).
+                        addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                addExample(new WordExample("exampleB", "translateB", null)).
+                addExample(new WordExample("exampleC", "translateC", null).
+                        addSourceInfo(exampleOuterSource("source1", "translate1")).
+                        addSourceInfo(exampleOuterSource("source10", "translate10")));
+        commit(() -> wordRepository.saveDataFromOuterSource(word));
+
+        Word actual = emptyWord(word.getId(), user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleD", "translateD", "noteD")).
+                addExample(new WordExample("exampleE", "translateE", "noteE")).
+                addExample(new WordExample("exampleF", "translateF", "noteF"));
+        wordRepository.mergeFromOuterSource(actual);
+
+        Assertions.assertThat(actual.getExamples()).
+                containsExactly(
+                        new WordExample("exampleD", "translateD", "noteD"),
+                        new WordExample("exampleE", "translateE", "noteE"),
+                        new WordExample("exampleF", "translateF", "noteF")
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            mergeFromOuterSource(word):
              outer source buffer contains transcriptions,
              filled word already contain some transcriptions
-             => mergeFromOuterSource(word) merge transcriptions from buffer to word
+             => merge transcriptions from buffer to word
             """)
-    public void saveDataFromOuterSourceExcludeExamples5() {
+    public void mergeFromOuterSource6() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+        commit(() -> wordRepository.saveDataFromOuterSource(
                 emptyWord(user.getId(), "wordA", "noteA", 1).
                         addTranscription(new WordTranscription("transcriptionA", null).
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                                addSourceInfo(outerSource("source5"))).
                         addTranscription(new WordTranscription("transcriptionB", null)).
                         addTranscription(new WordTranscription("transcriptionC", null).
-                                addSourceInfo(new SourceInfo("https://source4.com", "source4", toDay())).
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                                addSourceInfo(outerSource("source4")).
+                                addSourceInfo(outerSource("source5"))).
                         addTranscription(new WordTranscription("transcriptionE", null).
-                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())))
+                                addSourceInfo(outerSource("source3")))
         ));
 
         Word actual = emptyWord(user.getId(), "wordA", "noteA", 1).
                 addTranscription(new WordTranscription("transcriptionA", "noteA").
-                        addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
-                        addSourceInfo(new SourceInfo("https://source6.com", "source6", toDay()))).
+                        addSourceInfo(outerSource("source5")).
+                        addSourceInfo(outerSource("source6"))).
                 addTranscription(new WordTranscription("transcriptionD", "noteD")).
                 addTranscription(new WordTranscription("transcriptionC", "noteC").
-                        addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
-                        addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())));
+                        addSourceInfo(outerSource("source5")).
+                        addSourceInfo(outerSource("source10")));
         wordRepository.mergeFromOuterSource(actual);
 
         Assertions.assertThat(actual.getTranscriptions()).
                 containsExactly(
                         new WordTranscription("transcriptionA", "noteA").
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
-                                addSourceInfo(new SourceInfo("https://source6.com", "source6", toDay())),
+                                addSourceInfo(outerSource("source5")).
+                                addSourceInfo(outerSource("source6")),
                         new WordTranscription("transcriptionD", "noteD"),
                         new WordTranscription("transcriptionC", "noteC").
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
-                                addSourceInfo(new SourceInfo("https://source4.com", "source4", toDay())),
+                                addSourceInfo(outerSource("source5")).
+                                addSourceInfo(outerSource("source10")).
+                                addSourceInfo(outerSource("source4")),
                         new WordTranscription("transcriptionE", null).
-                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+                                addSourceInfo(outerSource("source3"))
                 );
     }
 
     @Test
     @DisplayName("""
-            saveDataFromOuterSourceExcludeExamples(word):
+            mergeFromOuterSource(word):
              outer source buffer contains interpretations,
              filled word already contain some interpretations
-             => mergeFromOuterSource(word) merge interpretations from buffer to word
+             => merge interpretations from buffer to word
             """)
-    public void saveDataFromOuterSourceExcludeExamples6() {
+    public void mergeFromOuterSource7() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+        commit(() -> wordRepository.saveDataFromOuterSource(
                 emptyWord(user.getId(), "wordA", "noteA", 1).
                         addInterpretation(new WordInterpretation("interpretationA").
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                                addSourceInfo(outerSource("source5"))).
                         addInterpretation(new WordInterpretation("interpretationB")).
                         addInterpretation(new WordInterpretation("interpretationC").
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))).
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10"))).
                         addInterpretation(new WordInterpretation("interpretationE").
-                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())))
+                                addSourceInfo(outerSource("source3")))
         ));
 
         Word actual = emptyWord(user.getId(), "wordA", "noteA", 1).
                 addInterpretation(new WordInterpretation("interpretationA").
-                        addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
-                        addSourceInfo(new SourceInfo("https://source7.com", "source7", toDay()))).
+                        addSourceInfo(outerSource("source5")).
+                        addSourceInfo(new OuterSource("https://source7.com", "source7", toDay()))).
                 addInterpretation(new WordInterpretation("interpretationD")).
                 addInterpretation(new WordInterpretation("interpretationC").
-                        addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
-                        addSourceInfo(new SourceInfo("https://source11.com", "source11", toDay())));
+                        addSourceInfo(outerSource("source10")).
+                        addSourceInfo(new OuterSource("https://source11.com", "source11", toDay())));
         wordRepository.mergeFromOuterSource(actual);
 
         Assertions.assertThat(actual.getInterpretations()).
                 containsExactly(
                         new WordInterpretation("interpretationA").
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
-                                addSourceInfo(new SourceInfo("https://source7.com", "source7", toDay())),
+                                addSourceInfo(outerSource("source5")).
+                                addSourceInfo(new OuterSource("https://source7.com", "source7", toDay())),
                         new WordInterpretation("interpretationD"),
                         new WordInterpretation("interpretationC").
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
-                                addSourceInfo(new SourceInfo("https://source11.com", "source11", toDay())).
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())),
+                                addSourceInfo(outerSource("source10")).
+                                addSourceInfo(new OuterSource("https://source11.com", "source11", toDay())).
+                                addSourceInfo(outerSource("source1")),
                         new WordInterpretation("interpretationE").
-                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+                                addSourceInfo(outerSource("source3"))
                 );
     }
 
     @Test
     @DisplayName("""
-            saveDataFromOuterSourceExcludeExamples(word):
+            mergeFromOuterSource(word):
              outer source buffer contains translates,
              filled word already contain some translates
-             => mergeFromOuterSource(word) merge translates from buffer to word
+             => merge translates from buffer to word
             """)
-    public void saveDataFromOuterSourceExcludeExamples7() {
+    public void mergeFromOuterSource8() {
         User user = commit(() -> userRepository.save(user(1)));
-        commit(() -> wordRepository.saveDataFromOuterSourceExcludeExamples(
+        commit(() -> wordRepository.saveDataFromOuterSource(
                 emptyWord(user.getId(), "wordA", "noteA", 1).
                         addTranslation(new WordTranslation("translateA", null).
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay()))).
+                                addSourceInfo(outerSource("source5"))).
                         addTranslation(new WordTranslation("translateB", null)).
                         addTranslation(new WordTranslation("translateC", null).
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())).
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay()))).
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10"))).
                         addTranslation(new WordTranslation("translateE", null).
-                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay())))
+                                addSourceInfo(outerSource("source3")))
         ));
 
         Word actual = emptyWord(user.getId(), "wordA", "noteA", 1).
                 addTranslation(new WordTranslation("translateA", "noteA").
-                        addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
-                        addSourceInfo(new SourceInfo("https://source7.com", "source7", toDay()))).
+                        addSourceInfo(outerSource("source5")).
+                        addSourceInfo(new OuterSource("https://source7.com", "source7", toDay()))).
                 addTranslation(new WordTranslation("translateD", "noteD")).
                 addTranslation(new WordTranslation("translateC", "noteC").
-                        addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
-                        addSourceInfo(new SourceInfo("https://source11.com", "source11", toDay())));
+                        addSourceInfo(outerSource("source10")).
+                        addSourceInfo(new OuterSource("https://source11.com", "source11", toDay())));
         wordRepository.mergeFromOuterSource(actual);
 
         Assertions.assertThat(actual.getTranslations()).
                 containsExactly(
                         new WordTranslation("translateA", "noteA").
-                                addSourceInfo(new SourceInfo("https://source5.com", "source5", toDay())).
-                                addSourceInfo(new SourceInfo("https://source7.com", "source7", toDay())),
+                                addSourceInfo(outerSource("source5")).
+                                addSourceInfo(new OuterSource("https://source7.com", "source7", toDay())),
                         new WordTranslation("translateD", "noteD"),
                         new WordTranslation("translateC", "noteC").
-                                addSourceInfo(new SourceInfo("https://source10.com", "source10", toDay())).
-                                addSourceInfo(new SourceInfo("https://source11.com", "source11", toDay())).
-                                addSourceInfo(new SourceInfo("https://source1.com", "source1", toDay())),
+                                addSourceInfo(outerSource("source10")).
+                                addSourceInfo(new OuterSource("https://source11.com", "source11", toDay())).
+                                addSourceInfo(outerSource("source1")),
                         new WordTranslation("translateE", null).
-                                addSourceInfo(new SourceInfo("https://source3.com", "source3", toDay()))
+                                addSourceInfo(outerSource("source3"))
                 );
     }
 
+    @Test
+    @DisplayName("""
+            mergeFromOuterSource(word):
+             outer source buffer contains examples,
+             all buffer examples match the filled word examples
+             => match examples from buffer
+            """)
+    public void mergeFromOuterSource9() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", null).
+                        addSourceInfo(exampleOuterSource("source1", "translate1"))).
+                addExample(new WordExample("exampleB", "translateB", null)).
+                addExample(new WordExample("exampleC", "translateC", null).
+                        addSourceInfo(exampleOuterSource("source2", "translate2")).
+                        addSourceInfo(exampleOuterSource("source3", "translate3")));
+        commit(() -> wordRepository.saveDataFromOuterSource(word));
+
+        Word actual = emptyWord(word.getId(), user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", "noteA")).
+                addExample(new WordExample("exampleD", "translateD", "noteD")).
+                addExample(new WordExample("exampleC", "translateC", "noteC").
+                        addSourceInfo(exampleOuterSource("source1", "translate1")).
+                        addSourceInfo(exampleOuterSource("source3", "translate3")));
+        wordRepository.mergeFromOuterSource(actual);
+
+        Assertions.assertThat(actual.getExamples()).
+                containsExactly(
+                        new WordExample("exampleA", "translateA", "noteA").
+                                addSourceInfo(exampleOuterSource("source1", "translate1")),
+                        new WordExample("exampleD", "translateD", "noteD"),
+                        new WordExample("exampleC", "translateC", "noteC").
+                                addSourceInfo(exampleOuterSource("source1", "translate1")).
+                                addSourceInfo(exampleOuterSource("source3", "translate3")).
+                                addSourceInfo(exampleOuterSource("source2", "translate2"))
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            mergeFromOuterSource(word):
+             outer source buffer doesn't contain any transcriptions,
+             => doesn't change filled word transcriptions
+            """)
+    public void mergeFromOuterSource10() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addTranscription(new WordTranscription("transcriptionA", "noteA").
+                        addSourceInfo(outerSource("source5")).
+                        addSourceInfo(outerSource("source6"))).
+                addTranscription(new WordTranscription("transcriptionD", "noteD")).
+                addTranscription(new WordTranscription("transcriptionC", "noteC").
+                        addSourceInfo(outerSource("source5")).
+                        addSourceInfo(outerSource("source10")));
+        
+        wordRepository.mergeFromOuterSource(word);
+
+        Assertions.assertThat(word.getTranscriptions()).
+                containsExactly(
+                        new WordTranscription("transcriptionA", "noteA").
+                                addSourceInfo(outerSource("source5")).
+                                addSourceInfo(outerSource("source6")),
+                        new WordTranscription("transcriptionD", "noteD"),
+                        new WordTranscription("transcriptionC", "noteC").
+                                addSourceInfo(outerSource("source5")).
+                                addSourceInfo(outerSource("source10"))
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            mergeFromOuterSource(word):
+             outer source buffer doesn't contain any interpretations,
+             => doesn't change filled word interpretations
+            """)
+    public void mergeFromOuterSource11() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addInterpretation(new WordInterpretation("interpretationA").
+                        addSourceInfo(outerSource("source5"))).
+                addInterpretation(new WordInterpretation("interpretationB")).
+                addInterpretation(new WordInterpretation("interpretationC").
+                        addSourceInfo(outerSource("source1")).
+                        addSourceInfo(outerSource("source10"))).
+                addInterpretation(new WordInterpretation("interpretationE").
+                        addSourceInfo(outerSource("source3")));
+        
+        wordRepository.mergeFromOuterSource(word);
+
+        Assertions.assertThat(word.getInterpretations()).
+                containsExactly(
+                        new WordInterpretation("interpretationA").
+                                addSourceInfo(outerSource("source5")),
+                        new WordInterpretation("interpretationB"),
+                        new WordInterpretation("interpretationC").
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10")),
+                        new WordInterpretation("interpretationE").
+                                addSourceInfo(outerSource("source3"))
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            mergeFromOuterSource(word):
+             outer source buffer doesn't contain any translates,
+             => doesn't change filled word translates
+            """)
+    public void mergeFromOuterSource12() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addTranslation(new WordTranslation("translateA", "noteA").
+                        addSourceInfo(outerSource("source5"))).
+                addTranslation(new WordTranslation("translateB", "noteB")).
+                addTranslation(new WordTranslation("translateC", "noteC").
+                        addSourceInfo(outerSource("source1")).
+                        addSourceInfo(outerSource("source10"))).
+                addTranslation(new WordTranslation("translateE", "noteE").
+                        addSourceInfo(outerSource("source3")));
+
+        wordRepository.mergeFromOuterSource(word);
+
+        Assertions.assertThat(word.getTranslations()).
+                containsExactly(
+                        new WordTranslation("translateA", "noteA").
+                                addSourceInfo(outerSource("source5")),
+                        new WordTranslation("translateB", "noteB"),
+                        new WordTranslation("translateC", "noteC").
+                                addSourceInfo(outerSource("source1")).
+                                addSourceInfo(outerSource("source10")),
+                        new WordTranslation("translateE", "noteE").
+                                addSourceInfo(outerSource("source3"))
+                );
+    }
+    
+    @Test
+    @DisplayName("""
+            mergeFromOuterSource(word):
+             outer source buffer doesn't contain any examples,
+             => doesn't change filled word examples
+            """)
+    public void mergeFromOuterSource13() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = emptyWord(user.getId(), "wordA", "noteA", 1).
+                addExample(new WordExample("exampleA", "translateA", "noteA")).
+                addExample(new WordExample("exampleD", "translateD", "noteD")).
+                addExample(new WordExample("exampleC", "translateC", "noteC").
+                        addSourceInfo(exampleOuterSource("source1", "translate1")).
+                        addSourceInfo(exampleOuterSource("source3", "translate3")));
+
+        wordRepository.mergeFromOuterSource(word);
+
+        Assertions.assertThat(word.getExamples()).
+                containsExactly(
+                        new WordExample("exampleA", "translateA", "noteA"),
+                        new WordExample("exampleD", "translateD", "noteD"),
+                        new WordExample("exampleC", "translateC", "noteC").
+                                addSourceInfo(exampleOuterSource("source1", "translate1")).
+                                addSourceInfo(exampleOuterSource("source3", "translate3"))
+                );
+    }
+    
     @Test
     @DisplayName("""
             findById(userId, wordId):
@@ -448,6 +852,7 @@ class WordRepositoryTest {
 
         Assertions.assertThat(actual).
                 usingRecursiveComparison().
+                ignoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -583,7 +988,7 @@ class WordRepositoryTest {
         );
 
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 containsExactly(words.get(0), words.get(1));
     }
 
@@ -894,7 +1299,7 @@ class WordRepositoryTest {
                 sorted(Comparator.comparing(Word::getValue).reversed()).
                 toList();
         Assertions.assertThat(actual.getContent()).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -918,7 +1323,7 @@ class WordRepositoryTest {
                         thenComparing(Word::getValue)).
                 toList();
         Assertions.assertThat(actual.getContent()).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -986,7 +1391,7 @@ class WordRepositoryTest {
                 limit(2).
                 toList();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -1054,7 +1459,7 @@ class WordRepositoryTest {
                 limit(2).
                 toList();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -1190,7 +1595,9 @@ class WordRepositoryTest {
 
         List<Word> actual = wordRepository.findByTranslate(user.getId(), "translateX", 10, 0);
 
-        Assertions.assertThat(actual).containsExactly(wordD, wordE, wordF);
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                containsExactly(wordD, wordE, wordF);
     }
 
     @Test
@@ -1295,6 +1702,23 @@ class WordRepositoryTest {
         return LocalDate.now(clock);
     }
 
+    private ExampleOuterSource exampleOuterSource(String outerSourceName, String translate) {
+        return new ExampleOuterSource(
+                "https://" + outerSourceName + ".com",
+                outerSourceName,
+                toDay(),
+                translate
+        );
+    }
+    
+    private OuterSource outerSource(String outerSourceName) {
+        return new OuterSource(
+                "https://" + outerSourceName + ".com",
+                outerSourceName,
+                toDay()
+        );
+    }
+    
     private Word word(UUID userId,
                       String value,
                       String note,

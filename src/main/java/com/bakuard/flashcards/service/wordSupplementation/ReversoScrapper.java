@@ -1,9 +1,6 @@
 package com.bakuard.flashcards.service.wordSupplementation;
 
-import com.bakuard.flashcards.model.word.SourceInfo;
-import com.bakuard.flashcards.model.word.Word;
-import com.bakuard.flashcards.model.word.WordExample;
-import com.bakuard.flashcards.model.word.WordTranslation;
+import com.bakuard.flashcards.model.word.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -104,7 +101,7 @@ public class ReversoScrapper implements WordSupplementation {
                 map(node -> node.findPath("translation").textValue()).
                 map(translationValue -> new WordTranslation(translationValue, null).
                         addSourceInfo(
-                                new SourceInfo(toUrlForReversoUi(word),
+                                new OuterSource(toUrlForReversoUi(word),
                                         outerSourceName,
                                         LocalDate.now(clock))
                         )).
@@ -160,7 +157,7 @@ public class ReversoScrapper implements WordSupplementation {
         return translations.stream().
                 flatMap(translation -> translation.getSourceInfo().stream()).
                 findFirst().
-                map(SourceInfo::recentUpdateDate).
+                map(OuterSource::recentUpdateDate).
                 orElseThrow();
     }
 
@@ -168,7 +165,7 @@ public class ReversoScrapper implements WordSupplementation {
         return examples.stream().
                 flatMap(example -> example.getSourceInfo().stream()).
                 findFirst().
-                map(SourceInfo::recentUpdateDate).
+                map(ExampleOuterSource::recentUpdateDate).
                 orElseThrow();
     }
 

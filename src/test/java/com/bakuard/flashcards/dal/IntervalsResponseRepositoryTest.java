@@ -688,7 +688,7 @@ class IntervalsResponseRepositoryTest {
 
         List<Word> actual = findAllWords();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 containsExactlyElementsOf(words);
     }
 
@@ -718,7 +718,7 @@ class IntervalsResponseRepositoryTest {
 
         List<Expression> actual = findAllExpressions();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 containsExactlyInAnyOrderElementsOf(expressions);
     }
 

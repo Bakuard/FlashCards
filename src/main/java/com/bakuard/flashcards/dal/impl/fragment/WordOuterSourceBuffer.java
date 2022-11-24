@@ -4,10 +4,10 @@ import com.bakuard.flashcards.model.word.Word;
 
 public interface WordOuterSourceBuffer<T> {
 
-    public T save(T word);
-
-    public void saveDataFromOuterSourceExcludeExamples(Word word);
+    public void saveDataFromOuterSource(Word word);
 
     public void mergeFromOuterSource(Word word);
+
+    public void deleteUnusedOuterSourceExamples();
 
 }

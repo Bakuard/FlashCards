@@ -24,14 +24,21 @@ public class WordExample {
     @NotBlankOrNull(message = "WordExample.note.notBlankOrNull")
     private String note;
     @Transient
-    private List<SourceInfo> sourceInfo;
+    private List<ExampleOuterSource> outerSource;
 
     @PersistenceCreator
     public WordExample(String origin, String translate, String note) {
         this.origin = origin;
         this.translate = translate;
         this.note = note;
-        this.sourceInfo = new ArrayList<>();
+        this.outerSource = new ArrayList<>();
+    }
+
+    public WordExample(WordExample other) {
+        this.origin = other.origin;
+        this.translate = other.translate;
+        this.note = other.note;
+        this.outerSource = new ArrayList<>(other.outerSource);
     }
 
     public String getOrigin() {
@@ -46,8 +53,8 @@ public class WordExample {
         return note;
     }
 
-    public List<SourceInfo> getSourceInfo() {
-        return sourceInfo;
+    public List<ExampleOuterSource> getSourceInfo() {
+        return outerSource;
     }
 
     public WordExample setOrigin(String origin) {
@@ -68,23 +75,26 @@ public class WordExample {
     public boolean merge(WordExample other) {
         boolean isMerged = origin.equals(other.origin);
         if(isMerged) {
-            for(int i = 0; i < other.sourceInfo.size(); i++) {
-                SourceInfo otherInfo = other.sourceInfo.get(i);
+            for(int i = 0; i < other.outerSource.size(); i++) {
+                ExampleOuterSource otherInfo = other.outerSource.get(i);
                 boolean isFind = false;
                 int index = 0;
-                for(int j = 0; j < sourceInfo.size() && !isFind; j++) {
-                    isFind = sourceInfo.get(j).sourceName().equals(otherInfo.sourceName());
+                for(int j = 0; j < outerSource.size() && !isFind; j++) {
+                    isFind = outerSource.get(j).sourceName().equals(otherInfo.sourceName());
                     index = j;
                 }
-                if(isFind) sourceInfo.set(index, otherInfo);
-                else sourceInfo.add(otherInfo);
+                if(isFind) outerSource.set(index, otherInfo);
+                else outerSource.add(otherInfo);
+            }
+            if(translate == null && !outerSource.isEmpty()) {
+                translate = outerSource.get(0).translate();
             }
         }
         return isMerged;
     }
 
-    public WordExample addSourceInfo(SourceInfo info) {
-        sourceInfo.add(info);
+    public WordExample addSourceInfo(ExampleOuterSource info) {
+        outerSource.add(info);
         return this;
     }
 
@@ -96,12 +106,12 @@ public class WordExample {
         return Objects.equals(origin, example.origin) &&
                 Objects.equals(translate, example.translate) &&
                 Objects.equals(note, example.note) &&
-                Objects.equals(sourceInfo, example.sourceInfo);
+                Objects.equals(outerSource, example.outerSource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(origin, translate, note, sourceInfo);
+        return Objects.hash(origin, translate, note, outerSource);
     }
 
     @Override
@@ -110,7 +120,7 @@ public class WordExample {
                 "origin='" + origin + '\'' +
                 ", translate='" + translate + '\'' +
                 ", note='" + note + '\'' +
-                ", sourceInfo=" + sourceInfo +
+                ", sourceInfo=" + outerSource +
                 '}';
     }
 

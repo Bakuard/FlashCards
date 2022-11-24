@@ -14,6 +14,11 @@ public record RepeatDataFromEnglish(
         @Present(message = "RepeatDataFromEnglish.lastDateOfRepeat.present")
         LocalDate lastDateOfRepeat) {
 
+    public static RepeatDataFromEnglish copy(RepeatDataFromEnglish data) {
+        return new RepeatDataFromEnglish(data.interval, data.lastDateOfRepeat);
+    }
+
+
     public LocalDate nextDateOfRepeat() {
         return lastDateOfRepeat.plusDays(interval);
     }

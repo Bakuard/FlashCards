@@ -88,6 +88,7 @@ class ExpressionRepositoryTest {
         Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
+                ignoringFields("isNew").
                 isEqualTo(actual);
     }
 
@@ -125,6 +126,7 @@ class ExpressionRepositoryTest {
         Assertions.
                 assertThat(actual).
                 usingRecursiveComparison().
+                ignoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -260,7 +262,7 @@ class ExpressionRepositoryTest {
         );
 
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 containsExactly(expressions.get(0), expressions.get(1));
     }
 
@@ -571,7 +573,7 @@ class ExpressionRepositoryTest {
                 sorted(Comparator.comparing(Expression::getValue).reversed()).
                 toList();
         Assertions.assertThat(actual.getContent()).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -595,7 +597,7 @@ class ExpressionRepositoryTest {
                         thenComparing(Expression::getValue)).
                 toList();
         Assertions.assertThat(actual.getContent()).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -663,7 +665,7 @@ class ExpressionRepositoryTest {
                 limit(2).
                 toList();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -731,7 +733,7 @@ class ExpressionRepositoryTest {
                 limit(2).
                 toList();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparator().
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -867,7 +869,9 @@ class ExpressionRepositoryTest {
 
         List<Expression> actual = expressionRepository.findByTranslate(user.getId(), "translateX", 10, 0);
 
-        Assertions.assertThat(actual).containsExactly(expressionD, expressionE, expressionF);
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                containsExactly(expressionD, expressionE, expressionF);
     }
 
 

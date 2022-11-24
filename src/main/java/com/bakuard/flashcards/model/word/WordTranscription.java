@@ -21,13 +21,19 @@ public class WordTranscription {
     @NotBlankOrNull(message = "WordTranscription.note.notBlankOrNull")
     private String note;
     @Transient
-    private List<SourceInfo> sourceInfo;
+    private List<OuterSource> outerSource;
 
     @PersistenceCreator
     public WordTranscription(String value, String note) {
         this.value = value;
         this.note = note;
-        this.sourceInfo = new ArrayList<>();
+        this.outerSource = new ArrayList<>();
+    }
+
+    public WordTranscription(WordTranscription other) {
+        this.value = other.value;
+        this.note = other.note;
+        this.outerSource = new ArrayList<>(other.outerSource);
     }
 
     public String getValue() {
@@ -38,8 +44,8 @@ public class WordTranscription {
         return note;
     }
 
-    public List<SourceInfo> getSourceInfo() {
-        return sourceInfo;
+    public List<OuterSource> getSourceInfo() {
+        return outerSource;
     }
 
     public WordTranscription setValue(String value) {
@@ -55,23 +61,23 @@ public class WordTranscription {
     public boolean merge(WordTranscription other) {
         boolean isMerged = value.equals(other.value);
         if(isMerged) {
-            for(int i = 0; i < other.sourceInfo.size(); i++) {
-                SourceInfo otherInfo = other.sourceInfo.get(i);
+            for(int i = 0; i < other.outerSource.size(); i++) {
+                OuterSource otherInfo = other.outerSource.get(i);
                 boolean isFind = false;
                 int index = 0;
-                for(int j = 0; j < sourceInfo.size() && !isFind; j++) {
-                    isFind = sourceInfo.get(j).sourceName().equals(otherInfo.sourceName());
+                for(int j = 0; j < outerSource.size() && !isFind; j++) {
+                    isFind = outerSource.get(j).sourceName().equals(otherInfo.sourceName());
                     index = j;
                 }
-                if(isFind) sourceInfo.set(index, otherInfo);
-                else sourceInfo.add(otherInfo);
+                if(isFind) outerSource.set(index, otherInfo);
+                else outerSource.add(otherInfo);
             }
         }
         return isMerged;
     }
 
-    public WordTranscription addSourceInfo(SourceInfo info) {
-        sourceInfo.add(info);
+    public WordTranscription addSourceInfo(OuterSource info) {
+        outerSource.add(info);
         return this;
     }
 
@@ -82,12 +88,12 @@ public class WordTranscription {
         WordTranscription that = (WordTranscription) o;
         return Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
-                Objects.equals(sourceInfo, that.sourceInfo);
+                Objects.equals(outerSource, that.outerSource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note, sourceInfo);
+        return Objects.hash(value, note, outerSource);
     }
 
     @Override
@@ -95,7 +101,7 @@ public class WordTranscription {
         return "WordTranscription{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
-                ", sourceInfo=" + sourceInfo +
+                ", sourceInfo=" + outerSource +
                 '}';
     }
 

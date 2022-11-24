@@ -18,7 +18,7 @@ public class WordSupplementationFromBuffer implements WordSupplementation {
     public Word supplement(Word word) {
         wordRepository.mergeFromOuterSource(word);
         for(WordSupplementation wordSupplementation : outerSource) wordSupplementation.supplement(word);
-        wordRepository.saveDataFromOuterSourceExcludeExamples(word);
+        wordRepository.saveDataFromOuterSource(word);
         return word;
     }
 

@@ -414,7 +414,7 @@ public class DtoMapper {
                 setTranslate(wordExample.getTranslate()).
                 setNote(wordExample.getNote()).
                 setSourceInfo(wordExample.getSourceInfo().stream().
-                        map(this::toOuterSourceResponse).
+                        map(this::toExampleOuterSourceResponse).
                         toList());
     }
 
@@ -444,10 +444,17 @@ public class DtoMapper {
                         toList());
     }
 
-    private OuterSourceResponse toOuterSourceResponse(SourceInfo sourceInfo) {
+    private OuterSourceResponse toOuterSourceResponse(OuterSource outerSource) {
         return new OuterSourceResponse().
-                setOuterSourceName(sourceInfo.sourceName()).
-                setOuterSourceUrl(sourceInfo.url());
+                setOuterSourceName(outerSource.sourceName()).
+                setOuterSourceUrl(outerSource.url());
+    }
+
+    private ExampleOuterSourceResponse toExampleOuterSourceResponse(ExampleOuterSource exampleOuterSource) {
+        return new ExampleOuterSourceResponse().
+                setOuterSourceName(exampleOuterSource.sourceName()).
+                setOuterSourceUrl(exampleOuterSource.url()).
+                setExampleTranslate(exampleOuterSource.translate());
     }
 
 

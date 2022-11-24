@@ -87,7 +87,7 @@ CREATE TABLE words_interpretations_outer_source (
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
     recent_update_date DATE NOT NULL,
-    UNIQUE(word_value, interpretation, outer_source_name, outer_source_url)
+    UNIQUE(word_value, interpretation, outer_source_name)
 );
 
 CREATE TABLE words_transcriptions_outer_source (
@@ -96,7 +96,7 @@ CREATE TABLE words_transcriptions_outer_source (
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
     recent_update_date DATE NOT NULL,
-    UNIQUE(word_value, transcription, outer_source_name, outer_source_url)
+    UNIQUE(word_value, transcription, outer_source_name)
 );
 
 CREATE TABLE words_translations_outer_source (
@@ -105,17 +105,17 @@ CREATE TABLE words_translations_outer_source (
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
     recent_update_date DATE NOT NULL,
-    UNIQUE(word_value, translation, outer_source_name, outer_source_url)
+    UNIQUE(word_value, translation, outer_source_name)
 );
 
 CREATE TABLE words_examples_outer_source (
     word_id UUID NOT NULL,
     example VARCHAR(512) NOT NULL,
+    exampleTranslate VARCHAR(512) NOT NULL,
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
     recent_update_date DATE NOT NULL,
-    FOREIGN KEY(word_id, example) REFERENCES words_examples(word_id, origin) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE(word_id, example, outer_source_name, outer_source_url)
+    UNIQUE(word_id, example, outer_source_name)
 );
 
 ---------------------------------------------EXPRESSIONS-------------------------------------------------

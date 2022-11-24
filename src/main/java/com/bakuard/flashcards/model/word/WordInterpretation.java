@@ -17,20 +17,25 @@ public class WordInterpretation {
     @NotBlank(message = "WordInterpretation.value.notBlank")
     private String value;
     @Transient
-    private List<SourceInfo> sourceInfo;
+    private List<OuterSource> outerSource;
 
     @PersistenceCreator
     public WordInterpretation(String value) {
         this.value = value;
-        this.sourceInfo = new ArrayList<>();
+        this.outerSource = new ArrayList<>();
+    }
+
+    public WordInterpretation(WordInterpretation other) {
+        this.value = other.value;
+        this.outerSource = new ArrayList<>(other.outerSource);
     }
 
     public String getValue() {
         return value;
     }
 
-    public List<SourceInfo> getSourceInfo() {
-        return sourceInfo;
+    public List<OuterSource> getSourceInfo() {
+        return outerSource;
     }
 
     public WordInterpretation setValue(String value) {
@@ -41,23 +46,23 @@ public class WordInterpretation {
     public boolean merge(WordInterpretation other) {
         boolean isMerged = value.equals(other.value);
         if(isMerged) {
-            for(int i = 0; i < other.sourceInfo.size(); i++) {
-                SourceInfo otherInfo = other.sourceInfo.get(i);
+            for(int i = 0; i < other.outerSource.size(); i++) {
+                OuterSource otherInfo = other.outerSource.get(i);
                 boolean isFind = false;
                 int index = 0;
-                for(int j = 0; j < sourceInfo.size() && !isFind; j++) {
-                    isFind = sourceInfo.get(j).sourceName().equals(otherInfo.sourceName());
+                for(int j = 0; j < outerSource.size() && !isFind; j++) {
+                    isFind = outerSource.get(j).sourceName().equals(otherInfo.sourceName());
                     index = j;
                 }
-                if(isFind) sourceInfo.set(index, otherInfo);
-                else sourceInfo.add(otherInfo);
+                if(isFind) outerSource.set(index, otherInfo);
+                else outerSource.add(otherInfo);
             }
         }
         return isMerged;
     }
 
-    public WordInterpretation addSourceInfo(SourceInfo info) {
-        sourceInfo.add(info);
+    public WordInterpretation addSourceInfo(OuterSource info) {
+        outerSource.add(info);
         return this;
     }
 
@@ -66,19 +71,19 @@ public class WordInterpretation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WordInterpretation that = (WordInterpretation) o;
-        return Objects.equals(value, that.value) && Objects.equals(sourceInfo, that.sourceInfo);
+        return Objects.equals(value, that.value) && Objects.equals(outerSource, that.outerSource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, sourceInfo);
+        return Objects.hash(value, outerSource);
     }
 
     @Override
     public String toString() {
         return "WordInterpretation{" +
                 "value='" + value + '\'' +
-                ", sourceInfo=" + sourceInfo +
+                ", sourceInfo=" + outerSource +
                 '}';
     }
 

@@ -10,6 +10,7 @@ import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Embedded;
 import org.springframework.data.relational.core.mapping.MappedCollection;
@@ -59,6 +60,8 @@ public class Expression implements Entity {
     @Embedded.Nullable
     @Valid
     private RepeatDataFromNative repeatDataFromNative;
+    @Transient
+    private boolean isNew;
 
     @PersistenceCreator
     public Expression(UUID id,
@@ -79,6 +82,7 @@ public class Expression implements Entity {
         this.examples = examples;
         this.repeatDataFromEnglish = repeatDataFromEnglish;
         this.repeatDataFromNative = repeatDataFromNative;
+        this.isNew = false;
     }
 
     public Expression(UUID userId,
@@ -86,11 +90,13 @@ public class Expression implements Entity {
                       int lowestIntervalForNative,
                       Clock clock) {
         this.userId = userId;
+        this.id = UUID.randomUUID();
         this.interpretations = new ArrayList<>();
         this.translations = new ArrayList<>();
         this.examples = new ArrayList<>();
         this.repeatDataFromEnglish = new RepeatDataFromEnglish(lowestIntervalForEnglish, LocalDate.now(clock));
         this.repeatDataFromNative = new RepeatDataFromNative(lowestIntervalForNative, LocalDate.now(clock));
+        this.isNew = true;
     }
 
     @Override
@@ -100,7 +106,7 @@ public class Expression implements Entity {
 
     @Override
     public boolean isNew() {
-        return id == null;
+        return isNew;
     }
 
     public UUID getUserId() {
@@ -144,8 +150,8 @@ public class Expression implements Entity {
     }
 
     @Override
-    public void generateIdIfAbsent() {
-        if(id == null) id = UUID.randomUUID();
+    public void markAsSaved() {
+        isNew = false;
     }
 
     public Expression setValue(String value) {
@@ -239,7 +245,9 @@ public class Expression implements Entity {
                 ", interpretations=" + interpretations +
                 ", translations=" + translations +
                 ", examples=" + examples +
-                ", repeatData=" + repeatDataFromEnglish +
+                ", repeatDataFromEnglish=" + repeatDataFromEnglish +
+                ", repeatDataFromNative=" + repeatDataFromNative +
+                ", isNew=" + isNew +
                 '}';
     }
 

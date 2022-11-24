@@ -14,6 +14,11 @@ public record RepeatDataFromNative(
         @Present(message = "RepeatDataFromNative.lastDateOfRepeat.present")
         LocalDate lastDateOfRepeat) {
 
+    public static RepeatDataFromNative copy(RepeatDataFromNative data) {
+        return new RepeatDataFromNative(data.interval, data.lastDateOfRepeat);
+    }
+
+
     public LocalDate nextDateOfRepeat() {
         return lastDateOfRepeat.plusDays(interval);
     }
