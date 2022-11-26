@@ -57,7 +57,8 @@ class UserRepositoryTest {
                 "repeat_expressions_from_native_statistic",
                 "words_interpretations_outer_source",
                 "words_transcriptions_outer_source",
-                "words_translations_outer_source"
+                "words_translations_outer_source",
+                "words_examples_outer_source"
         ));
     }
 
@@ -96,7 +97,6 @@ class UserRepositoryTest {
         Assertions.assertThat(actual).
                 isPresent().get().
                 usingRecursiveComparison().
-                ignoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -119,7 +119,6 @@ class UserRepositoryTest {
         Assertions.assertThat(actual).
                 isPresent().get().
                 usingRecursiveComparison().
-                ignoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -142,7 +141,6 @@ class UserRepositoryTest {
         Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
-                ignoringFields("isNew").
                 isEqualTo(actual);
     }
 
@@ -300,7 +298,7 @@ class UserRepositoryTest {
         List<User> actual = userRepository.findByRole("admin", 10, 0);
 
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                usingRecursiveFieldByFieldElementComparator().
                 containsExactly(users.get(1), users.get(2));
     }
 

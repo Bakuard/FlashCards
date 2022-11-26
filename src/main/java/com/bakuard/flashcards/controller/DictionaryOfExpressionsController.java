@@ -99,7 +99,7 @@ public class DictionaryOfExpressionsController {
     @PutMapping
     public ResponseEntity<ExpressionResponse> update(@RequestBody ExpressionUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} update word {} for user {}", userId, dto.getExpressionId(), dto.getUserId());
+        logger.info("user {} update word '{}' for user {}", userId, dto.getExpressionId(), dto.getUserId());
 
         Expression expression = mapper.toExpression(dto);
         expression = expressionService.save(expression);

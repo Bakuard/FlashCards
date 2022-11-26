@@ -103,7 +103,7 @@ public class DictionaryOfWordsController {
     @PutMapping
     public ResponseEntity<WordResponse> update(@RequestBody WordUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} update word {} for user {}", userId, dto.getWordId(), dto.getUserId());
+        logger.info("user {} update word '{}' for user {}", userId, dto.getWordId(), dto.getUserId());
 
         Word word = mapper.toWord(dto);
         word = wordService.save(word);
@@ -132,7 +132,7 @@ public class DictionaryOfWordsController {
     @PutMapping("/supplement/newWord")
     public ResponseEntity<WordResponse> supplementNewWord(@RequestBody WordAddRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} supplement word {} for user {}", userId, dto.getValue(), dto.getUserId());
+        logger.info("user {} supplement word '{}' for user {}", userId, dto.getValue(), dto.getUserId());
 
         Word word = wordSupplementationService.supplement(mapper.toWord(dto));
 
@@ -161,7 +161,7 @@ public class DictionaryOfWordsController {
     @PutMapping("/supplement/existedWord")
     public ResponseEntity<WordResponse> supplementExistedWord(@RequestBody WordUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
-        logger.info("user {} supplement word {} for user {}", userId, dto.getValue(), dto.getUserId());
+        logger.info("user {} supplement word '{}' for user {}", userId, dto.getValue(), dto.getUserId());
 
         Word word = wordSupplementationService.supplement(mapper.toWord(dto));
 

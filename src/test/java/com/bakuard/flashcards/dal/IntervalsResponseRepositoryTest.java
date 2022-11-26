@@ -67,7 +67,8 @@ class IntervalsResponseRepositoryTest {
                 "repeat_expressions_from_native_statistic",
                 "words_interpretations_outer_source",
                 "words_transcriptions_outer_source",
-                "words_translations_outer_source"
+                "words_translations_outer_source",
+                "words_examples_outer_source"
         ));
     }
 
@@ -688,7 +689,7 @@ class IntervalsResponseRepositoryTest {
 
         List<Word> actual = findAllWords();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                usingRecursiveFieldByFieldElementComparator().
                 containsExactlyElementsOf(words);
     }
 
@@ -718,7 +719,7 @@ class IntervalsResponseRepositoryTest {
 
         List<Expression> actual = findAllExpressions();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                usingRecursiveFieldByFieldElementComparator().
                 containsExactlyInAnyOrderElementsOf(expressions);
     }
 

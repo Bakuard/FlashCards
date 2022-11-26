@@ -10,6 +10,6 @@ public interface Entity extends Persistable<UUID> {
 
     public boolean isNew();
 
-    public void markAsSaved();
+    public void generateIdIfAbsent();
 
 }

@@ -60,8 +60,6 @@ public class Expression implements Entity {
     @Embedded.Nullable
     @Valid
     private RepeatDataFromNative repeatDataFromNative;
-    @Transient
-    private boolean isNew;
 
     @PersistenceCreator
     public Expression(UUID id,
@@ -82,7 +80,6 @@ public class Expression implements Entity {
         this.examples = examples;
         this.repeatDataFromEnglish = repeatDataFromEnglish;
         this.repeatDataFromNative = repeatDataFromNative;
-        this.isNew = false;
     }
 
     public Expression(UUID userId,
@@ -90,13 +87,11 @@ public class Expression implements Entity {
                       int lowestIntervalForNative,
                       Clock clock) {
         this.userId = userId;
-        this.id = UUID.randomUUID();
         this.interpretations = new ArrayList<>();
         this.translations = new ArrayList<>();
         this.examples = new ArrayList<>();
         this.repeatDataFromEnglish = new RepeatDataFromEnglish(lowestIntervalForEnglish, LocalDate.now(clock));
         this.repeatDataFromNative = new RepeatDataFromNative(lowestIntervalForNative, LocalDate.now(clock));
-        this.isNew = true;
     }
 
     @Override
@@ -106,7 +101,7 @@ public class Expression implements Entity {
 
     @Override
     public boolean isNew() {
-        return isNew;
+        return id == null;
     }
 
     public UUID getUserId() {
@@ -150,8 +145,8 @@ public class Expression implements Entity {
     }
 
     @Override
-    public void markAsSaved() {
-        isNew = false;
+    public void generateIdIfAbsent() {
+        if(id == null) id = UUID.randomUUID();
     }
 
     public Expression setValue(String value) {
@@ -247,7 +242,6 @@ public class Expression implements Entity {
                 ", examples=" + examples +
                 ", repeatDataFromEnglish=" + repeatDataFromEnglish +
                 ", repeatDataFromNative=" + repeatDataFromNative +
-                ", isNew=" + isNew +
                 '}';
     }
 

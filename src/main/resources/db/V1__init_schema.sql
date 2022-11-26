@@ -109,13 +109,12 @@ CREATE TABLE words_translations_outer_source (
 );
 
 CREATE TABLE words_examples_outer_source (
-    word_id UUID NOT NULL,
     example VARCHAR(512) NOT NULL,
     exampleTranslate VARCHAR(512) NOT NULL,
     outer_source_name VARCHAR(64) NOT NULL,
     outer_source_url VARCHAR(512) NOT NULL,
     recent_update_date DATE NOT NULL,
-    UNIQUE(word_id, example, outer_source_name)
+    UNIQUE( example, outer_source_name)
 );
 
 ---------------------------------------------EXPRESSIONS-------------------------------------------------

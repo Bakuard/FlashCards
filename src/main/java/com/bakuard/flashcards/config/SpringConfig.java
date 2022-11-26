@@ -16,6 +16,7 @@ import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.*;
+import com.bakuard.flashcards.service.util.Transaction;
 import com.bakuard.flashcards.service.wordSupplementation.WordSupplementationService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +38,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.jdbc.core.JdbcAggregateOperations;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.data.relational.core.mapping.event.AfterSaveEvent;
+import org.springframework.data.relational.core.mapping.event.BeforeConvertEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -85,6 +87,11 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean("transactionManager")
         public PlatformTransactionManager transactionManager(DataSource dataSource) {
                 return new DataSourceTransactionManager(dataSource);
+        }
+
+        @Bean
+        public Transaction transaction(PlatformTransactionManager transactionManager) {
+             return new Transaction(transactionManager);
         }
 
         @Bean
@@ -173,12 +180,13 @@ public class SpringConfig implements WebMvcConfigurer {
                 return new StatisticService(statisticRepository, clock);
         }
 
-        @Bean
+        @Bean(initMethod = "scheduleDeleteUnusedExamples")
         public WordSupplementationService wordSupplementationService(WordRepository wordRepository,
                                                                      Clock clock,
                                                                      ObjectMapper mapper,
-                                                                     ValidatorUtil validator) {
-             return new WordSupplementationService(wordRepository, clock, mapper, validator);
+                                                                     ValidatorUtil validator,
+                                                                     Transaction transaction) {
+             return new WordSupplementationService(wordRepository, clock, mapper, validator, transaction);
         }
 
         @Bean
@@ -227,10 +235,10 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public ApplicationListener<AfterSaveEvent<?>> entityCreator() {
+        public ApplicationListener<BeforeConvertEvent<?>> entityCreator() {
                 return event -> {
                        if(event.getEntity() instanceof Entity entity) {
-                               entity.markAsSaved();
+                               entity.generateIdIfAbsent();
                        }
                 };
         }

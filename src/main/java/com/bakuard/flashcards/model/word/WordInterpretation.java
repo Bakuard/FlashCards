@@ -6,9 +6,11 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import javax.validation.constraints.NotBlank;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Table("words_interpretations")
 public class WordInterpretation {
@@ -36,6 +38,18 @@ public class WordInterpretation {
 
     public List<OuterSource> getSourceInfo() {
         return outerSource;
+    }
+
+    public Optional<LocalDate> getRecentUpdateDate(String outerSourceName) {
+        return outerSource.stream().
+                filter(outerSource -> outerSource.sourceName().equals(outerSourceName)).
+                findFirst().
+                map(OuterSource::recentUpdateDate);
+    }
+
+    public boolean hasOuterSource(String outerSourceName) {
+        return outerSource.stream().
+                anyMatch(outerSource -> outerSource.sourceName().equals(outerSourceName));
     }
 
     public WordInterpretation setValue(String value) {

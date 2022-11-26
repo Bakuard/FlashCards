@@ -2,19 +2,23 @@ package com.bakuard.flashcards.dal.impl.fragment;
 
 import com.bakuard.flashcards.model.word.*;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jdbc.core.JdbcAggregateOperations;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.sql.Array;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.UUID;
 
 public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer<Word> {
+
+    private static Logger logger = LoggerFactory.getLogger(WordOuterSourceBufferImpl.class.getName());
+
 
     private JdbcTemplate jdbcTemplate;
     private JdbcAggregateOperations jdbcAggregateOperations;
@@ -32,7 +36,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer<Word> {
         saveInterpretationsToBuffer(word.getValue(), word.getInterpretations());
         saveTranscriptionsToBuffer(word.getValue(), word.getTranscriptions());
         saveTranslationsToBuffer(word.getValue(), word.getTranslations());
-        saveExamplesToBuffer(word.getId(), word.getExamples());
+        saveExamplesToBuffer(word.getExamples());
     }
 
     @Override
@@ -40,20 +44,23 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer<Word> {
         getTranscriptionsFromOuterSourceFor(word.getValue()).forEach(word::mergeTranscription);
         getInterpretationsFromOuterSourceFor(word.getValue()).forEach(word::mergeInterpretation);
         getTranslationsFromOuterSourceFor(word.getValue()).forEach(word::mergeTranslation);
-        getExamplesFromOuterSourceFor(word.getId()).forEach(word::mergeExample);
+        getExamplesFromOuterSourceFor(word.getExamples().stream().map(WordExample::getOrigin).toList()).
+                forEach(word::mergeExampleIfPresent);
     }
 
     @Override
     public void deleteUnusedOuterSourceExamples() {
-        jdbcTemplate.update("""
+        int deletedRowsNumber = jdbcTemplate.update("""
                 delete from words_examples_outer_source
                     where words_examples_outer_source.example not in (
                         select words_examples.origin from words_examples
                     );
                 """);
+
+        logger.info("Delete unused examples from outer source. {} rows was deleted.", deletedRowsNumber);
     }
 
-    
+
     private List<WordTranscription> getTranscriptionsFromOuterSourceFor(String wordValue) {
         return jdbcTemplate.query("""
                 select *
@@ -147,15 +154,19 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer<Word> {
                 });
     }
 
-    private List<WordExample> getExamplesFromOuterSourceFor(UUID wordId) {
-        return jdbcTemplate.query("""
-                select *
-                    from words_examples_outer_source
-                    where words_examples_outer_source.word_id = ?
-                    order by words_examples_outer_source.example,
-                             words_examples_outer_source.outer_source_name;
-                """,
-                ps -> ps.setObject(1, wordId),
+    private List<WordExample> getExamplesFromOuterSourceFor(List<String> examples) {
+        return jdbcTemplate.query(connection -> {
+                    PreparedStatement ps = connection.prepareStatement("""
+                                        select *
+                                            from words_examples_outer_source
+                                            where words_examples_outer_source.example = any(?)
+                                            order by words_examples_outer_source.example,
+                                                     words_examples_outer_source.outer_source_name;
+                                        """);
+                    Array array = connection.createArrayOf("VARCHAR", examples.toArray());
+                    ps.setArray(1, array);
+                    return ps;
+                },
                 rs -> {
                     ArrayList<WordExample> result = new ArrayList<>();
                     WordExample example = null;
@@ -303,29 +314,27 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer<Word> {
         );
     }
 
-    private void saveExamplesToBuffer(UUID wordId, List<WordExample> examples) {
+    private void saveExamplesToBuffer(List<WordExample> examples) {
         examples.forEach(example ->
                 jdbcTemplate.batchUpdate("""
-                            merge into words_examples_outer_source(word_id,
-                                                                   example,
+                            merge into words_examples_outer_source(example,
                                                                    exampleTranslate,
                                                                    outer_source_name,
                                                                    outer_source_url,
                                                                    recent_update_date)
-                                key(word_id, example, outer_source_name)
-                                values(?, ?, ?, ?, ?, ?);
+                                key(example, outer_source_name)
+                                values(?, ?, ?, ?, ?);
                             """,
                         new BatchPreparedStatementSetter() {
                             @Override
                             public void setValues(PreparedStatement ps, int i) throws SQLException {
                                 ExampleOuterSource outerSource = example.getSourceInfo().get(i);
 
-                                ps.setObject(1, wordId);
-                                ps.setString(2, example.getOrigin());
-                                ps.setString(3, outerSource.translate());
-                                ps.setString(4, outerSource.sourceName());
-                                ps.setString(5, outerSource.url());
-                                ps.setDate(6, Date.valueOf(outerSource.recentUpdateDate()));
+                                ps.setString(1, example.getOrigin());
+                                ps.setString(2, outerSource.translate());
+                                ps.setString(3, outerSource.sourceName());
+                                ps.setString(4, outerSource.url());
+                                ps.setDate(5, Date.valueOf(outerSource.recentUpdateDate()));
                             }
 
                             @Override

@@ -64,7 +64,8 @@ class WordRepositoryTest {
                 "repeat_expressions_from_native_statistic",
                 "words_interpretations_outer_source",
                 "words_transcriptions_outer_source",
-                "words_translations_outer_source"
+                "words_translations_outer_source",
+                "words_examples_outer_source"
         ));
         clock.setDate(2022, 7, 7);
     }
@@ -86,7 +87,6 @@ class WordRepositoryTest {
         Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
-                ignoringFields("isNew").
                 isEqualTo(actual);
     }
 
@@ -188,8 +188,11 @@ class WordRepositoryTest {
                 addExample(new WordExample("exampleC", "translateC", "noteC"));
         wordRepository.mergeFromOuterSource(actual);
         Assertions.assertThat(actual.getExamples()).
-                extracting(example -> example.getSourceInfo().size()).
-                containsExactly(0, 0, 0);
+                containsExactly(
+                        new WordExample("exampleA", "translateA", "noteA"),
+                        new WordExample("exampleB", "translateB", "noteB"),
+                        new WordExample("exampleC", "translateC", "noteC")
+                );
     }
 
     @Test
@@ -852,7 +855,6 @@ class WordRepositoryTest {
 
         Assertions.assertThat(actual).
                 usingRecursiveComparison().
-                ignoringFields("isNew").
                 isEqualTo(expected);
     }
 
@@ -988,7 +990,7 @@ class WordRepositoryTest {
         );
 
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                usingRecursiveFieldByFieldElementComparator().
                 containsExactly(words.get(0), words.get(1));
     }
 
@@ -1299,7 +1301,7 @@ class WordRepositoryTest {
                 sorted(Comparator.comparing(Word::getValue).reversed()).
                 toList();
         Assertions.assertThat(actual.getContent()).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                usingRecursiveFieldByFieldElementComparator().
                 isEqualTo(expected);
     }
 
@@ -1323,7 +1325,7 @@ class WordRepositoryTest {
                         thenComparing(Word::getValue)).
                 toList();
         Assertions.assertThat(actual.getContent()).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                usingRecursiveFieldByFieldElementComparator().
                 isEqualTo(expected);
     }
 
@@ -1391,7 +1393,7 @@ class WordRepositoryTest {
                 limit(2).
                 toList();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                usingRecursiveFieldByFieldElementComparator().
                 isEqualTo(expected);
     }
 
@@ -1459,7 +1461,7 @@ class WordRepositoryTest {
                 limit(2).
                 toList();
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                usingRecursiveFieldByFieldElementComparator().
                 isEqualTo(expected);
     }
 
@@ -1596,7 +1598,7 @@ class WordRepositoryTest {
         List<Word> actual = wordRepository.findByTranslate(user.getId(), "translateX", 10, 0);
 
         Assertions.assertThat(actual).
-                usingRecursiveFieldByFieldElementComparatorIgnoringFields("isNew").
+                usingRecursiveFieldByFieldElementComparator().
                 containsExactly(wordD, wordE, wordF);
     }
 

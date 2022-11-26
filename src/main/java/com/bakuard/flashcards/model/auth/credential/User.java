@@ -34,8 +34,6 @@ public class User implements Entity {
     @NotContainsNull(message = "User.roles.notContainsNull")
     @AllUnique(message = "User.roles.allUnique", nameOfGetterMethod = "name")
     private final List<@Valid Role> roles;
-    @Transient
-    private boolean isNew;
 
     @PersistenceCreator
     public User(UUID id, String email, String passwordHash, String salt, List<Role> roles) {
@@ -44,16 +42,13 @@ public class User implements Entity {
         this.passwordHash = passwordHash;
         this.salt = salt;
         this.roles = roles;
-        this.isNew = false;
     }
 
     public User(Credential credential) {
-        this.id = UUID.randomUUID();
         this.email = credential.email();
         this.salt = generateSalt();
         this.roles = new ArrayList<>();
         this.passwordHash = calculatePasswordHash(credential.password(), salt);
-        this.isNew = true;
     }
 
     @Override
@@ -63,7 +58,7 @@ public class User implements Entity {
 
     @Override
     public boolean isNew() {
-        return isNew;
+        return id == null;
     }
 
     public String getPasswordHash() {
@@ -87,8 +82,8 @@ public class User implements Entity {
     }
 
     @Override
-    public void markAsSaved() {
-        isNew = false;
+    public void generateIdIfAbsent() {
+        if(id == null) id = UUID.randomUUID();
     }
 
     public User setEmail(String email) {
@@ -171,7 +166,6 @@ public class User implements Entity {
                 ", passwordHash='" + passwordHash + '\'' +
                 ", salt='" + salt + '\'' +
                 ", roles=" + roles +
-                ", isNew=" + isNew +
                 '}';
     }
 

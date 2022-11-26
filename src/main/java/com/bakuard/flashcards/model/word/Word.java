@@ -60,8 +60,6 @@ public class Word implements Entity {
     @Embedded.Nullable
     @Valid
     private RepeatDataFromNative repeatDataFromNative;
-    @Transient
-    private boolean isNew;
 
     @PersistenceCreator
     public Word(UUID id,
@@ -84,19 +82,16 @@ public class Word implements Entity {
         this.examples = examples;
         this.repeatDataFromEnglish = repeatDataFromEnglish;
         this.repeatDataFromNative = repeatDataFromNative;
-        this.isNew = false;
     }
 
     public Word(UUID userId, int lowestIntervalForEnglish, int lowestIntervalForNative, Clock clock) {
         this.userId = userId;
-        this.id = UUID.randomUUID();
         this.interpretations = new ArrayList<>();
         this.transcriptions = new ArrayList<>();
         this.translations = new ArrayList<>();
         this.examples = new ArrayList<>();
         this.repeatDataFromEnglish = new RepeatDataFromEnglish(lowestIntervalForEnglish, LocalDate.now(clock));
         this.repeatDataFromNative = new RepeatDataFromNative(lowestIntervalForNative, LocalDate.now(clock));
-        this.isNew = true;
     }
 
     public Word(Word other) {
@@ -118,7 +113,6 @@ public class Word implements Entity {
                 collect(Collectors.toCollection(ArrayList::new));
         this.repeatDataFromEnglish = RepeatDataFromEnglish.copy(other.repeatDataFromEnglish);
         this.repeatDataFromNative = RepeatDataFromNative.copy(other.repeatDataFromNative);
-        this.isNew = other.isNew;
     }
 
     @Override
@@ -128,7 +122,7 @@ public class Word implements Entity {
 
     @Override
     public boolean isNew() {
-        return isNew;
+        return id == null;
     }
 
     public UUID getUserId() {
@@ -147,44 +141,37 @@ public class Word implements Entity {
         return Collections.unmodifiableList(interpretations);
     }
 
-    public List<WordInterpretation> getInterpretationsBy(String outerSourceName) {
+    public Optional<LocalDate> getInterpretationsRecentUpdateDate(String outerSourceName) {
         return interpretations.stream().
-                filter(interpretation -> interpretation.getSourceInfo().stream().
-                        anyMatch(sourceInfo -> sourceInfo.sourceName().equals(outerSourceName))).
-                collect(Collectors.toCollection(ArrayList::new));
+                filter(interpretation -> interpretation.hasOuterSource(outerSourceName)).
+                findFirst().
+                flatMap(interpretation -> interpretation.getRecentUpdateDate(outerSourceName));
     }
 
     public List<WordTranscription> getTranscriptions() {
         return Collections.unmodifiableList(transcriptions);
     }
 
-    public List<WordTranscription> getTranscriptionsBy(String outerSourceName) {
+    public Optional<LocalDate> getTranscriptionsRecentUpdateDate(String outerSourceName) {
         return transcriptions.stream().
-                filter(transcription -> transcription.getSourceInfo().stream().
-                        anyMatch(sourceInfo -> sourceInfo.sourceName().equals(outerSourceName))).
-                collect(Collectors.toCollection(ArrayList::new));
+                filter(transcription -> transcription.hasOuterSource(outerSourceName)).
+                findFirst().
+                flatMap(transcription -> transcription.getRecentUpdateDate(outerSourceName));
     }
 
     public List<WordTranslation> getTranslations() {
         return Collections.unmodifiableList(translations);
     }
 
-    public List<WordTranslation> getTranslationsBy(String outerSourceName) {
+    public Optional<LocalDate> getTranslationsRecentUpdateDate(String outerSourceName) {
         return translations.stream().
-                filter(translation -> translation.getSourceInfo().stream().
-                        anyMatch(sourceInfo -> sourceInfo.sourceName().equals(outerSourceName))).
-                collect(Collectors.toCollection(ArrayList::new));
+                filter(translation -> translation.hasOuterSource(outerSourceName)).
+                findFirst().
+                flatMap(translation -> translation.getRecentUpdateDate(outerSourceName));
     }
 
     public List<WordExample> getExamples() {
         return Collections.unmodifiableList(examples);
-    }
-
-    public List<WordExample> getExamplesBy(String outerSourceName) {
-        return examples.stream().
-                filter(example -> example.getSourceInfo().stream().
-                        anyMatch(sourceInfo -> sourceInfo.sourceName().equals(outerSourceName))).
-                collect(Collectors.toCollection(ArrayList::new));
     }
 
     public RepeatDataFromEnglish getRepeatDataFromEnglish() {
@@ -204,8 +191,8 @@ public class Word implements Entity {
     }
 
     @Override
-    public void markAsSaved() {
-        isNew = false;
+    public void generateIdIfAbsent() {
+        if(id == null) id = UUID.randomUUID();
     }
 
     public Word setValue(String value) {
@@ -269,7 +256,7 @@ public class Word implements Entity {
         return this;
     }
 
-    public Word mergeExample(WordExample example) {
+    public Word mergeExampleIfPresent(WordExample example) {
         boolean isMerged = false;
         for(int i = 0; i < examples.size() && !isMerged; i++) {
             isMerged = examples.get(i).merge(example);
@@ -348,7 +335,6 @@ public class Word implements Entity {
                 ", examples=" + examples +
                 ", repeatDataFromEnglish=" + repeatDataFromEnglish +
                 ", repeatDataFromNative=" + repeatDataFromNative +
-                ", isNew=" + isNew +
                 '}';
     }
 

@@ -66,7 +66,7 @@ public class SortRules {
         switch(processedSortDirection) {
             case "ASC", "ASCENDING" -> result = Sort.Direction.ASC;
             case "DESC", "DESCENDING" -> result = Sort.Direction.DESC;
-            default -> throw new InvalidParameter("Unsupported sort direction = " + sortDirection,
+            default -> throw new InvalidParameter("Unsupported sort direction = '" + sortDirection + '\'',
                     "SortRules.unknownSortDirection");
         }
 
