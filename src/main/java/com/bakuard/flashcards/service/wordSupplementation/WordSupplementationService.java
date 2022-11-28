@@ -35,7 +35,8 @@ public class WordSupplementationService implements WordSupplementation {
         wordSupplementationFromBuffer = new WordSupplementationFromBuffer(
                 wordRepository,
                 transaction,
-                new ReversoScrapper(mapper, clock)
+                new ReversoScrapper(mapper, clock),
+                new YandexTranslateScrapper(mapper, clock)
         );
     }
 

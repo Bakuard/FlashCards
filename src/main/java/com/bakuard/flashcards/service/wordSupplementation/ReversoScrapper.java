@@ -150,14 +150,14 @@ public class ReversoScrapper implements WordSupplementation {
                 findPath("translation").
                 iterator();
         if(iterator.hasNext()) {
-            String translate = iterator.next().textValue();
-            if(example.getTranslate() == null) example.setTranslate(translate);
+            String exampleTranslate = iterator.next().textValue();
+            if(example.getTranslate() == null) example.setTranslate(exampleTranslate);
             example.addSourceInfo(
                     new ExampleOuterSource(
-                            toUrlForReversoUi(translate),
+                            toUrlForReversoUi(example.getOrigin()),
                             outerSourceName,
                             LocalDate.now(clock),
-                            translate
+                            exampleTranslate
                     )
             );
         }
