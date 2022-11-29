@@ -1,8 +1,8 @@
-package com.bakuard.flashcards.dal.impl.fragment;
+package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.model.word.Word;
 
-public interface WordOuterSourceBuffer<T> {
+public interface WordOuterSourceBuffer {
 
     public void saveDataFromOuterSource(Word word);
 

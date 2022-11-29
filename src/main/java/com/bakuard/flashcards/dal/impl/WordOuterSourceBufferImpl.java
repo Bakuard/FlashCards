@@ -1,5 +1,6 @@
-package com.bakuard.flashcards.dal.impl.fragment;
+package com.bakuard.flashcards.dal.impl;
 
+import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
 import com.bakuard.flashcards.model.word.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -15,7 +16,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer<Word> {
+public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
 
     private static Logger logger = LoggerFactory.getLogger(WordOuterSourceBufferImpl.class.getName());
 

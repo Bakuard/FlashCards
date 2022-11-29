@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.service.wordSupplementation;
 
-import com.bakuard.flashcards.dal.WordRepository;
+import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.service.util.Transaction;
 import com.bakuard.flashcards.validation.ValidatorUtil;
@@ -18,19 +18,19 @@ public class WordSupplementationService implements WordSupplementation {
 
     private WordSupplementationFromBuffer wordSupplementationFromBuffer;
     private ValidatorUtil validator;
-    private WordRepository wordRepository;
+    private WordOuterSourceBuffer wordOuterSourceBuffer;
     private Transaction transaction;
 
-    public WordSupplementationService(WordRepository wordRepository,
+    public WordSupplementationService(WordOuterSourceBuffer wordOuterSourceBuffer,
                                       Clock clock,
                                       ObjectMapper mapper,
                                       ValidatorUtil validator,
                                       Transaction transaction) {
-        this.wordRepository = wordRepository;
+        this.wordOuterSourceBuffer = wordOuterSourceBuffer;
         this.validator = validator;
         this.transaction = transaction;
         wordSupplementationFromBuffer = new WordSupplementationFromBuffer(
-                wordRepository,
+                wordOuterSourceBuffer,
                 transaction,
                 new ReversoScrapper(mapper, clock),
                 new YandexTranslateScrapper(mapper, clock),
@@ -48,7 +48,7 @@ public class WordSupplementationService implements WordSupplementation {
         Thread thread = new Thread(() -> {
             while(!Thread.currentThread().isInterrupted()) {
                 try {
-                    transaction.commit(() -> wordRepository.deleteUnusedOuterSourceExamples());
+                    transaction.commit(() -> wordOuterSourceBuffer.deleteUnusedOuterSourceExamples());
                     TimeUnit.HOURS.sleep(2);
                 } catch (Exception e) {
                     logger.error("Fail to delete unused examples from outer source", e);

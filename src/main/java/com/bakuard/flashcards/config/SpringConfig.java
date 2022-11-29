@@ -10,10 +10,11 @@ import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.StatisticRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.fragment.UserSaver;
 import com.bakuard.flashcards.dal.impl.fragment.UserSaverImpl;
-import com.bakuard.flashcards.dal.impl.fragment.WordOuterSourceBuffer;
-import com.bakuard.flashcards.dal.impl.fragment.WordOuterSourceBufferImpl;
+import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
+import com.bakuard.flashcards.dal.impl.WordOuterSourceBufferImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
+import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.*;
 import com.bakuard.flashcards.service.util.Transaction;
@@ -37,7 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.jdbc.core.JdbcAggregateOperations;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
-import org.springframework.data.relational.core.mapping.event.AfterSaveEvent;
 import org.springframework.data.relational.core.mapping.event.BeforeConvertEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -105,15 +105,15 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public WordOuterSourceBuffer wordSourceInfo(JdbcTemplate jdbcTemplate,
-                                                    JdbcAggregateOperations jdbcAggregateOperations) {
+        public WordOuterSourceBuffer wordOuterSourceBuffer(JdbcTemplate jdbcTemplate,
+                                                           JdbcAggregateOperations jdbcAggregateOperations) {
                 return new WordOuterSourceBufferImpl(jdbcTemplate, jdbcAggregateOperations);
         }
 
         @Bean
-        public UserSaver userSaver(JdbcTemplate jdbcTemplate,
-                                   JdbcAggregateOperations jdbcAggregateOperation,
-                                   ConfigData configData) {
+        public UserSaver<User> userSaver(JdbcTemplate jdbcTemplate,
+                                         JdbcAggregateOperations jdbcAggregateOperation,
+                                         ConfigData configData) {
                 return new UserSaverImpl(jdbcTemplate, jdbcAggregateOperation, configData);
         }
 
@@ -181,12 +181,12 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean(initMethod = "scheduleDeleteUnusedExamples")
-        public WordSupplementationService wordSupplementationService(WordRepository wordRepository,
+        public WordSupplementationService wordSupplementationService(WordOuterSourceBuffer wordOuterSourceBuffer,
                                                                      Clock clock,
                                                                      ObjectMapper mapper,
                                                                      ValidatorUtil validator,
                                                                      Transaction transaction) {
-             return new WordSupplementationService(wordRepository, clock, mapper, validator, transaction);
+             return new WordSupplementationService(wordOuterSourceBuffer, clock, mapper, validator, transaction);
         }
 
         @Bean
