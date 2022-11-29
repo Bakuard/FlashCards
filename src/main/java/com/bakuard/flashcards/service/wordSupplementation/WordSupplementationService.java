@@ -7,9 +7,6 @@ import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.Clock;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +33,8 @@ public class WordSupplementationService implements WordSupplementation {
                 wordRepository,
                 transaction,
                 new ReversoScrapper(mapper, clock),
-                new YandexTranslateScrapper(mapper, clock)
+                new YandexTranslateScrapper(mapper, clock),
+                new OxfordDictionaryScrapper(clock)
         );
     }
 
