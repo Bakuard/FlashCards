@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.config;
 
+import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.config.security.RequestContextImpl;
 import com.bakuard.flashcards.controller.message.Messages;
@@ -7,11 +8,19 @@ import com.bakuard.flashcards.controller.message.MessagesImpl;
 import com.bakuard.flashcards.dal.*;
 import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.StatisticRepositoryImpl;
+import com.bakuard.flashcards.dal.impl.fragment.UserSaver;
+import com.bakuard.flashcards.dal.impl.fragment.UserSaverImpl;
+import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
+import com.bakuard.flashcards.dal.impl.WordOuterSourceBufferImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
+import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.*;
+import com.bakuard.flashcards.service.util.Transaction;
+import com.bakuard.flashcards.service.wordSupplementation.WordSupplementationService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
@@ -27,8 +36,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.data.jdbc.core.JdbcAggregateOperations;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
-import org.springframework.data.relational.core.mapping.event.AfterConvertEvent;
 import org.springframework.data.relational.core.mapping.event.BeforeConvertEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -58,7 +67,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public DataSource dataSource(ConfigData configData) {
                 HikariConfig hikariConfig = new HikariConfig();
-                hikariConfig.setJdbcUrl(configData.jdbcUrl());
+                hikariConfig.setJdbcUrl(configData.database().jdbcUrl());
                 hikariConfig.setAutoCommit(false);
                 hikariConfig.setMaximumPoolSize(10);
                 hikariConfig.setMinimumIdle(5);
@@ -81,6 +90,11 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
+        public Transaction transaction(PlatformTransactionManager transactionManager) {
+             return new Transaction(transactionManager);
+        }
+
+        @Bean
         public IntervalRepository intervalsRepository(JdbcTemplate jdbcTemplate) {
                 return new IntervalRepositoryImpl(jdbcTemplate);
         }
@@ -88,6 +102,19 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public StatisticRepository statisticRepository(JdbcTemplate jdbcTemplate) {
              return new StatisticRepositoryImpl(jdbcTemplate);
+        }
+
+        @Bean
+        public WordOuterSourceBuffer wordOuterSourceBuffer(JdbcTemplate jdbcTemplate,
+                                                           JdbcAggregateOperations jdbcAggregateOperations) {
+                return new WordOuterSourceBufferImpl(jdbcTemplate, jdbcAggregateOperations);
+        }
+
+        @Bean
+        public UserSaver<User> userSaver(JdbcTemplate jdbcTemplate,
+                                         JdbcAggregateOperations jdbcAggregateOperation,
+                                         ConfigData configData) {
+                return new UserSaverImpl(jdbcTemplate, jdbcAggregateOperation, configData);
         }
 
         @Bean
@@ -104,19 +131,21 @@ public class SpringConfig implements WebMvcConfigurer {
         public WordService wordService(WordRepository wordRepository,
                                        IntervalRepository intervalRepository,
                                        Clock clock,
-                                       ConfigData configData) {
-                return new WordService(wordRepository, intervalRepository, clock, configData);
+                                       ConfigData configData,
+                                       ValidatorUtil validator) {
+                return new WordService(wordRepository, intervalRepository, clock, configData, validator);
         }
 
         @Bean
         public ExpressionService expressionService(ExpressionRepository expressionRepository,
                                                    IntervalRepository intervalRepository,
                                                    Clock clock,
-                                                   ConfigData configData) {
-                return new ExpressionService(expressionRepository, intervalRepository, clock, configData);
+                                                   ConfigData configData,
+                                                   ValidatorUtil validator) {
+                return new ExpressionService(expressionRepository, intervalRepository, clock, configData, validator);
         }
 
-        @Bean
+        @Bean(initMethod = "initialize")
         public AuthService authService(UserRepository userRepository,
                                        IntervalRepository intervalRepository,
                                        JwsService jwsService,
@@ -151,6 +180,15 @@ public class SpringConfig implements WebMvcConfigurer {
                 return new StatisticService(statisticRepository, clock);
         }
 
+        @Bean(initMethod = "scheduleDeleteUnusedExamples")
+        public WordSupplementationService wordSupplementationService(WordOuterSourceBuffer wordOuterSourceBuffer,
+                                                                     Clock clock,
+                                                                     ObjectMapper mapper,
+                                                                     ValidatorUtil validator,
+                                                                     Transaction transaction) {
+             return new WordSupplementationService(wordOuterSourceBuffer, clock, mapper, validator, transaction);
+        }
+
         @Bean
         public LocaleResolver localeResolver() {
                 return new AcceptHeaderLocaleResolver();
@@ -173,6 +211,7 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean
         public DtoMapper dtoMapper(WordService wordService,
                                    ExpressionService expressionService,
+                                   IntervalService intervalService,
                                    AuthService authService,
                                    ConfigData configData,
                                    SortRules sortRules,
@@ -181,6 +220,7 @@ public class SpringConfig implements WebMvcConfigurer {
                                    Messages messages) {
                 return new DtoMapper(wordService,
                         expressionService,
+                        intervalService,
                         authService,
                         configData,
                         sortRules,
@@ -195,20 +235,11 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public ApplicationListener<BeforeConvertEvent<?>> entityCreator(final ValidatorUtil validator) {
+        public ApplicationListener<BeforeConvertEvent<?>> entityCreator() {
                 return event -> {
                        if(event.getEntity() instanceof Entity entity) {
                                entity.generateIdIfAbsent();
                        }
-                };
-        }
-
-        @Bean
-        public ApplicationListener<AfterConvertEvent<?>> afterLoad(final ValidatorUtil validator) {
-                return event -> {
-                        if(event.getEntity() instanceof Entity entity) {
-                                entity.setValidator(validator);
-                        }
                 };
         }
 

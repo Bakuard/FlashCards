@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.dto;
 
-import com.bakuard.flashcards.config.ConfigData;
+import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.common.*;
 import com.bakuard.flashcards.dto.credential.*;
@@ -26,6 +26,7 @@ import com.bakuard.flashcards.model.statistic.WordRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.model.word.*;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
+import com.bakuard.flashcards.service.IntervalService;
 import com.bakuard.flashcards.service.WordService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.springframework.data.domain.Page;
@@ -46,6 +47,7 @@ public class DtoMapper {
 
     private WordService wordService;
     private ExpressionService expressionService;
+    private IntervalService intervalService;
     private AuthService authService;
     private ConfigData configData;
     private SortRules sortRules;
@@ -55,6 +57,7 @@ public class DtoMapper {
 
     public DtoMapper(WordService wordService,
                      ExpressionService expressionService,
+                     IntervalService intervalService,
                      AuthService authService,
                      ConfigData configData,
                      SortRules sortRules,
@@ -63,6 +66,7 @@ public class DtoMapper {
                      Messages messages) {
         this.wordService = wordService;
         this.authService = authService;
+        this.intervalService = intervalService;
         this.expressionService = expressionService;
         this.configData = configData;
         this.sortRules = sortRules;
@@ -78,16 +82,16 @@ public class DtoMapper {
                 setValue(word.getValue()).
                 setNote(word.getNote()).
                 setTranscriptions(word.getTranscriptions().stream().
-                        map(this::toTranscriptionRequestResponse).
+                        map(this::toTranscriptionResponse).
                         toList()).
                 setInterpretations(word.getInterpretations().stream().
-                        map(this::toInterpretationRequestResponse).
+                        map(this::toInterpretationResponse).
                         toList()).
                 setTranslates(word.getTranslations().stream().
-                        map(this::toTranslateRequestResponse).
+                        map(this::toTranslateResponse).
                         toList()).
                 setExamples(word.getExamples().stream().
-                        map(this::toExampleRequestResponse).
+                        map(this::toExampleResponse).
                         toList());
     }
 
@@ -120,17 +124,17 @@ public class DtoMapper {
                         setWordId(word.getId()).
                         setUserId(word.getUserId()).
                         setInterpretations(word.getInterpretations().stream().
-                                map(this::toInterpretationRequestResponse).
+                                map(this::toInterpretationResponse).
                                 toList()).
                         setTranslations(word.getTranslations().stream().
-                                map(this::toTranslateRequestResponse).
+                                map(this::toTranslateResponse).
                                 toList())
         );
     }
 
     public Word toWord(WordAddRequest dto) {
-        return Word.newBuilder(validator).
-                setUserId(dto.getUserID()).
+        int lowestInterval = intervalService.getLowestInterval(dto.getUserId());
+        return new Word(dto.getUserId(), lowestInterval, lowestInterval, clock).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
@@ -144,13 +148,11 @@ public class DtoMapper {
                         toList()).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
-                        toList()).
-                setInitialRepeatData(wordService.getLowestRepeatInterval(dto.getUserID()), clock).
-                build();
+                        toList());
     }
 
     public Word toWord(WordUpdateRequest dto) {
-        return wordService.tryFindById(dto.getUserId(), dto.getWordId()).builder().
+        return wordService.tryFindById(dto.getUserId(), dto.getWordId()).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
@@ -164,8 +166,7 @@ public class DtoMapper {
                         toList()).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
-                        toList()).
-                build();
+                        toList());
     }
 
     public Sort toWordSort(String sortRule) {
@@ -180,13 +181,13 @@ public class DtoMapper {
                 setValue(expression.getValue()).
                 setNote(expression.getNote()).
                 setInterpretations(expression.getInterpretations().stream().
-                        map(this::toInterpretationRequestResponse).
+                        map(this::toInterpretationResponse).
                         toList()).
                 setTranslates(expression.getTranslations().stream().
-                        map(this::toTranslateRequestResponse).
+                        map(this::toTranslateResponse).
                         toList()).
                 setExamples(expression.getExamples().stream().
-                        map(this::toExampleRequestResponse).
+                        map(this::toExampleResponse).
                         toList());
     }
 
@@ -218,17 +219,17 @@ public class DtoMapper {
                         setExpressionId(expression.getId()).
                         setUserId(expression.getUserId()).
                         setInterpretations(expression.getInterpretations().stream().
-                                map(this::toInterpretationRequestResponse).
+                                map(this::toInterpretationResponse).
                                 toList()).
                         setTranslations(expression.getTranslations().stream().
-                                map(this::toTranslateRequestResponse).
+                                map(this::toTranslateResponse).
                                 toList())
         );
     }
 
     public Expression toExpression(ExpressionAddRequest dto) {
-        return Expression.newBuilder(validator).
-                setUserId(dto.getUserID()).
+        int lowestInterval = intervalService.getLowestInterval(dto.getUserID());
+        return new Expression(dto.getUserID(), lowestInterval, lowestInterval, clock).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setInterpretations(toStream(dto.getInterpretations()).
@@ -239,13 +240,11 @@ public class DtoMapper {
                         toList()).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
-                        toList()).
-                setInitialRepeatData(expressionService.getLowestRepeatInterval(dto.getUserID()), clock).
-                build();
+                        toList());
     }
 
     public Expression toExpression(ExpressionUpdateRequest dto) {
-        return expressionService.tryFindById(dto.getUserId(), dto.getExpressionId()).builder().
+        return expressionService.tryFindById(dto.getUserId(), dto.getExpressionId()).
                 setValue(dto.getValue()).
                 setNote(dto.getNote()).
                 setInterpretations(toStream(dto.getInterpretations()).
@@ -256,8 +255,7 @@ public class DtoMapper {
                         toList()).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
-                        toList()).
-                build();
+                        toList());
     }
 
     public Sort toExpressionSort(String sortRule) {
@@ -285,12 +283,11 @@ public class DtoMapper {
     }
 
     public User toUser(UserUpdateRequest dto) {
-        User user = authService.tryFindById(dto.getUserId());
-        user.setEmail(dto.getEmail());
-        user.changePassword(dto.getPasswordChangeRequest().getCurrentPassword(),
-                dto.getPasswordChangeRequest().getNewPassword());
-        user.setRoles(dto.getRoles().stream().map(this::toRole).toList());
-        return user;
+        return authService.tryFindById(dto.getUserId()).
+                setEmail(dto.getEmail()).
+                setRoles(dto.getRoles().stream().map(this::toRole).toList()).
+                changePassword(dto.getPasswordChangeRequest().getCurrentPassword(),
+                        dto.getPasswordChangeRequest().getNewPassword());
     }
 
     public UserResponse toUserResponse(User user) {
@@ -395,92 +392,117 @@ public class DtoMapper {
     }
 
     public Pageable toPageable(int page, int size) {
-        size = Math.min(size, configData.maxPageSize());
-        if(size == 0) size = configData.defaultPageSize();
-        size = Math.max(configData.minPageSize(), size);
+        size = Math.min(size, configData.pagination().maxPageSize());
+        if(size == 0) size = configData.pagination().defaultPageSize();
+        size = Math.max(configData.pagination().minPageSize(), size);
 
         return PageRequest.of(page, size);
     }
 
     public Pageable toPageable(int page, int size, Sort sort) {
-        size = Math.min(size, configData.maxPageSize());
-        if(size == 0) size = configData.defaultPageSize();
-        size = Math.max(configData.minPageSize(), size);
+        size = Math.min(size, configData.pagination().maxPageSize());
+        if(size == 0) size = configData.pagination().defaultPageSize();
+        size = Math.max(configData.pagination().minPageSize(), size);
 
         return PageRequest.of(page, size, sort);
     }
 
 
-    private ExampleRequestResponse toExampleRequestResponse(WordExample wordExample) {
-        return new ExampleRequestResponse().
+    private ExampleResponse toExampleResponse(WordExample wordExample) {
+        return new ExampleResponse().
                 setOrigin(wordExample.getOrigin()).
                 setTranslate(wordExample.getTranslate()).
-                setNote(wordExample.getNote());
+                setNote(wordExample.getNote()).
+                setSourceInfo(wordExample.getSourceInfo().stream().
+                        map(this::toExampleOuterSourceResponse).
+                        toList());
     }
 
-    private InterpretationRequestResponse toInterpretationRequestResponse(WordInterpretation wordInterpretation) {
-        return new InterpretationRequestResponse().
-                setValue(wordInterpretation.getValue());
+    private InterpretationResponse toInterpretationResponse(WordInterpretation wordInterpretation) {
+        return new InterpretationResponse().
+                setValue(wordInterpretation.getValue()).
+                setSourceInfo(wordInterpretation.getSourceInfo().stream().
+                        map(this::toOuterSourceResponse).
+                        toList());
     }
 
-    private TranscriptionRequestResponse toTranscriptionRequestResponse(WordTranscription wordTranscription) {
-        return new TranscriptionRequestResponse().
+    private TranscriptionResponse toTranscriptionResponse(WordTranscription wordTranscription) {
+        return new TranscriptionResponse().
                 setValue(wordTranscription.getValue()).
-                setNote(wordTranscription.getNote());
+                setNote(wordTranscription.getNote()).
+                setSourceInfo(wordTranscription.getSourceInfo().stream().
+                        map(this::toOuterSourceResponse).
+                        toList());
     }
 
-    private TranslateRequestResponse toTranslateRequestResponse(WordTranslation wordTranslation) {
-        return new TranslateRequestResponse().
+    private TranslateResponse toTranslateResponse(WordTranslation wordTranslation) {
+        return new TranslateResponse().
                 setValue(wordTranslation.getValue()).
-                setNote(wordTranslation.getNote());
+                setNote(wordTranslation.getNote()).
+                setSourceInfo(wordTranslation.getSourceInfo().stream().
+                        map(this::toOuterSourceResponse).
+                        toList());
+    }
+
+    private OuterSourceResponse toOuterSourceResponse(OuterSource outerSource) {
+        return new OuterSourceResponse().
+                setOuterSourceName(outerSource.sourceName()).
+                setOuterSourceUrl(outerSource.url());
+    }
+
+    private ExampleOuterSourceResponse toExampleOuterSourceResponse(ExampleOuterSource exampleOuterSource) {
+        return new ExampleOuterSourceResponse().
+                setOuterSourceName(exampleOuterSource.sourceName()).
+                setOuterSourceUrl(exampleOuterSource.url()).
+                setExampleTranslate(exampleOuterSource.translate());
     }
 
 
-    private ExampleRequestResponse toExampleRequestResponse(ExpressionExample example) {
-        return new ExampleRequestResponse().
+    private ExampleResponse toExampleResponse(ExpressionExample example) {
+        return new ExampleResponse().
                 setOrigin(example.getOrigin()).
                 setTranslate(example.getTranslate()).
                 setNote(example.getNote());
     }
 
-    private InterpretationRequestResponse toInterpretationRequestResponse(ExpressionInterpretation interpretation) {
-        return new InterpretationRequestResponse().
+    private InterpretationResponse toInterpretationResponse(ExpressionInterpretation interpretation) {
+        return new InterpretationResponse().
                 setValue(interpretation.getValue());
     }
 
-    private TranslateRequestResponse toTranslateRequestResponse(ExpressionTranslation translation) {
-        return new TranslateRequestResponse().
+    private TranslateResponse toTranslateResponse(ExpressionTranslation translation) {
+        return new TranslateResponse().
                 setNote(translation.getNote()).
                 setValue(translation.getValue());
     }
 
 
-    private WordTranscription toWordTranscription(TranscriptionRequestResponse dto) {
+    private WordTranscription toWordTranscription(TranscriptionRequest dto) {
         return new WordTranscription(dto.getValue(), dto.getNote());
     }
 
-    private WordInterpretation toWordInterpretation(InterpretationRequestResponse dto) {
+    private WordInterpretation toWordInterpretation(InterpretationRequest dto) {
         return new WordInterpretation(dto.getValue());
     }
 
-    private WordTranslation toWordTranslation(TranslateRequestResponse dto) {
+    private WordTranslation toWordTranslation(TranslateRequest dto) {
         return new WordTranslation(dto.getValue(), dto.getNote());
     }
 
-    private WordExample toWordExample(ExampleRequestResponse dto) {
+    private WordExample toWordExample(ExampleRequest dto) {
         return new WordExample(dto.getOrigin(), dto.getTranslate(), dto.getNote());
     }
 
 
-    private ExpressionInterpretation toExpressionInterpretation(InterpretationRequestResponse dto) {
+    private ExpressionInterpretation toExpressionInterpretation(InterpretationRequest dto) {
         return new ExpressionInterpretation(dto.getValue());
     }
 
-    private ExpressionTranslation toExpressionTranslation(TranslateRequestResponse dto) {
+    private ExpressionTranslation toExpressionTranslation(TranslateRequest dto) {
         return new ExpressionTranslation(dto.getValue(), dto.getNote());
     }
 
-    private ExpressionExample toExpressionExample(ExampleRequestResponse dto) {
+    private ExpressionExample toExpressionExample(ExampleRequest dto) {
         return new ExpressionExample(dto.getOrigin(), dto.getTranslate(), dto.getNote());
     }
 

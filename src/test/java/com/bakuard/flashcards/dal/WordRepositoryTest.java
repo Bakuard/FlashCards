@@ -1,9 +1,9 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.MutableClock;
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
-import com.bakuard.flashcards.model.RepeatDataFromNative;
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.word.*;
 import com.bakuard.flashcards.validation.ValidatorUtil;
@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class WordRepositoryTest {
 
     @Autowired
@@ -58,31 +58,15 @@ class WordRepositoryTest {
                 "repeat_words_from_english_statistic",
                 "repeat_words_from_native_statistic",
                 "repeat_expressions_from_english_statistic",
-                "repeat_expressions_from_native_statistic"
+                "repeat_expressions_from_native_statistic",
+                "words_interpretations_outer_source",
+                "words_transcriptions_outer_source",
+                "words_translations_outer_source",
+                "words_examples_outer_source"
         ));
         clock.setDate(2022, 7, 7);
     }
-
-    @Test
-    @DisplayName("""
-            save(word):
-             there are not words in DB with such value
-             => success save word
-            """)
-    public void save() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-
-        commit(() -> wordRepository.save(expected));
-
-        Word actual = wordRepository.findById(expected.getId()).orElseThrow();
-        org.assertj.core.api.Assertions.
-                assertThat(expected).
-                usingRecursiveComparison().
-                isEqualTo(actual);
-    }
-
+    
     @Test
     @DisplayName("""
             findById(userId, wordId):
@@ -90,10 +74,10 @@ class WordRepositoryTest {
              => return empty Optional
             """)
     public void findById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1))
+        );
 
         Optional<Word> actual = wordRepository.findById(user.getId(), toUUID(1));
 
@@ -107,17 +91,16 @@ class WordRepositoryTest {
              => return correct word
             """)
     public void findById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Word actual = wordRepository.findById(user.getId(), expected.getId()).orElseThrow();
 
-        org.assertj.core.api.Assertions.
-                assertThat(expected).
+        Assertions.assertThat(actual).
                 usingRecursiveComparison().
-                isEqualTo(actual);
+                isEqualTo(expected);
     }
 
     @Test
@@ -263,10 +246,10 @@ class WordRepositoryTest {
              => do nothing
             """)
     public void deleteById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         commit(() -> wordRepository.deleteById(user.getId(), toUUID(1)));
 
@@ -280,10 +263,10 @@ class WordRepositoryTest {
              => delete this word
             """)
     public void deleteById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         commit(() -> wordRepository.deleteById(user.getId(), expected.getId()));
 
@@ -297,10 +280,10 @@ class WordRepositoryTest {
              => return false
             """)
     public void existsById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Assertions.assertThat(wordRepository.existsById(user.getId(), toUUID(1))).isFalse();
     }
@@ -312,10 +295,10 @@ class WordRepositoryTest {
              => return true
             """)
     public void existsById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Word expected = word(user.getId(), "value 1", "note 1", 1);
-        commit(() -> wordRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Assertions.assertThat(wordRepository.existsById(user.getId(), expected.getId())).isTrue();
     }
@@ -775,24 +758,16 @@ class WordRepositoryTest {
             wordRepository.save(word(user.getId(), "wordB", "noteB", 10));
             wordRepository.save(word(user.getId(), "wordC", "noteC", 10));
             wordRepository.save(
-                    Word.newBuilder(validator).
-                            setUserId(user.getId()).
+                    new Word(user.getId(), 1, 1, clock).
                             setValue("wordD").
                             setNote("noteD").
-                            setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                            setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                            addTranslation(new WordTranslation("translateX", "noteX")).
-                            build()
+                            addTranslation(new WordTranslation("translateX", "noteX"))
             );
             wordRepository.save(
-                    Word.newBuilder(validator).
-                            setUserId(user.getId()).
+                    new Word(user.getId(), 1, 1, clock).
                             setValue("wordE").
                             setNote("noteE").
-                            setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                            setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                            addTranslation(new WordTranslation("translateX", "noteX")).
-                            build()
+                            addTranslation(new WordTranslation("translateX", "noteX"))
             );
         });
 
@@ -844,30 +819,18 @@ class WordRepositoryTest {
             """)
     public void findByTranslate3() {
         User user = commit(() -> userRepository.save(user(1)));
-        Word wordD = Word.newBuilder(validator).
-                setUserId(user.getId()).
+        Word wordD = new Word(user.getId(), 1, 1, clock).
                 setValue("wordD").
                 setNote("noteD").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new WordTranslation("translateX", "noteX")).
-                build();
-        Word wordE =  Word.newBuilder(validator).
-                setUserId(user.getId()).
+                addTranslation(new WordTranslation("translateX", "noteX"));
+        Word wordE = new Word(user.getId(), 1, 1, clock).
                 setValue("wordE").
                 setNote("noteE").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new WordTranslation("translateX", "noteX")).
-                build();
-        Word wordF =  Word.newBuilder(validator).
-                setUserId(user.getId()).
+                addTranslation(new WordTranslation("translateX", "noteX"));
+        Word wordF = new Word(user.getId(), 1, 1, clock).
                 setValue("wordF").
                 setNote("noteF").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new WordTranslation("translateX", "noteX")).
-                build();
+                addTranslation(new WordTranslation("translateX", "noteX"));
         commit(() -> {
             wordRepository.save(word(user.getId(), "wordA", "noteA", 10));
             wordRepository.save(word(user.getId(), "wordB", "noteB", 10));
@@ -879,7 +842,9 @@ class WordRepositoryTest {
 
         List<Word> actual = wordRepository.findByTranslate(user.getId(), "translateX", 10, 0);
 
-        Assertions.assertThat(actual).containsExactly(wordD, wordE, wordF);
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                containsExactly(wordD, wordE, wordF);
     }
 
     @Test
@@ -973,23 +938,20 @@ class WordRepositoryTest {
     }
 
     private User user(int number) {
-        return User.newBuilder(validator).
-                setPassword("password" + number).
-                setEmail("me" + number + "@mail.com").
+        return new User(new Credential("me" + number + "@mail.com", "password" + number)).
                 setOrGenerateSalt("salt" + number).
-                build();
+                addRole("role1").
+                addRole("role2").
+                addRole("role3");
     }
-
+    
     private Word word(UUID userId,
                       String value,
                       String note,
                       int interval) {
-        return Word.newBuilder(validator).
-                setUserId(userId).
+        return new Word(userId, interval, interval, clock).
                 setValue(value).
                 setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
                 addTranslation(new WordTranslation("translateA", "noteA")).
                 addTranslation(new WordTranslation("translateB", "noteB")).
                 addTranslation(new WordTranslation("translateC", "noteC")).
@@ -1001,8 +963,7 @@ class WordRepositoryTest {
                 addInterpretation(new WordInterpretation("interpretationC")).
                 addExample(new WordExample("exampleA", "exampleTranslate", "noteA")).
                 addExample(new WordExample("exampleB", "exampleTranslate", "noteB")).
-                addExample(new WordExample("exampleC", "exampleTranslate", "noteC")).
-                build();
+                addExample(new WordExample("exampleC", "exampleTranslate", "noteC"));
     }
 
     private List<Word> words(UUID userId) {

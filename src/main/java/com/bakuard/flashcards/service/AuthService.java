@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.service;
 
-import com.bakuard.flashcards.config.ConfigData;
+import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.dal.UserRepository;
 import com.bakuard.flashcards.model.auth.JwsWithUser;
@@ -38,6 +38,22 @@ public class AuthService {
         this.validator = validator;
     }
 
+    public void initialize() {
+        long countUserWithRole = userRepository.countForRole(configData.superAdmin().roleName());
+        if(countUserWithRole < 1) {
+            Credential credential = new Credential(configData.superAdmin().mail(), configData.superAdmin().password());
+            save(
+                    new User(validator.assertValid(credential)).
+                            addRole(configData.superAdmin().roleName())
+            );
+        } else if(configData.superAdmin().recreate()) {
+            User superAdmin = userRepository.findByRole(configData.superAdmin().roleName(), 1, 0).get(0);
+            Credential credential = new Credential(configData.superAdmin().mail(), configData.superAdmin().password());
+            superAdmin.setCredential(validator.assertValid(credential));
+            save(superAdmin);
+        }
+    }
+
     @Transactional
     public JwsWithUser enter(Credential credential) {
         validator.assertValid(credential);
@@ -56,9 +72,7 @@ public class AuthService {
 
     @Transactional
     public JwsWithUser registerFinalStep(Credential jwsBody) {
-        User user = save(User.newBuilder(validator).
-                setCredential(jwsBody).
-                build());
+        User user = save(new User(jwsBody));
 
         //add default repeat intervals
         intervalRepository.add(user.getId(), 1);
@@ -79,7 +93,6 @@ public class AuthService {
 
     @Transactional
     public JwsWithUser restorePasswordFinalStep(Credential jwsBody) {
-        validator.assertValid(jwsBody);
         User user = tryFindByEmail(jwsBody.email());
         user.setCredential(jwsBody);
         user = save(user);
@@ -89,6 +102,7 @@ public class AuthService {
 
     @Transactional
     public User save(User user) {
+        validator.assertValid(user);
         return userRepository.save(user);
     }
 

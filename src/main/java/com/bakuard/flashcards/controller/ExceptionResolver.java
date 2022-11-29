@@ -5,7 +5,6 @@ import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.model.auth.policy.PermissionDeniedException;
 import com.bakuard.flashcards.validation.IncorrectCredentials;
 import com.bakuard.flashcards.validation.UnknownEntityException;
-import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +47,7 @@ public class ExceptionResolver {
 
         ExceptionResponse response = mapper.toExceptionResponse(
                 HttpStatus.FORBIDDEN,
-                "incorrectCredentials");
+                exception.getMessageKey());
 
         return ResponseEntity.
                 status(HttpStatus.FORBIDDEN).

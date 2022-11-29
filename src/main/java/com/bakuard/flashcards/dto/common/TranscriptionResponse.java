@@ -2,10 +2,11 @@ package com.bakuard.flashcards.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.List;
 import java.util.Objects;
 
 @Schema(description = "Транскрипция слова.")
-public class TranscriptionRequestResponse {
+public class TranscriptionResponse {
 
     @Schema(description = """
             Значение транскрипции слова. <br/>
@@ -17,15 +18,18 @@ public class TranscriptionRequestResponse {
             Должно представлять собой не пустую строку или иметь значение null.
             """)
     private String note;
+    @Schema(description = "Данные всех внешних источников из которых получена данная транскрипция.")
+    private List<OuterSourceResponse> sourceInfo;
 
-    public TranscriptionRequestResponse() {
+    public TranscriptionResponse() {
+
     }
 
     public String getValue() {
         return value;
     }
 
-    public TranscriptionRequestResponse setValue(String value) {
+    public TranscriptionResponse setValue(String value) {
         this.value = value;
         return this;
     }
@@ -34,8 +38,17 @@ public class TranscriptionRequestResponse {
         return note;
     }
 
-    public TranscriptionRequestResponse setNote(String note) {
+    public TranscriptionResponse setNote(String note) {
         this.note = note;
+        return this;
+    }
+
+    public List<OuterSourceResponse> getSourceInfo() {
+        return sourceInfo;
+    }
+
+    public TranscriptionResponse setSourceInfo(List<OuterSourceResponse> sourceInfo) {
+        this.sourceInfo = sourceInfo;
         return this;
     }
 
@@ -43,20 +56,23 @@ public class TranscriptionRequestResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        TranscriptionRequestResponse that = (TranscriptionRequestResponse) o;
-        return Objects.equals(value, that.value) && Objects.equals(note, that.note);
+        TranscriptionResponse that = (TranscriptionResponse) o;
+        return Objects.equals(value, that.value) &&
+                Objects.equals(note, that.note) &&
+                Objects.equals(sourceInfo, that.sourceInfo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note);
+        return Objects.hash(value, note, sourceInfo);
     }
 
     @Override
     public String toString() {
-        return "TranscriptionRequestResponse{" +
+        return "TranscriptionResponse{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
+                ", sourceInfo=" + sourceInfo +
                 '}';
     }
 

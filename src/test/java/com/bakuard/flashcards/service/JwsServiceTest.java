@@ -1,6 +1,7 @@
 package com.bakuard.flashcards.service;
 
-import com.bakuard.flashcards.config.ConfigData;
+import com.bakuard.flashcards.config.configData.ConfigData;
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +20,7 @@ import java.util.UUID;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class JwsServiceTest {
 
     @Autowired

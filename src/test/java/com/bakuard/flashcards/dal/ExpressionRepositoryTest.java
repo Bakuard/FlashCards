@@ -1,9 +1,11 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.MutableClock;
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.RepeatDataFromEnglish;
 import com.bakuard.flashcards.model.RepeatDataFromNative;
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.expression.ExpressionExample;
@@ -35,7 +37,7 @@ import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class ExpressionRepositoryTest {
 
     @Autowired
@@ -61,7 +63,11 @@ class ExpressionRepositoryTest {
                 "repeat_words_from_english_statistic",
                 "repeat_words_from_native_statistic",
                 "repeat_expressions_from_english_statistic",
-                "repeat_expressions_from_native_statistic"
+                "repeat_expressions_from_native_statistic",
+                "words_interpretations_outer_source",
+                "words_transcriptions_outer_source",
+                "words_translations_outer_source",
+                "words_examples_outer_source"
         ));
         clock.setDate(2022, 7, 7);
     }
@@ -80,7 +86,7 @@ class ExpressionRepositoryTest {
         commit(() -> expressionRepository.save(expected));
 
         Expression actual = expressionRepository.findById(expected.getId()).orElseThrow();
-        org.assertj.core.api.Assertions.
+        Assertions.
                 assertThat(expected).
                 usingRecursiveComparison().
                 isEqualTo(actual);
@@ -117,10 +123,10 @@ class ExpressionRepositoryTest {
 
         Expression actual = expressionRepository.findById(user.getId(), expected.getId()).orElseThrow();
 
-        org.assertj.core.api.Assertions.
-                assertThat(expected).
+        Assertions.
+                assertThat(actual).
                 usingRecursiveComparison().
-                isEqualTo(actual);
+                isEqualTo(expected);
     }
 
     @Test
@@ -178,7 +184,7 @@ class ExpressionRepositoryTest {
 
         long actual = expressionRepository.countForValue(user.getId(), "frog", 2);
 
-        org.assertj.core.api.Assertions.assertThat(actual).isEqualTo(2);
+        Assertions.assertThat(actual).isEqualTo(2);
     }
 
     @Test
@@ -266,10 +272,10 @@ class ExpressionRepositoryTest {
              => do nothing
             """)
     public void deleteById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expected = commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
 
         commit(() -> expressionRepository.deleteById(user.getId(), toUUID(1)));
 
@@ -283,10 +289,10 @@ class ExpressionRepositoryTest {
              => delete this expression
             """)
     public void deleteById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expected = commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
 
         commit(() -> expressionRepository.deleteById(user.getId(), expected.getId()));
 
@@ -300,10 +306,10 @@ class ExpressionRepositoryTest {
              => return false
             """)
     public void existsById1() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Assertions.assertThat(expressionRepository.existsById(user.getId(), toUUID(1))).isFalse();
     }
@@ -315,10 +321,10 @@ class ExpressionRepositoryTest {
              => return true
             """)
     public void existsById2() {
-        User user = user(1);
-        commit(() -> userRepository.save(user));
-        Expression expected = expression(user.getId(), "value 1", "note 1", 1);
-        commit(() -> expressionRepository.save(expected));
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expected = commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
 
         Assertions.assertThat(expressionRepository.existsById(user.getId(), expected.getId())).isTrue();
     }
@@ -778,24 +784,16 @@ class ExpressionRepositoryTest {
             expressionRepository.save(expression(user.getId(), "expressionB", "noteB", 10));
             expressionRepository.save(expression(user.getId(), "expressionC", "noteC", 10));
             expressionRepository.save(
-                    Expression.newBuilder(validator).
-                            setUserId(user.getId()).
+                    new Expression(user.getId(), 1, 1, clock).
                             setValue("expressionD").
                             setNote("noteD").
-                            setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                            setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                            addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                            build()
+                            addTranslation(new ExpressionTranslation("translateX", "noteX"))
             );
             expressionRepository.save(
-                    Expression.newBuilder(validator).
-                            setUserId(user.getId()).
+                    new Expression(user.getId(), 1, 1, clock).
                             setValue("expressionE").
                             setNote("noteE").
-                            setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                            setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                            addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                            build()
+                            addTranslation(new ExpressionTranslation("translateX", "noteX"))
             );
         });
 
@@ -847,30 +845,18 @@ class ExpressionRepositoryTest {
             """)
     public void findByTranslate3() {
         User user = commit(() -> userRepository.save(user(1)));
-        Expression expressionD = Expression.newBuilder(validator).
-                setUserId(user.getId()).
+        Expression expressionD = new Expression(user.getId(), 1, 1, clock).
                 setValue("expressionD").
                 setNote("noteD").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                build();
-        Expression expressionE =  Expression.newBuilder(validator).
-                setUserId(user.getId()).
+                addTranslation(new ExpressionTranslation("translateX", "noteX"));
+        Expression expressionE = new Expression(user.getId(), 1, 1, clock).
                 setValue("expressionE").
                 setNote("noteE").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                build();
-        Expression expressionF =  Expression.newBuilder(validator).
-                setUserId(user.getId()).
+                addTranslation(new ExpressionTranslation("translateX", "noteX"));
+        Expression expressionF = new Expression(user.getId(), 1, 1, clock).
                 setValue("expressionF").
                 setNote("noteF").
-                setRepeatData(new RepeatDataFromEnglish(1, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(1, LocalDate.now(clock))).
-                addTranslation(new ExpressionTranslation("translateX", "noteX")).
-                build();
+                addTranslation(new ExpressionTranslation("translateX", "noteX"));
         commit(() -> {
             expressionRepository.save(expression(user.getId(), "expressionA", "noteA", 10));
             expressionRepository.save(expression(user.getId(), "expressionB", "noteB", 10));
@@ -882,7 +868,9 @@ class ExpressionRepositoryTest {
 
         List<Expression> actual = expressionRepository.findByTranslate(user.getId(), "translateX", 10, 0);
 
-        Assertions.assertThat(actual).containsExactly(expressionD, expressionE, expressionF);
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                containsExactly(expressionD, expressionE, expressionF);
     }
 
 
@@ -891,26 +879,20 @@ class ExpressionRepositoryTest {
     }
 
     private User user(int number) {
-        return User.newBuilder(validator).
-                setPassword("password" + number).
+        return new User(new Credential("me" + number + "@mail.com", "password" + number)).
                 setOrGenerateSalt("salt" + number).
-                setEmail("me" + number + "@mail.com").
                 addRole("role1").
                 addRole("role2").
-                addRole("role3").
-                build();
+                addRole("role3");
     }
 
     private Expression expression(UUID userId,
                                   String value,
                                   String note,
                                   int interval) {
-        return Expression.newBuilder(validator).
-                setUserId(userId).
+        return new Expression(userId, interval, interval, clock).
                 setValue(value).
                 setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
                 addTranslation(new ExpressionTranslation("translateA", "noteA")).
                 addTranslation(new ExpressionTranslation("translateB", "noteB")).
                 addTranslation(new ExpressionTranslation("translateC", "noteC")).
@@ -919,8 +901,7 @@ class ExpressionRepositoryTest {
                 addInterpretation(new ExpressionInterpretation("interpretationC")).
                 addExample(new ExpressionExample("exampleA", "exampleTranslate", "noteA")).
                 addExample(new ExpressionExample("exampleB", "exampleTranslate", "noteA")).
-                addExample(new ExpressionExample("exampleC", "exampleTranslate", "noteA")).
-                build();
+                addExample(new ExpressionExample("exampleC", "exampleTranslate", "noteA"));
     }
 
     private List<Expression> expressions(UUID userId) {

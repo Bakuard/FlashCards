@@ -27,4 +27,8 @@ public class IntervalService {
         return intervalRepository.findAll(userId);
     }
 
+    public int getLowestInterval(UUID userId) {
+        return intervalRepository.findAll(userId).get(0);
+    }
+
 }

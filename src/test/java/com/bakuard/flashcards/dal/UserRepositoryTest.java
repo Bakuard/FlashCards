@@ -1,9 +1,14 @@
 package com.bakuard.flashcards.dal;
 
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
+import com.bakuard.flashcards.config.configData.ConfigData;
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
+import com.bakuard.flashcards.validation.InvalidParameter;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,12 +24,13 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class UserRepositoryTest {
 
     @Autowired
@@ -35,6 +41,8 @@ class UserRepositoryTest {
     private DataSourceTransactionManager transactionManager;
     @Autowired
     private ValidatorUtil validator;
+    @Autowired
+    private ConfigData configData;
 
     @BeforeEach
     public void beforeEach() {
@@ -46,8 +54,72 @@ class UserRepositoryTest {
                 "repeat_words_from_english_statistic",
                 "repeat_words_from_native_statistic",
                 "repeat_expressions_from_english_statistic",
-                "repeat_expressions_from_native_statistic"
+                "repeat_expressions_from_native_statistic",
+                "words_interpretations_outer_source",
+                "words_transcriptions_outer_source",
+                "words_translations_outer_source",
+                "words_examples_outer_source"
         ));
+    }
+
+    @Test
+    @DisplayName("""
+            save(user):
+             saved user has role super_admin,
+             user with role super_admin already exists in db
+             => exception
+            """)
+    public void save1() {
+        commit(() -> userRepository.save(user(1).addRole(configData.superAdmin().roleName())));
+        User user = user(2).addRole(configData.superAdmin().roleName());
+
+        Assertions.assertThatExceptionOfType(RuntimeException.class).
+                isThrownBy(() -> commit(() -> userRepository.save(user))).
+                withCauseInstanceOf(InvalidParameter.class).
+                extracting(RuntimeException::getCause, InstanceOfAssertFactories.type(InvalidParameter.class)).
+                extracting(InvalidParameter::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                isEqualTo("User.superAdmin.unique");
+    }
+
+    @Test
+    @DisplayName("""
+            save(user):
+             saved user has role super_admin,
+             user with role super_admin not exists in db
+             => save user
+            """)
+    public void save2() {
+        User expected = user(1).addRole(configData.superAdmin().roleName());
+
+        commit(() -> userRepository.save(expected));
+
+        Optional<User> actual = userRepository.findById(expected.getId());
+        Assertions.assertThat(actual).
+                isPresent().get().
+                usingRecursiveComparison().
+                isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("""
+            save(user):
+             saved user has role super_admin,
+             saved user is super admin,
+             user with role super_admin already exists in db
+             => save user
+            """)
+    public void save3() {
+        User expected = user(2).addRole(configData.superAdmin().roleName());
+        commit(() -> userRepository.save(expected));
+
+        expected.setEmail("newSuperAdminMail@email.com");
+        commit(() -> userRepository.save(expected));
+
+        Optional<User> actual = userRepository.findById(expected.getId());
+        Assertions.assertThat(actual).
+                isPresent().get().
+                usingRecursiveComparison().
+                isEqualTo(expected);
     }
 
     @Test
@@ -127,24 +199,120 @@ class UserRepositoryTest {
         Assertions.assertThat(actual).isFalse();
     }
 
+    @Test
+    @DisplayName("""
+            countForRole(role):
+             there are not users in database
+             => return 0
+            """)
+    public void countForRole1() {
+        long actual = userRepository.countForRole("some role");
 
-    private UUID toUUID(int number) {
-        return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
+        Assertions.assertThat(actual).isZero();
     }
+
+    @Test
+    @DisplayName("""
+            countForRole(role):
+             there are users in database,
+             there are not users with this role
+             => return 0
+            """)
+    public void countForRole2() {
+        commit(() -> {
+            userRepository.save(user(1));
+            userRepository.save(user(2));
+            userRepository.save(user(3));
+        });
+
+        long actual = userRepository.countForRole("some role");
+
+        Assertions.assertThat(actual).isZero();
+    }
+
+    @Test
+    @DisplayName("""
+            countForRole(role):
+             there are users in database,
+             there are users with this role
+             => return count users with this role
+            """)
+    public void countForRole3() {
+        commit(() -> {
+            userRepository.save(user(1));
+            userRepository.save(user(2).addRole("admin"));
+            userRepository.save(user(3).addRole("admin"));
+        });
+
+        long actual = userRepository.countForRole("admin");
+
+        Assertions.assertThat(actual).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("""
+            findByRole(role, limit, offset):
+             there are not users in database
+             => return empty list
+            """)
+    public void findByRole1() {
+        List<User> actual = userRepository.findByRole("admin", 10, 0);
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findByRole(role, limit, offset):
+             there are users in database,
+             there are not users with this role
+             => return empty list
+            """)
+    public void findByRole2() {
+        commit(() -> {
+            userRepository.save(user(1));
+            userRepository.save(user(2));
+            userRepository.save(user(3));
+        });
+
+        List<User> actual = userRepository.findByRole("admin", 10, 0);
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            findByRole(role, limit, offset):
+             there are users in database,
+             there are users with this role
+             => return all user with this role
+            """)
+    public void findByRole3() {
+        List<User> users = List.of(
+                user(1),
+                user(2).addRole("admin"),
+                user(3).addRole("admin")
+        );
+        commit(() -> users.forEach(user -> userRepository.save(user)));
+
+        List<User> actual = userRepository.findByRole("admin", 10, 0);
+
+        Assertions.assertThat(actual).
+                usingRecursiveFieldByFieldElementComparator().
+                containsExactly(users.get(1), users.get(2));
+    }
+
 
     private String toEmail(int number) {
         return "user" + number + "@gmail.com";
     }
 
     private User user(int number) {
-        return User.newBuilder(validator).
-                setPassword("password" + number).
-                setEmail(toEmail(number)).
+        return new User(new Credential(toEmail(number), "password" + number)).
                 setOrGenerateSalt("salt" + number).
                 addRole("role1").
                 addRole("role2").
-                addRole("role3").
-                build();
+                addRole("role3");
     }
 
     private void commit(Executable executable) {

@@ -1,9 +1,6 @@
 package com.bakuard.flashcards.dto.word;
 
-import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
-import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
-import com.bakuard.flashcards.dto.common.TranscriptionRequestResponse;
-import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.common.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -22,13 +19,13 @@ public class WordResponse {
     @Schema(description = "Примечание к слову.")
     private String note;
     @Schema(description = "Список транскрипций слова.")
-    private List<TranscriptionRequestResponse> transcriptions;
+    private List<TranscriptionResponse> transcriptions;
     @Schema(description = "Список толкований слова.")
-    private List<InterpretationRequestResponse> interpretations;
+    private List<InterpretationResponse> interpretations;
     @Schema(description = "Список переводов слова.")
-    private List<TranslateRequestResponse> translates;
+    private List<TranslateResponse> translates;
     @Schema(description = "Список примеров слова.")
-    private List<ExampleRequestResponse> examples;
+    private List<ExampleResponse> examples;
 
     public WordResponse() {
 
@@ -70,38 +67,38 @@ public class WordResponse {
         return this;
     }
 
-    public List<TranscriptionRequestResponse> getTranscriptions() {
+    public List<TranscriptionResponse> getTranscriptions() {
         return transcriptions;
     }
 
-    public WordResponse setTranscriptions(List<TranscriptionRequestResponse> transcriptions) {
+    public WordResponse setTranscriptions(List<TranscriptionResponse> transcriptions) {
         this.transcriptions = transcriptions;
         return this;
     }
 
-    public List<InterpretationRequestResponse> getInterpretations() {
+    public List<InterpretationResponse> getInterpretations() {
         return interpretations;
     }
 
-    public WordResponse setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public WordResponse setInterpretations(List<InterpretationResponse> interpretations) {
         this.interpretations = interpretations;
         return this;
     }
 
-    public List<TranslateRequestResponse> getTranslates() {
+    public List<TranslateResponse> getTranslates() {
         return translates;
     }
 
-    public WordResponse setTranslates(List<TranslateRequestResponse> translates) {
+    public WordResponse setTranslates(List<TranslateResponse> translates) {
         this.translates = translates;
         return this;
     }
 
-    public List<ExampleRequestResponse> getExamples() {
+    public List<ExampleResponse> getExamples() {
         return examples;
     }
 
-    public WordResponse setExamples(List<ExampleRequestResponse> examples) {
+    public WordResponse setExamples(List<ExampleResponse> examples) {
         this.examples = examples;
         return this;
     }

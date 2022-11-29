@@ -1,9 +1,9 @@
 package com.bakuard.flashcards.dto.word;
 
-import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
-import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
-import com.bakuard.flashcards.dto.common.TranscriptionRequestResponse;
-import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.common.ExampleRequest;
+import com.bakuard.flashcards.dto.common.InterpretationRequest;
+import com.bakuard.flashcards.dto.common.TranscriptionRequest;
+import com.bakuard.flashcards.dto.common.TranslateRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -17,7 +17,7 @@ public class WordAddRequest {
             Идентификатор пользователя, в словарь которого будет добавленно слово. <br/>
             Ограничения: не должен быть null.
             """)
-    private UUID userID;
+    private UUID userId;
     @Schema(description = """
             Значение слова. <br/>
             Должно представлять собой не пустую строку.
@@ -33,44 +33,44 @@ public class WordAddRequest {
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
-    private List<TranscriptionRequestResponse> transcriptions;
+    private List<TranscriptionRequest> transcriptions;
     @Schema(description = """
             Список интерпретаций слова. <br/>
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
-    private List<InterpretationRequestResponse> interpretations;
+    private List<InterpretationRequest> interpretations;
     @Schema(description = """
             Список переводов слова. <br/>
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
-    private List<TranslateRequestResponse> translates;
+    private List<TranslateRequest> translates;
     @Schema(description = """
             Список примеров слова. <br/>
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
-    private List<ExampleRequestResponse> examples;
+    private List<ExampleRequest> examples;
 
     public WordAddRequest() {
 
     }
 
-    public UUID getUserID() {
-        return userID;
+    public UUID getUserId() {
+        return userId;
     }
 
-    public WordAddRequest setUserID(UUID userID) {
-        this.userID = userID;
+    public WordAddRequest setUserId(UUID userId) {
+        this.userId = userId;
         return this;
     }
 
@@ -92,38 +92,38 @@ public class WordAddRequest {
         return this;
     }
 
-    public List<TranscriptionRequestResponse> getTranscriptions() {
+    public List<TranscriptionRequest> getTranscriptions() {
         return transcriptions;
     }
 
-    public WordAddRequest setTranscriptions(List<TranscriptionRequestResponse> transcriptions) {
+    public WordAddRequest setTranscriptions(List<TranscriptionRequest> transcriptions) {
         this.transcriptions = transcriptions;
         return this;
     }
 
-    public List<InterpretationRequestResponse> getInterpretations() {
+    public List<InterpretationRequest> getInterpretations() {
         return interpretations;
     }
 
-    public WordAddRequest setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public WordAddRequest setInterpretations(List<InterpretationRequest> interpretations) {
         this.interpretations = interpretations;
         return this;
     }
 
-    public List<TranslateRequestResponse> getTranslates() {
+    public List<TranslateRequest> getTranslates() {
         return translates;
     }
 
-    public WordAddRequest setTranslates(List<TranslateRequestResponse> translates) {
+    public WordAddRequest setTranslates(List<TranslateRequest> translates) {
         this.translates = translates;
         return this;
     }
 
-    public List<ExampleRequestResponse> getExamples() {
+    public List<ExampleRequest> getExamples() {
         return examples;
     }
 
-    public WordAddRequest setExamples(List<ExampleRequestResponse> examples) {
+    public WordAddRequest setExamples(List<ExampleRequest> examples) {
         this.examples = examples;
         return this;
     }
@@ -133,7 +133,7 @@ public class WordAddRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WordAddRequest that = (WordAddRequest) o;
-        return Objects.equals(userID, that.userID) &&
+        return Objects.equals(userId, that.userId) &&
                 Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
                 Objects.equals(transcriptions, that.transcriptions) &&
@@ -144,13 +144,13 @@ public class WordAddRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(userID, value, note, transcriptions, interpretations, translates, examples);
+        return Objects.hash(userId, value, note, transcriptions, interpretations, translates, examples);
     }
 
     @Override
     public String toString() {
         return "WordAddRequest{" +
-                "userID=" + userID +
+                "userId=" + userId +
                 ", value='" + value + '\'' +
                 ", note='" + note + '\'' +
                 ", transcriptions=" + transcriptions +

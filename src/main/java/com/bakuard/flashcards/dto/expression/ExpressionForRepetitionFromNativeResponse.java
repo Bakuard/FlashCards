@@ -1,7 +1,7 @@
 package com.bakuard.flashcards.dto.expression;
 
-import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
-import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.common.InterpretationResponse;
+import com.bakuard.flashcards.dto.common.TranslateResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -19,9 +19,9 @@ public class ExpressionForRepetitionFromNativeResponse {
     @Schema(description = "Уникальный идентификатор пользователя, к словарю которого относится это выражение.")
     private UUID userId;
     @Schema(description = "Переводы английского устойчевого выражения.")
-    private List<TranslateRequestResponse> translations;
+    private List<TranslateResponse> translations;
     @Schema(description = "Толкования английского устойчевого выражения.")
-    private List<InterpretationRequestResponse> interpretations;
+    private List<InterpretationResponse> interpretations;
 
     public ExpressionForRepetitionFromNativeResponse() {
 
@@ -45,20 +45,20 @@ public class ExpressionForRepetitionFromNativeResponse {
         return this;
     }
 
-    public List<TranslateRequestResponse> getTranslations() {
+    public List<TranslateResponse> getTranslations() {
         return translations;
     }
 
-    public ExpressionForRepetitionFromNativeResponse setTranslations(List<TranslateRequestResponse> translations) {
+    public ExpressionForRepetitionFromNativeResponse setTranslations(List<TranslateResponse> translations) {
         this.translations = translations;
         return this;
     }
 
-    public List<InterpretationRequestResponse> getInterpretations() {
+    public List<InterpretationResponse> getInterpretations() {
         return interpretations;
     }
 
-    public ExpressionForRepetitionFromNativeResponse setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public ExpressionForRepetitionFromNativeResponse setInterpretations(List<InterpretationResponse> interpretations) {
         this.interpretations = interpretations;
         return this;
     }

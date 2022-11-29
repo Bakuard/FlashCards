@@ -1,8 +1,7 @@
 package com.bakuard.flashcards.model.expression;
 
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
-import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -17,14 +16,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.time.Clock;
-import java.time.Duration;
-import java.time.LocalDate;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class ExpressionTest {
 
     @Autowired
@@ -48,26 +45,24 @@ class ExpressionTest {
              - origin is null,
              - translate is null,
              - note is blank
-             repeatDataFromEnglish is null,
-             repeatDataFromNative is null
+             repeat intervals:
+             - lowest interval < 1
              => exception
             """)
     public void createExpression1() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> Expression.newBuilder(validator).
-                        setUserId(null).
-                        setValue(null).
-                        setNote("    ").
-                        addInterpretation(null).
-                        addInterpretation(new ExpressionInterpretation("     ")).
-                        addTranslation(null).
-                        addTranslation(new ExpressionTranslation(null, "    ")).
-                        addExample(null).
-                        addExample(new ExpressionExample(null, null, "   ")).
-                        setRepeatData((RepeatDataFromEnglish) null).
-                        setRepeatData((RepeatDataFromNative) null).
-                        build()).
+                isThrownBy(() -> validator.assertValid(
+                        new Expression(null, 0, 0, clock).
+                                setValue(null).
+                                setNote("    ").
+                                addInterpretation(null).
+                                addInterpretation(new ExpressionInterpretation("     ")).
+                                addTranslation(null).
+                                addTranslation(new ExpressionTranslation(null, "    ")).
+                                addExample(null).
+                                addExample(new ExpressionExample(null, null, "   "))
+                )).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
@@ -88,8 +83,8 @@ class ExpressionTest {
                         "ExpressionExample.translate.notBlank",
                         "ExpressionExample.note.notBlankOrNull",
 
-                        "Expression.repeatDataFromEnglish.notNull",
-                        "Expression.repeatDataFromNative.notNull"
+                        "RepeatDataFromEnglish.interval.min",
+                        "RepeatDataFromNative.interval.min"
                 );
     }
 
@@ -101,29 +96,23 @@ class ExpressionTest {
              note (correct),
              interpretations not contains unique items,
              translations not contains unique items,
-             examples not contains unique items,
-             repeatDataFromEnglish.interval < 1,
-             repeatDataFromEnglish.lastDateOfRepeat is not present,
-             repeatDataFromNative.interval < 1,
-             repeatDataFromNative.lastDateOfRepeat is not present
+             examples not contains unique items
              => exception
             """)
     public void createExpression2() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> Expression.newBuilder(validator).
-                        setUserId(toUUID(1)).
-                        setValue("value").
-                        setNote("note").
-                        addInterpretation(new ExpressionInterpretation("interpretation1")).
-                        addInterpretation(new ExpressionInterpretation("interpretation1")).
-                        addTranslation(new ExpressionTranslation("translation1", "note1")).
-                        addTranslation(new ExpressionTranslation("translation1", "note2")).
-                        addExample(new ExpressionExample("example1", "translate1", "note1")).
-                        addExample(new ExpressionExample("example1", "translate2", "note2")).
-                        setRepeatData(new RepeatDataFromEnglish(0, yesterday())).
-                        setRepeatData(new RepeatDataFromNative(0, yesterday())).
-                        build()).
+                isThrownBy(() -> validator.assertValid(
+                        new Expression(toUUID(1), 1, 1, clock).
+                                setValue("value").
+                                setNote("note").
+                                addInterpretation(new ExpressionInterpretation("interpretation1")).
+                                addInterpretation(new ExpressionInterpretation("interpretation1")).
+                                addTranslation(new ExpressionTranslation("translation1", "note1")).
+                                addTranslation(new ExpressionTranslation("translation1", "note2")).
+                                addExample(new ExpressionExample("example1", "translate1", "note1")).
+                                addExample(new ExpressionExample("example1", "translate2", "note2"))
+                )).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
@@ -131,11 +120,7 @@ class ExpressionTest {
                 containsExactlyInAnyOrder(
                         "Expression.interpretations.allUnique",
                         "Expression.translations.allUnique",
-                        "Expression.examples.allUnique",
-                        "RepeatDataFromEnglish.interval.min",
-                        "RepeatDataFromEnglish.lastDateOfRepeat.present",
-                        "RepeatDataFromNative.interval.min",
-                        "RepeatDataFromNative.lastDateOfRepeat.present");
+                        "Expression.examples.allUnique");
     }
 
     @Test
@@ -161,19 +146,17 @@ class ExpressionTest {
     public void createExpression3() {
         Assertions.
                 assertThatExceptionOfType(ConstraintViolationException.class).
-                isThrownBy(() -> Expression.newBuilder(validator).
-                        setUserId(toUUID(1)).
-                        setValue("value").
-                        setNote("note").
-                        addInterpretation(new ExpressionInterpretation("interpretation1")).
-                        addInterpretation(new ExpressionInterpretation("     ")).
-                        addTranslation(new ExpressionTranslation("translation1", "note1")).
-                        addTranslation(new ExpressionTranslation("     ", null)).
-                        addExample(new ExpressionExample("example1", "translate1", "note1")).
-                        addExample(new ExpressionExample("    ", "     ", null)).
-                        setRepeatData(new RepeatDataFromEnglish(1, today())).
-                        setRepeatData(new RepeatDataFromNative(1, today())).
-                        build()).
+                isThrownBy(() -> validator.assertValid(
+                        new Expression(toUUID(1), 1, 1, clock).
+                                setValue("value").
+                                setNote("note").
+                                addInterpretation(new ExpressionInterpretation("interpretation1")).
+                                addInterpretation(new ExpressionInterpretation("     ")).
+                                addTranslation(new ExpressionTranslation("translation1", "note1")).
+                                addTranslation(new ExpressionTranslation("     ", null)).
+                                addExample(new ExpressionExample("example1", "translate1", "note1")).
+                                addExample(new ExpressionExample("    ", "     ", null))
+                )).
                 extracting(ex -> ex.getConstraintViolations().stream().
                                 map(ConstraintViolation::getMessage).
                                 collect(Collectors.toList()),
@@ -192,30 +175,20 @@ class ExpressionTest {
              => do throw nothing
             """)
     public void createExpression4() {
-        Assertions.assertThatCode(() ->  Expression.newBuilder(validator).
-                        setUserId(toUUID(1)).
+        Assertions.assertThatCode(() -> validator.assertValid(
+                new Expression(toUUID(1), 1, 1, clock).
                         setValue("value").
                         setNote("note").
                         addInterpretation(new ExpressionInterpretation("interpretation1")).
                         addTranslation(new ExpressionTranslation("translation1", "note1")).
-                        addExample(new ExpressionExample("example1", "translate1", "note1")).
-                        setRepeatData(new RepeatDataFromEnglish(1, today())).
-                        setRepeatData(new RepeatDataFromNative(1, today())).
-                        build()).
+                        addExample(new ExpressionExample("example1", "translate1", "note1"))
+                )).
                 doesNotThrowAnyException();
     }
 
 
     private UUID toUUID(int number) {
         return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
-    }
-
-    private LocalDate yesterday() {
-        return LocalDate.now(Clock.offset(clock, Duration.ofDays(-1)));
-    }
-
-    private LocalDate today() {
-        return LocalDate.now(clock);
     }
 
 }

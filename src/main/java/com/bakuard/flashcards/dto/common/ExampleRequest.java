@@ -5,32 +5,32 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 
 @Schema(description = "Пример использования слова или устойчевого выражения.")
-public class ExampleRequestResponse {
+public class ExampleRequest {
 
     @Schema(description = """
-            Пример на оригинальном языке. <br/>
-            Должен представлять собой не пустую строку.
+            Пример на английском языке. <br/>
+            Ограничения: не должен быть пустой строкой.
             """)
     private String origin;
     @Schema(description = """
-            Перевод примера. <br/>
-            Должен представлять собой не пустую строку.
+            Перевод примера на родной язык пользователя.<br/>
+            Ограничения: не должен быть пустой строкой или должен быть null.
             """)
     private String translate;
     @Schema(description = """
             Примечание к примеру. <br/>
-            Должно представлять собой не пустую строку или иметь значение null.
+            Ограничения: не должно быть пустой строкой или должно быть null.
             """)
     private String note;
 
-    public ExampleRequestResponse() {
+    public ExampleRequest() {
     }
 
     public String getOrigin() {
         return origin;
     }
 
-    public ExampleRequestResponse setOrigin(String origin) {
+    public ExampleRequest setOrigin(String origin) {
         this.origin = origin;
         return this;
     }
@@ -39,7 +39,7 @@ public class ExampleRequestResponse {
         return translate;
     }
 
-    public ExampleRequestResponse setTranslate(String translate) {
+    public ExampleRequest setTranslate(String translate) {
         this.translate = translate;
         return this;
     }
@@ -48,7 +48,7 @@ public class ExampleRequestResponse {
         return note;
     }
 
-    public ExampleRequestResponse setNote(String note) {
+    public ExampleRequest setNote(String note) {
         this.note = note;
         return this;
     }
@@ -57,7 +57,7 @@ public class ExampleRequestResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExampleRequestResponse that = (ExampleRequestResponse) o;
+        ExampleRequest that = (ExampleRequest) o;
         return Objects.equals(origin, that.origin) &&
                 Objects.equals(translate, that.translate) &&
                 Objects.equals(note, that.note);

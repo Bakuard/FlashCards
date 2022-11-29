@@ -1,9 +1,9 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.config.MutableClock;
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
-import com.bakuard.flashcards.model.RepeatDataFromNative;
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.filter.SortRules;
@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class StatisticRepositoryTest {
 
     @Autowired
@@ -67,7 +67,11 @@ class StatisticRepositoryTest {
                 "expressions",
                 "words",
                 "intervals",
-                "users"
+                "users",
+                "words_interpretations_outer_source",
+                "words_transcriptions_outer_source",
+                "words_translations_outer_source",
+                "words_examples_outer_source"
         ));
         clock.setDate(2022, 7, 7);
     }
@@ -1118,24 +1122,17 @@ class StatisticRepositoryTest {
     }
 
     private User user(int number) {
-        return User.newBuilder(validator).
-                setPassword("password" + number).
-                setEmail("me" + number + "@mail.com").
-                setOrGenerateSalt("salt" + number).
-                build();
+        return new User(new Credential("me" + number + "@mail.com", "password" + number)).
+                setOrGenerateSalt("salt" + number);
     }
 
     private Word word(UUID userId,
                       String value,
                       String note,
                       int interval) {
-        return Word.newBuilder(validator).
-                setUserId(userId).
+        return new Word(userId, interval, interval, clock).
                 setValue(value).
-                setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
-                build();
+                setNote(note);
     }
 
 
@@ -1143,13 +1140,9 @@ class StatisticRepositoryTest {
                                   String value,
                                   String note,
                                   int interval) {
-        return Expression.newBuilder(validator).
-                setUserId(userId).
+        return new Expression(userId, interval, interval, clock).
                 setValue(value).
-                setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(interval, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(interval, LocalDate.now(clock))).
-                build();
+                setNote(note);
     }
 
     private RepeatWordFromEnglishStatistic wordFromEnglish(UUID userId,

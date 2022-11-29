@@ -1,3 +1,5 @@
+----------------------------------------AUTH---------------------------------------------
+
 CREATE TABLE users (
     user_id UUID NOT NULL,
     password_hash VARCHAR(512) NOT NULL,
@@ -24,6 +26,8 @@ CREATE TABLE intervals (
     FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY(user_id, number_days)
 );
+
+----------------------------------------------WORDS---------------------------------------
 
 CREATE TABLE words (
     user_id UUID NOT NULL,
@@ -71,9 +75,49 @@ CREATE TABLE words_examples (
     translate VARCHAR(512),
     note VARCHAR(128),
     index INT NOT NULL,
-    UNIQUE(word_id, origin),
-    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE
+    FOREIGN KEY (word_id) REFERENCES words(word_id) ON DELETE CASCADE,
+    UNIQUE(word_id, origin)
 );
+
+-----------------------------------WORD-OUTER-SOURCE-BUFFER-----------------------------------
+
+CREATE TABLE words_interpretations_outer_source (
+    word_value VARCHAR(64) NOT NULL,
+    interpretation VARCHAR(512) NOT NULL,
+    outer_source_name VARCHAR(64) NOT NULL,
+    outer_source_url VARCHAR(512) NOT NULL,
+    recent_update_date DATE NOT NULL,
+    UNIQUE(word_value, interpretation, outer_source_name)
+);
+
+CREATE TABLE words_transcriptions_outer_source (
+    word_value VARCHAR(64) NOT NULL,
+    transcription VARCHAR(128) NOT NULL,
+    outer_source_name VARCHAR(64) NOT NULL,
+    outer_source_url VARCHAR(512) NOT NULL,
+    recent_update_date DATE NOT NULL,
+    UNIQUE(word_value, transcription, outer_source_name)
+);
+
+CREATE TABLE words_translations_outer_source (
+    word_value VARCHAR(64) NOT NULL,
+    translation VARCHAR(64) NOT NULL,
+    outer_source_name VARCHAR(64) NOT NULL,
+    outer_source_url VARCHAR(512) NOT NULL,
+    recent_update_date DATE NOT NULL,
+    UNIQUE(word_value, translation, outer_source_name)
+);
+
+CREATE TABLE words_examples_outer_source (
+    example VARCHAR(512) NOT NULL,
+    exampleTranslate VARCHAR(512) NOT NULL,
+    outer_source_name VARCHAR(64) NOT NULL,
+    outer_source_url VARCHAR(512) NOT NULL,
+    recent_update_date DATE NOT NULL,
+    UNIQUE( example, outer_source_name)
+);
+
+---------------------------------------------EXPRESSIONS-------------------------------------------------
 
 CREATE TABLE expressions (
     user_id UUID NOT NULL,
@@ -116,7 +160,7 @@ CREATE TABLE expressions_examples (
     FOREIGN KEY(expression_id) REFERENCES expressions(expression_id) ON DELETE CASCADE
 );
 
----------------------------------------------------------------------------------------------------------
+-------------------------------------------------STATISTICS-----------------------------------------------
 
 CREATE TABLE repeat_words_from_english_statistic (
     user_id UUID NOT NULL,
@@ -206,7 +250,7 @@ SELECT stat.user_id, stat.expression_id, stat.repetition_date,
     INNER JOIN expressions ON stat.expression_id = expressions.expression_id
 );
 
----------------------------------------------------------------------------------------------------
+-------------------------------------CUSTOM-FUNCTIONS---------------------------------------------
 
 CREATE ALIAS distance FOR 'com.bakuard.flashcards.dal.impl.StoredProcedures.levenshteinDistance';
 CREATE AGGREGATE countTrue FOR 'com.bakuard.flashcards.dal.impl.CountTrue';

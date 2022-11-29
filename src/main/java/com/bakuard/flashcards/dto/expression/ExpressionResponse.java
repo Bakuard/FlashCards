@@ -1,8 +1,8 @@
 package com.bakuard.flashcards.dto.expression;
 
-import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
-import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
-import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.common.ExampleResponse;
+import com.bakuard.flashcards.dto.common.InterpretationResponse;
+import com.bakuard.flashcards.dto.common.TranslateResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -21,11 +21,11 @@ public class ExpressionResponse {
     @Schema(description = "Примечание к устойчевому выражению.")
     private String note;
     @Schema(description = "Список толкований устойчевого выражения.")
-    private List<InterpretationRequestResponse> interpretations;
+    private List<InterpretationResponse> interpretations;
     @Schema(description = "Список переводов устойчевого выражения.")
-    private List<TranslateRequestResponse> translates;
+    private List<TranslateResponse> translates;
     @Schema(description = "Список примеров устойчевого выражения.")
-    private List<ExampleRequestResponse> examples;
+    private List<ExampleResponse> examples;
 
     public ExpressionResponse() {
 
@@ -67,29 +67,29 @@ public class ExpressionResponse {
         return this;
     }
 
-    public List<InterpretationRequestResponse> getInterpretations() {
+    public List<InterpretationResponse> getInterpretations() {
         return interpretations;
     }
 
-    public ExpressionResponse setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public ExpressionResponse setInterpretations(List<InterpretationResponse> interpretations) {
         this.interpretations = interpretations;
         return this;
     }
 
-    public List<TranslateRequestResponse> getTranslates() {
+    public List<TranslateResponse> getTranslates() {
         return translates;
     }
 
-    public ExpressionResponse setTranslates(List<TranslateRequestResponse> translates) {
+    public ExpressionResponse setTranslates(List<TranslateResponse> translates) {
         this.translates = translates;
         return this;
     }
 
-    public List<ExampleRequestResponse> getExamples() {
+    public List<ExampleResponse> getExamples() {
         return examples;
     }
 
-    public ExpressionResponse setExamples(List<ExampleRequestResponse> examples) {
+    public ExpressionResponse setExamples(List<ExampleResponse> examples) {
         this.examples = examples;
         return this;
     }

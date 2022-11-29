@@ -1,8 +1,8 @@
 package com.bakuard.flashcards.dto.expression;
 
-import com.bakuard.flashcards.dto.common.ExampleRequestResponse;
-import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
-import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.common.ExampleRequest;
+import com.bakuard.flashcards.dto.common.InterpretationRequest;
+import com.bakuard.flashcards.dto.common.TranslateRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public class ExpressionAddRequest {
     private UUID userID;
     @Schema(description = """
             Значение устойчевого выражения. <br/>
-            Должно представлять собой не пустую строку.
+            Ограничения: не должно быть пустой строкой.
             """)
     private String value;
     @Schema(description = """
@@ -32,25 +32,25 @@ public class ExpressionAddRequest {
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
-    private List<InterpretationRequestResponse> interpretations;
+    private List<InterpretationRequest> interpretations;
     @Schema(description = """
             Список переводов устойчевого выражения. <br/>
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
-    private List<TranslateRequestResponse> translates;
+    private List<TranslateRequest> translates;
     @Schema(description = """
             Список примеров устойчевого выражения. <br/>
             Ограничения: <br/>
             1. Не должен содержать null <br/>
             2. Не должен содержать дубликатов <br/>
-            Сам список может принимать значение null.
+            Сам список может принимать значение null либо быть пустым.
             """)
-    private List<ExampleRequestResponse> examples;
+    private List<ExampleRequest> examples;
 
     public ExpressionAddRequest() {
 
@@ -83,29 +83,29 @@ public class ExpressionAddRequest {
         return this;
     }
 
-    public List<InterpretationRequestResponse> getInterpretations() {
+    public List<InterpretationRequest> getInterpretations() {
         return interpretations;
     }
 
-    public ExpressionAddRequest setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public ExpressionAddRequest setInterpretations(List<InterpretationRequest> interpretations) {
         this.interpretations = interpretations;
         return this;
     }
 
-    public List<TranslateRequestResponse> getTranslates() {
+    public List<TranslateRequest> getTranslates() {
         return translates;
     }
 
-    public ExpressionAddRequest setTranslates(List<TranslateRequestResponse> translates) {
+    public ExpressionAddRequest setTranslates(List<TranslateRequest> translates) {
         this.translates = translates;
         return this;
     }
 
-    public List<ExampleRequestResponse> getExamples() {
+    public List<ExampleRequest> getExamples() {
         return examples;
     }
 
-    public ExpressionAddRequest setExamples(List<ExampleRequestResponse> examples) {
+    public ExpressionAddRequest setExamples(List<ExampleRequest> examples) {
         this.examples = examples;
         return this;
     }

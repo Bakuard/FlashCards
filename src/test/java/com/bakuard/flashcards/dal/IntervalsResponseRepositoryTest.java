@@ -1,8 +1,8 @@
 package com.bakuard.flashcards.dal;
 
+import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
-import com.bakuard.flashcards.model.RepeatDataFromNative;
+import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.word.Word;
@@ -28,14 +28,13 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.Clock;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
-@Import(TestConfig.class)
+@Import({SpringConfig.class, TestConfig.class})
 class IntervalsResponseRepositoryTest {
 
     @Autowired
@@ -65,7 +64,11 @@ class IntervalsResponseRepositoryTest {
                 "repeat_words_from_english_statistic",
                 "repeat_words_from_native_statistic",
                 "repeat_expressions_from_english_statistic",
-                "repeat_expressions_from_native_statistic"
+                "repeat_expressions_from_native_statistic",
+                "words_interpretations_outer_source",
+                "words_transcriptions_outer_source",
+                "words_translations_outer_source",
+                "words_examples_outer_source"
         ));
     }
 
@@ -722,14 +725,11 @@ class IntervalsResponseRepositoryTest {
 
 
     private User user(int number) {
-        return User.newBuilder(validator).
-                setPassword("password" + number).
+        return new User(new Credential("me" + number + "@mail.com", "password" + number)).
                 setOrGenerateSalt("salt" + number).
-                setEmail("me" + number + "@mail.com").
                 addRole("role1").
                 addRole("role2").
-                addRole("role3").
-                build();
+                addRole("role3");
     }
 
     private Word word(UUID userId,
@@ -737,13 +737,9 @@ class IntervalsResponseRepositoryTest {
                       String note,
                       int intervalForEnglish,
                       int intervalForNative) {
-        return Word.newBuilder(validator).
-                setUserId(userId).
+        return new Word(userId, intervalForEnglish, intervalForNative, clock).
                 setValue(value).
-                setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(intervalForEnglish, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(intervalForNative, LocalDate.now(clock))).
-                build();
+                setNote(note);
     }
 
     private Expression expression(UUID userId,
@@ -751,13 +747,9 @@ class IntervalsResponseRepositoryTest {
                                   String note,
                                   int intervalForEnglish,
                                   int intervalForNative) {
-        return Expression.newBuilder(validator).
-                setUserId(userId).
+        return new Expression(userId, intervalForEnglish, intervalForNative, clock).
                 setValue(value).
-                setNote(note).
-                setRepeatData(new RepeatDataFromEnglish(intervalForEnglish, LocalDate.now(clock))).
-                setRepeatData(new RepeatDataFromNative(intervalForNative, LocalDate.now(clock))).
-                build();
+                setNote(note);
     }
 
     private List<Word> findAllWords() {

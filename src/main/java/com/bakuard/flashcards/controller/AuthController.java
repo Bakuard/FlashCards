@@ -250,8 +250,9 @@ public class AuthController {
             @RequestParam
             @Parameter(description = "Номер страницы выборки. Нумерация начинается с нуля.", required = true)
             int page,
-            @RequestParam
-            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].", required = true)
+            @RequestParam(value = "size", required = false)
+            @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
+                    schema = @Schema(defaultValue = "20"))
             int size,
             @RequestParam
             @Parameter(description = "Порядок сортировки.",

@@ -1,7 +1,7 @@
 package com.bakuard.flashcards.dto.word;
 
-import com.bakuard.flashcards.dto.common.InterpretationRequestResponse;
-import com.bakuard.flashcards.dto.common.TranslateRequestResponse;
+import com.bakuard.flashcards.dto.common.InterpretationResponse;
+import com.bakuard.flashcards.dto.common.TranslateResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
@@ -16,9 +16,9 @@ public class WordForRepetitionFromNativeResponse {
     @Schema(description = "Уникальный идентификатор пользователя, к словарю которого относится это слово.")
     private UUID userId;
     @Schema(description = "Переводы английского слова.")
-    private List<TranslateRequestResponse> translations;
+    private List<TranslateResponse> translations;
     @Schema(description = "Толкования английского слова.")
-    private List<InterpretationRequestResponse> interpretations;
+    private List<InterpretationResponse> interpretations;
 
     public WordForRepetitionFromNativeResponse() {
 
@@ -42,20 +42,20 @@ public class WordForRepetitionFromNativeResponse {
         return this;
     }
 
-    public List<TranslateRequestResponse> getTranslations() {
+    public List<TranslateResponse> getTranslations() {
         return translations;
     }
 
-    public WordForRepetitionFromNativeResponse setTranslations(List<TranslateRequestResponse> translations) {
+    public WordForRepetitionFromNativeResponse setTranslations(List<TranslateResponse> translations) {
         this.translations = translations;
         return this;
     }
 
-    public List<InterpretationRequestResponse> getInterpretations() {
+    public List<InterpretationResponse> getInterpretations() {
         return interpretations;
     }
 
-    public WordForRepetitionFromNativeResponse setInterpretations(List<InterpretationRequestResponse> interpretations) {
+    public WordForRepetitionFromNativeResponse setInterpretations(List<InterpretationResponse> interpretations) {
         this.interpretations = interpretations;
         return this;
     }
