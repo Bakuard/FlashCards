@@ -30,14 +30,11 @@ public class SortRules {
                 orElse(result);
     }
 
-    public Sort toSort(String sortRule, SortedEntity sortedEntity) {
-        return toSortRulesStream(sortRule).
+    public Sort toSort(String sortRules, SortedEntity sortedEntity) {
+        return toSortRuleStream(sortRules).
                 map(p -> {
-                    String[] ps = p.split("\\.");
-                    return Sort.by(
-                            checkSortDirection(ps[1]),
-                            checkParameter(ps[0], sortedEntity)
-                    );
+                    String[] sr = p.split("\\.");
+                    return Sort.by(checkSortDirection(sr), checkParameter(sr, sortedEntity));
                 }).
                 reduce(Sort::and).
                 map(sort -> getAdditionalParameter(sortedEntity).
@@ -59,7 +56,8 @@ public class SortRules {
         return Optional.ofNullable(additionalParameter);
     }
 
-    private Sort.Direction checkSortDirection(String sortDirection) {
+    private Sort.Direction checkSortDirection(String[] preparedSortRule) {
+        String sortDirection = preparedSortRule.length > 1 ? preparedSortRule[1] : "asc";
         final String processedSortDirection = StringUtils.normalizeSpace(sortDirection).toUpperCase();
         Sort.Direction result = null;
 
@@ -73,8 +71,8 @@ public class SortRules {
         return result;
     }
 
-    private String checkParameter(String parameter, SortedEntity sortedEntity) {
-        final String processedParameter = StringUtils.normalizeSpace(parameter);
+    private String checkParameter(String[] preparedSortRule, SortedEntity sortedEntity) {
+        final String processedParameter = StringUtils.normalizeSpace(preparedSortRule[0]);
 
         switch(sortedEntity) {
             case EXPRESSION, WORD -> assertParameterIsOneOf(processedParameter,
@@ -90,7 +88,7 @@ public class SortRules {
                     "remember_from_native",
                     "not_remember_from_english",
                     "not_remember_from_native");
-            default -> throw new InvalidParameter("Unsupported sorted entity = " + sortedEntity,
+            default -> throw new InvalidParameter("Unsupported sorted entity = '" + sortedEntity + '\'',
                     "SortRules.unknownSortEntity");
         }
         return processedParameter;
@@ -103,8 +101,10 @@ public class SortRules {
         }
     }
 
-    private Stream<String> toSortRulesStream(String sortRule) {
-        return sortRule == null ? Stream.empty() : Arrays.stream(sortRule.split(","));
+    private Stream<String> toSortRuleStream(String sortRules) {
+        return sortRules == null ?
+                Stream.empty() :
+                Arrays.stream(sortRules.split(",")).map(String::trim);
     }
 
 }

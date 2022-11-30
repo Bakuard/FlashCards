@@ -134,18 +134,30 @@ public class DictionaryOfExpressionsController {
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
                     schema = @Schema(defaultValue = "20"))
             int size,
-            @RequestParam(required = false)
-            @Parameter(description = "Порядок сортировки.",
-                    schema = @Schema(
-                            defaultValue = "value.asc (Сортировка по значению в порядке возрастания).",
-                            allowableValues = {
-                                    "value - сортировка по значению",
-                                    "repeat_interval_from_english - сортировка по интервалу повторения для перевода с английского",
-                                    "repeat_interval_from_native - сортировка по дате поседнего повторения для переводоа с родного языка",
-                                    "last_date_of_repeat_from_english - сортировка по последней дате повторения с английского",
-                                    "last_date_of_repeat_from_native - сортировка по последней дате повторения с родного языка"
-                            }
-                    ))
+            @RequestParam(value = "sort", required = false)
+            @Parameter(description = """
+                    Задает порядок сортировки.
+                    <br/><br/>
+                    Допустимые параметры (без учета регистра символов):
+                    <ol>
+                        <li>value - сортировка по значению </li>
+                        <li>repeat_interval_from_english - сортировка по интервалу повторения для перевода с английского </li>
+                        <li>repeat_interval_from_native - сортировка по дате поседнего повторения для переводоа с родного языка </li>
+                        <li>last_date_of_repeat_from_english - сортировка по последней дате повторения с английского </li>
+                        <li>last_date_of_repeat_from_native - сортировка по последней дате повторения с родного языка </li>
+                    </ol>
+                    Параметры сортировки можно комбинировать через запятую.
+                    </br></br>
+                    Направление сортировки для параметра задается в виде <i>параметр.направление</i>, где направление
+                     задается одной из следующих констант (без учета регистра символов):
+                    <ol>
+                        <li>asc (по умолчанию)</li>
+                        <li>ascending</li>
+                        <li>dec</li>
+                        <li>descending</li>
+                    </ol>
+                    """,
+                    schema = @Schema(defaultValue = "value.asc"))
             String sort) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get expressions of user {} by page={}, size={}, sort={}",
