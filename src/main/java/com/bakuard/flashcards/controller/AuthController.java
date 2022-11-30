@@ -254,15 +254,27 @@ public class AuthController {
             @Parameter(description = "Размер страницы выборки. Диапозон значений - [1, 100].",
                     schema = @Schema(defaultValue = "20"))
             int size,
-            @RequestParam
-            @Parameter(description = "Порядок сортировки.",
-                    schema = @Schema(
-                            defaultValue = "user_id.asc (Сортировка по идентификатору в порядке возрастания).",
-                            allowableValues = {
-                                    "user_id - сортировка по идентификатору",
-                                    "email - сортировка по почте"
-                            }
-                    ))
+            @RequestParam(value = "sort", required = false)
+            @Parameter(description = """
+                    Задает порядок сортировки.
+                    <br/></br>
+                    Допустимые параметры (без учета регистра символов):
+                    <ol>
+                        <li>user_id - сортировка по идентификатору</li>
+                        <li>email - сортировка по почте</li>
+                    </ol>
+                    Параметры сортировки можно комбинировать через запятую.
+                    </br></br>
+                    Направление сортировки для параметра задается в виде <i>параметр.направление</i>, где направление
+                     задается одной из следующих констант (без учета регистра символов):
+                    <ol>
+                        <li>asc (по умолчанию)</li>
+                        <li>ascending</li>
+                        <li>dec</li>
+                        <li>descending</li>
+                    </ol>
+                    """,
+                    schema = @Schema(defaultValue = "user_id.asc"))
             String sort) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find users by page={}, size={}, sort={}", userId, page, size, sort);

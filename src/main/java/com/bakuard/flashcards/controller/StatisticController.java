@@ -146,16 +146,28 @@ public class StatisticController {
                     schema = @Schema(defaultValue = "20"))
             int size,
             @RequestParam(value = "sort", required = false)
-            @Parameter(description = "Порядок сортировки.",
-                    schema = @Schema(
-                            defaultValue = "remember_from_english.asc (Сортировка по кол-ву успешных повторений с английского).",
-                            allowableValues = {
-                                    "remember_from_english - сортировка по кол-ву успешных повторений с английского",
-                                    "remember_from_native - сортировка по кол-ву успешных повторений с родного языка",
-                                    "not_remember_from_english - сортировка по кол-ву не успешных повторений с английского",
-                                    "not_remember_from_native - сортировка по кол-ву не успешных повторений с родного языка"
-                            }
-                    ))
+            @Parameter(description = """
+                    Задает порядок сортировки.
+                    <br/><br/>
+                    Допустимые параметры (без учета регистра символов):
+                    <ol>
+                        <li>remember_from_english - сортировка по кол-ву успешных повторений с английского.</li>
+                        <li>remember_from_native - сортировка по кол-ву успешных повторений с родного языка.</li>
+                        <li>not_remember_from_english - сортировка по кол-ву не успешных повторений с английского.</li>
+                        <li>not_remember_from_native - сортировка по кол-ву не успешных повторений с родного языка.</li>
+                    </ol>
+                    Параметры сортировки можно комбинировать через запятую.
+                    </br></br>
+                    Направление сортировки для параметра задается в виде <i>параметр.направление</i>, где направление
+                     задается одной из следующих констант (без учета регистра символов):
+                    <ol>
+                        <li>asc (по умолчанию)</li>
+                        <li>ascending</li>
+                        <li>dec</li>
+                        <li>descending</li>
+                    </ol>
+                    """,
+                    schema = @Schema(defaultValue = "remember_from_english.asc"))
             String sort) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find statistic of user {} for startDate={}, endDate={}, page={}, size={}, sort={}",
@@ -260,16 +272,28 @@ public class StatisticController {
                     schema = @Schema(defaultValue = "20"))
             int size,
             @RequestParam(value = "sort", required = false)
-            @Parameter(description = "Порядок сортировки.",
-                    schema = @Schema(
-                            defaultValue = "remember_from_english.asc (Сортировка по кол-ву успешных повторений с английского).",
-                            allowableValues = {
-                                    "remember_from_english - сортировка по кол-ву успешных повторений с английского",
-                                    "remember_from_native - сортировка по кол-ву успешных повторений с родного языка",
-                                    "not_remember_from_english - сортировка по кол-ву не успешных повторений с английского",
-                                    "not_remember_from_native - сортировка по кол-ву не успешных повторений с родного языка"
-                            }
-                    ))
+            @Parameter(description = """
+                    Задает порядок сортировки.
+                    <br/><br/>
+                    Допустимые параметры (без учета регистра символов):
+                    <ol>
+                        <li>remember_from_english - сортировка по кол-ву успешных повторений с английского.</li>
+                        <li>remember_from_native - сортировка по кол-ву успешных повторений с родного языка.</li>
+                        <li>not_remember_from_english - сортировка по кол-ву не успешных повторений с английского.</li>
+                        <li>not_remember_from_native - сортировка по кол-ву не успешных повторений с родного языка.</li>
+                    </ol>
+                    Параметры сортировки можно комбинировать через запятую.
+                    </br></br>
+                    Направление сортировки для параметра задается в виде <i>параметр.направление</i>, где направление
+                     задается одной из следующих констант (без учета регистра символов):
+                    <ol>
+                        <li>asc (по умолчанию)</li>
+                        <li>ascending</li>
+                        <li>dec</li>
+                        <li>descending</li>
+                    </ol>
+                    """,
+                    schema = @Schema(defaultValue = "remember_from_english.asc"))
             String sort) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find statistic of user {} for startDate={}, endDate={}, page={}, size={}, sort={}",
