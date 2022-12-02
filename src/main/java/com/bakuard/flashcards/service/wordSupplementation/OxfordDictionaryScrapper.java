@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 public class OxfordDictionaryScrapper implements WordSupplementation {
 
-    private static Logger logger = LoggerFactory.getLogger(OxfordDictionaryScrapper.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OxfordDictionaryScrapper.class.getName());
 
 
     private final Clock clock;

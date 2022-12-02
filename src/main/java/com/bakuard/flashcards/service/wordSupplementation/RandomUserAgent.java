@@ -5,18 +5,18 @@ import java.util.Map;
 
 public class RandomUserAgent {
 
-    private static Map<String, String[]> uaMap = new HashMap<String, String[]>();
-    private static Map<String, Double> freqMap = new HashMap<String, Double>();
+    private static Map<String, String[]> userAgentsMap = new HashMap<>();
+    private static Map<String, Double> frequencyMap = new HashMap<>();
 
     static {
 
-        freqMap.put("Internet Explorer", 11.8);
-        freqMap.put("Firefox", 28.2);
-        freqMap.put("Chrome", 52.9);
-        freqMap.put("Safari", 3.9);
-        freqMap.put("Opera", 1.8);
+        frequencyMap.put("Internet Explorer", 11.8);
+        frequencyMap.put("Firefox", 28.2);
+        frequencyMap.put("Chrome", 52.9);
+        frequencyMap.put("Safari", 3.9);
+        frequencyMap.put("Opera", 1.8);
 
-        uaMap.put("Internet Explorer", new String[] {
+        userAgentsMap.put("Internet Explorer", new String[] {
                 "Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0",
                 "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)",
                 "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)",
@@ -260,7 +260,7 @@ public class RandomUserAgent {
                 "Mozilla/1.22 (compatible; MSIE 2.0; Windows 3.1)"
         });
 
-        uaMap.put("Firefox", new String[] {
+        userAgentsMap.put("Firefox", new String[] {
                 "Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0",
                 "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:29.0) Gecko/20120101 Firefox/29.0",
                 "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/29.0",
@@ -686,7 +686,7 @@ public class RandomUserAgent {
                 "Mozilla/5.0 (Macintosh; U; PPC Mac OS X Mach-O; rv:1.8.1.16) Gecko/20080702 Firefox",
                 "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-US; rv:1.8.1.13) Gecko/20080313 Firefox",
         });
-        uaMap.put("Chrome", new String[] {
+        userAgentsMap.put("Chrome", new String[] {
                 "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36",
                 "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.67 Safari/537.36",
                 "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.67 Safari/537.36",
@@ -1254,7 +1254,7 @@ public class RandomUserAgent {
                 "Mozilla/5.0 (X11; U; Linux x86_64; en-US) AppleWebKit/532.0 (KHTML, like Gecko) Chrome/4.0.211.2 Safari/532.0",
         });
 
-        uaMap.put("Safari", new String[] {
+        userAgentsMap.put("Safari", new String[] {
                 "Mozilla/5.0 (Macintosh; U; PPC Mac OS X; it-it) AppleWebKit/419 (KHTML, like Gecko) Safari/419.3",
                 "Mozilla/5.0 (Macintosh; U; PPC Mac OS X; it-it) AppleWebKit/418.9 (KHTML, like Gecko) Safari/419.3",
                 "Mozilla/5.0 (Macintosh; U; PPC Mac OS X; fr) AppleWebKit/418.9.1 (KHTML, like Gecko) Safari/419.3",
@@ -1469,7 +1469,7 @@ public class RandomUserAgent {
                 "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_6; en-us) AppleWebKit/528.16 (KHTML, like Gecko)",
                 "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_5; it-it) AppleWebKit/525.18 (KHTML, like Gecko)",
         });
-        uaMap.put("Opera", new String[] {
+        userAgentsMap.put("Opera", new String[] {
                 "Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14",
                 "Mozilla/5.0 (Windows NT 6.0; rv:2.0) Gecko/20100101 Firefox/4.0 Opera 12.14",
                 "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0) Opera 12.14",
@@ -1651,7 +1651,7 @@ public class RandomUserAgent {
         double rand = Math.random() * 100;
         String browser = null;
         double count = 0.0;
-        for(Map.Entry<String, Double> freq : freqMap.entrySet()) {
+        for(Map.Entry<String, Double> freq : frequencyMap.entrySet()) {
             count += freq.getValue();
             if(rand <= count) {
                 browser = freq.getKey();
@@ -1663,7 +1663,11 @@ public class RandomUserAgent {
             browser = "Chrome";
         }
 
-        String userAgents[] = uaMap.get(browser);
+        String userAgents[] = userAgentsMap.get(browser);
         return userAgents[(int) Math.floor(Math.random() * userAgents.length)];
     }
+
+
+    private RandomUserAgent() {}
+
 }

@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 public class WordSupplementationService implements WordSupplementation {
 
-    private static Logger logger = LoggerFactory.getLogger(WordSupplementationService.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(WordSupplementationService.class.getName());
 
 
     private WordSupplementationFromBuffer wordSupplementationFromBuffer;

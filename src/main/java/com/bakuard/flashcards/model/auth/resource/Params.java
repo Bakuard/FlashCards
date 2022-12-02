@@ -23,7 +23,7 @@ public class Params {
     }
 
     public List<Param> getParams() {
-        return params;
+        return Collections.unmodifiableList(params);
     }
 
     public boolean hasParam(String key) {
@@ -33,11 +33,6 @@ public class Params {
     public boolean hasAllParams(String... keys) {
         Set<String> keysSet = params.stream().map(Param::key).collect(Collectors.toSet());
         return Arrays.stream(keys).allMatch(keysSet::contains);
-    }
-
-    public boolean hasAnyParams(String... keys) {
-        Set<String> keysSet = params.stream().map(Param::key).collect(Collectors.toSet());
-        return Arrays.stream(keys).anyMatch(keysSet::contains);
     }
 
     public Optional<Object> findFirstValueByKey(String key) {

@@ -19,7 +19,7 @@ public class WordInterpretation {
     @NotBlank(message = "WordInterpretation.value.notBlank")
     private String value;
     @Transient
-    private List<OuterSource> outerSource;
+    private final List<OuterSource> outerSource;
 
     @PersistenceCreator
     public WordInterpretation(String value) {
@@ -50,11 +50,6 @@ public class WordInterpretation {
     public boolean hasOuterSource(String outerSourceName) {
         return outerSource.stream().
                 anyMatch(outerSource -> outerSource.sourceName().equals(outerSourceName));
-    }
-
-    public WordInterpretation setValue(String value) {
-        this.value = value;
-        return this;
     }
 
     public boolean merge(WordInterpretation other) {

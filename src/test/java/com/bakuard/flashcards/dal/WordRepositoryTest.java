@@ -632,14 +632,9 @@ class WordRepositoryTest {
                 2, 0
         );
 
-        List<Word> expected = words.stream().
-                sorted(Comparator.comparing((Word w) -> w.getRepeatDataFromEnglish().nextDateOfRepeat())).
-                filter(w -> w.getRepeatDataFromEnglish().nextDateOfRepeat().compareTo(repeatDate) <= 0).
-                limit(2).
-                toList();
         Assertions.assertThat(actual).
                 usingRecursiveFieldByFieldElementComparator().
-                isEqualTo(expected);
+                isEqualTo(words.subList(0, 2));
     }
 
     @Test
@@ -700,14 +695,9 @@ class WordRepositoryTest {
                 2, 0
         );
 
-        List<Word> expected = words.stream().
-                sorted(Comparator.comparing((Word w) -> w.getRepeatDataFromEnglish().nextDateOfRepeat())).
-                filter(w -> w.getRepeatDataFromEnglish().nextDateOfRepeat().compareTo(repeatDate) <= 0).
-                limit(2).
-                toList();
         Assertions.assertThat(actual).
                 usingRecursiveFieldByFieldElementComparator().
-                isEqualTo(expected);
+                isEqualTo(words.subList(0, 2));
     }
 
     @Test

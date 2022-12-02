@@ -13,13 +13,13 @@ public class ExpressionExample {
 
     @Column("origin")
     @NotBlank(message = "ExpressionExample.origin.notBlank")
-    private String origin;
+    private final String origin;
     @Column("translate")
     @NotBlank(message = "ExpressionExample.translate.notBlank")
-    private String translate;
+    private final String translate;
     @Column("note")
     @NotBlankOrNull(message = "ExpressionExample.note.notBlankOrNull")
-    private String note;
+    private final String note;
 
     @PersistenceCreator
     public ExpressionExample(String origin, String translate, String note) {

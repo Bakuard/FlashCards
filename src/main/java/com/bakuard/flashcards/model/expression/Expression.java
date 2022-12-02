@@ -6,11 +6,9 @@ import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.validation.AllUnique;
 import com.bakuard.flashcards.validation.NotBlankOrNull;
 import com.bakuard.flashcards.validation.NotContainsNull;
-import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Embedded;
 import org.springframework.data.relational.core.mapping.MappedCollection;
@@ -41,15 +39,15 @@ public class Expression implements Entity {
     @MappedCollection(idColumn = "expression_id", keyColumn = "index")
     @NotContainsNull(message = "Expression.interpretations.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Expression.interpretations.allUnique")
-    private List<@Valid ExpressionInterpretation> interpretations;
+    private final List<@Valid ExpressionInterpretation> interpretations;
     @MappedCollection(idColumn = "expression_id", keyColumn = "index")
     @NotContainsNull(message = "Expression.translations.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Expression.translations.allUnique")
-    private List<@Valid ExpressionTranslation> translations;
+    private final List<@Valid ExpressionTranslation> translations;
     @MappedCollection(idColumn = "expression_id", keyColumn = "index")
     @NotContainsNull(message = "Expression.examples.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getOrigin", message = "Expression.examples.allUnique")
-    private List<@Valid ExpressionExample> examples;
+    private final List<@Valid ExpressionExample> examples;
     @Embedded.Nullable
     @Valid
     private RepeatDataFromEnglish repeatDataFromEnglish;

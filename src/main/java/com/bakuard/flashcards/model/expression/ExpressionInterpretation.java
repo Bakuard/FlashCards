@@ -12,7 +12,7 @@ public class ExpressionInterpretation {
 
     @Column("value")
     @NotBlank(message = "ExpressionInterpretation.value.notBlank")
-    private String value;
+    private final String value;
 
     @PersistenceCreator
     public ExpressionInterpretation(String value) {

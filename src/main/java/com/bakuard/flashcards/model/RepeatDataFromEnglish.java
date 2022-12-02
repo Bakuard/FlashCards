@@ -16,9 +16,4 @@ public record RepeatDataFromEnglish(
         return new RepeatDataFromEnglish(data.interval, data.lastDateOfRepeat);
     }
 
-
-    public LocalDate nextDateOfRepeat() {
-        return lastDateOfRepeat.plusDays(interval);
-    }
-
 }

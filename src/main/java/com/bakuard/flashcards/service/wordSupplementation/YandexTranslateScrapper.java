@@ -23,7 +23,7 @@ import java.util.UUID;
 
 public class YandexTranslateScrapper implements WordSupplementation {
 
-    private static Logger logger = LoggerFactory.getLogger(YandexTranslateScrapper.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(YandexTranslateScrapper.class.getName());
 
 
     private final ObjectMapper mapper;

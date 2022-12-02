@@ -13,10 +13,10 @@ public class ExpressionTranslation {
 
     @Column("value")
     @NotBlank(message = "ExpressionTranslation.value.notBlank")
-    private String value;
+    private final String value;
     @Column("note")
     @NotBlankOrNull(message = "ExpressionTranslation.note.notBlankOrNull")
-    private String note;
+    private final String note;
 
     @PersistenceCreator
     public ExpressionTranslation(String value, String note) {

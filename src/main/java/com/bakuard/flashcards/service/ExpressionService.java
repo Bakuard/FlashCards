@@ -91,14 +91,6 @@ public class ExpressionService {
                 );
     }
 
-    public long count(UUID userId) {
-        return expressionRepository.count(userId);
-    }
-
-    public long countForRepeat(UUID userId) {
-        return expressionRepository.countForRepeatFromEnglish(userId, LocalDate.now(clock));
-    }
-
     public Page<Expression> findByUserId(UUID userId, Pageable pageable) {
         return expressionRepository.findByUserId(userId, pageable);
     }

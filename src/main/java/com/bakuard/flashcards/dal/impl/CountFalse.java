@@ -2,7 +2,6 @@ package com.bakuard.flashcards.dal.impl;
 
 import org.h2.api.AggregateFunction;
 
-import java.sql.SQLException;
 import java.sql.Types;
 
 public class CountFalse implements AggregateFunction {
@@ -14,17 +13,17 @@ public class CountFalse implements AggregateFunction {
     }
 
     @Override
-    public int getType(int[] ints) throws SQLException {
+    public int getType(int[] ints) {
         return Types.BOOLEAN;
     }
 
     @Override
-    public void add(Object o) throws SQLException {
+    public void add(Object o) {
         if(o instanceof Boolean value && !value) ++result;
     }
 
     @Override
-    public Object getResult() throws SQLException {
+    public Object getResult() {
         return result;
     }
 

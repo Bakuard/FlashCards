@@ -7,10 +7,6 @@ import java.util.UUID;
 
 public class Resource {
 
-    public static Resource of(Object payload) {
-        return newBuilder().setPayload(payload).build();
-    }
-
     public static Resource of(String type) {
         return newBuilder().setType(type).build();
     }

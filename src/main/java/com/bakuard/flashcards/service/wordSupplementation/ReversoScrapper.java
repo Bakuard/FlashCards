@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 public class ReversoScrapper implements WordSupplementation {
 
-    private static Logger logger = LoggerFactory.getLogger(ReversoScrapper.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ReversoScrapper.class.getName());
 
 
     private final ObjectMapper mapper;

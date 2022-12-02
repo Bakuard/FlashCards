@@ -5,7 +5,6 @@ import com.bakuard.flashcards.model.word.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.jdbc.core.JdbcAggregateOperations;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,16 +18,13 @@ import java.util.List;
 
 public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
 
-    private static Logger logger = LoggerFactory.getLogger(WordOuterSourceBufferImpl.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(WordOuterSourceBufferImpl.class.getName());
 
 
     private JdbcTemplate jdbcTemplate;
-    private JdbcAggregateOperations jdbcAggregateOperations;
 
-    public WordOuterSourceBufferImpl(JdbcTemplate jdbcTemplate,
-                                     JdbcAggregateOperations jdbcAggregateOperations) {
+    public WordOuterSourceBufferImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.jdbcAggregateOperations = jdbcAggregateOperations;
     }
 
     @Transactional

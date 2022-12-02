@@ -109,14 +109,6 @@ public class WordService {
                 );
     }
 
-    public long count(UUID userId) {
-        return wordRepository.count(userId);
-    }
-
-    public long countForRepeat(UUID userId) {
-        return wordRepository.countForRepeatFromEnglish(userId, LocalDate.now(clock));
-    }
-
     public Page<Word> findByUserId(UUID userId, Pageable pageable) {
         return wordRepository.findByUserId(userId, pageable);
     }

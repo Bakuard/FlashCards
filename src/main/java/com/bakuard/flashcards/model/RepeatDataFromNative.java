@@ -16,9 +16,4 @@ public record RepeatDataFromNative(
         return new RepeatDataFromNative(data.interval, data.lastDateOfRepeat);
     }
 
-
-    public LocalDate nextDateOfRepeat() {
-        return lastDateOfRepeat.plusDays(interval);
-    }
-
 }

@@ -3,8 +3,6 @@ package com.bakuard.flashcards.validation;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 public class ValidatorUtil {
@@ -21,21 +19,6 @@ public class ValidatorUtil {
         assertEmpty(violations);
 
         return entity;
-    }
-
-    public <T> T[] assertValid(T... entities) {
-        Set<ConstraintViolation<T>> violations = Arrays.stream(entities).
-                map(entity -> validator.validate(entity)).
-                reduce((a, b) -> {
-                    Set<ConstraintViolation<T>> result = new HashSet<>(a);
-                    result.addAll(b);
-                    return result;
-                }).
-                orElse(Set.of());
-
-        assertEmpty(violations);
-
-        return entities;
     }
 
 

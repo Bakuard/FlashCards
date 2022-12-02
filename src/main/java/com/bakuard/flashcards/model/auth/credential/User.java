@@ -1,11 +1,13 @@
 package com.bakuard.flashcards.model.auth.credential;
 
 import com.bakuard.flashcards.model.Entity;
-import com.bakuard.flashcards.validation.*;
+import com.bakuard.flashcards.validation.AllUnique;
+import com.bakuard.flashcards.validation.IncorrectCredentials;
+import com.bakuard.flashcards.validation.NotContainsNull;
+import com.bakuard.flashcards.validation.PasswordConstraintValidator;
 import com.google.common.hash.Hashing;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.MappedCollection;
 import org.springframework.data.relational.core.mapping.Table;

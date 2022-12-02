@@ -24,7 +24,7 @@ public class WordTranslation {
     @NotBlankOrNull(message = "WordTranslation.note.notBlankOrNull")
     private String note;
     @Transient
-    private List<OuterSource> outerSource;
+    private final List<OuterSource> outerSource;
 
     @PersistenceCreator
     public WordTranslation(String value, String note) {
@@ -61,16 +61,6 @@ public class WordTranslation {
     public boolean hasOuterSource(String outerSourceName) {
         return outerSource.stream().
                 anyMatch(outerSource -> outerSource.sourceName().equals(outerSourceName));
-    }
-
-    public WordTranslation setValue(String value) {
-        this.value = value;
-        return this;
-    }
-
-    public WordTranslation setNote(String note) {
-        this.note = note;
-        return this;
     }
 
     public boolean merge(WordTranslation other) {

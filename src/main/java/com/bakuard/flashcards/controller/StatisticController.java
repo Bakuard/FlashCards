@@ -41,19 +41,16 @@ public class StatisticController {
     private StatisticService statisticService;
     private DtoMapper mapper;
     private RequestContext requestContext;
-    private Messages messages;
     private Authorizer authorizer;
 
     @Autowired
     public StatisticController(StatisticService statisticService,
                                DtoMapper mapper,
                                RequestContext requestContext,
-                               Messages messages,
                                Authorizer authorizer) {
         this.statisticService = statisticService;
         this.mapper = mapper;
         this.requestContext = requestContext;
-        this.messages = messages;
         this.authorizer = authorizer;
     }
 

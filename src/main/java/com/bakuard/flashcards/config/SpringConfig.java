@@ -100,9 +100,8 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public WordOuterSourceBuffer wordOuterSourceBuffer(JdbcTemplate jdbcTemplate,
-                                                           JdbcAggregateOperations jdbcAggregateOperations) {
-                return new WordOuterSourceBufferImpl(jdbcTemplate, jdbcAggregateOperations);
+        public WordOuterSourceBuffer wordOuterSourceBuffer(JdbcTemplate jdbcTemplate) {
+                return new WordOuterSourceBufferImpl(jdbcTemplate);
         }
 
         @Bean
@@ -255,7 +254,6 @@ public class SpringConfig implements WebMvcConfigurer {
                                    AuthService authService,
                                    ConfigData configData,
                                    SortRules sortRules,
-                                   ValidatorUtil validator,
                                    Clock clock,
                                    Messages messages) {
                 return new DtoMapper(wordService,
@@ -264,7 +262,6 @@ public class SpringConfig implements WebMvcConfigurer {
                         authService,
                         configData,
                         sortRules,
-                        validator,
                         clock,
                         messages);
         }

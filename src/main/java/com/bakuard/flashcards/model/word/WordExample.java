@@ -26,7 +26,7 @@ public class WordExample {
     @NotBlankOrNull(message = "WordExample.note.notBlankOrNull")
     private String note;
     @Transient
-    private List<ExampleOuterSource> outerSource;
+    private final List<ExampleOuterSource> outerSource;
 
     @PersistenceCreator
     public WordExample(String origin, String translate, String note) {
@@ -66,23 +66,8 @@ public class WordExample {
                 map(ExampleOuterSource::recentUpdateDate);
     }
 
-    public boolean hasOuterSource(String outerSourceName) {
-        return outerSource.stream().
-                anyMatch(outerSource -> outerSource.sourceName().equals(outerSourceName));
-    }
-
-    public WordExample setOrigin(String origin) {
-        this.origin = origin;
-        return this;
-    }
-
     public WordExample setTranslate(String translate) {
         this.translate = translate;
-        return this;
-    }
-
-    public WordExample setNote(String note) {
-        this.note = note;
         return this;
     }
 

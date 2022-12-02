@@ -28,7 +28,6 @@ import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.IntervalService;
 import com.bakuard.flashcards.service.WordService;
-import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,7 +50,6 @@ public class DtoMapper {
     private AuthService authService;
     private ConfigData configData;
     private SortRules sortRules;
-    private ValidatorUtil validator;
     private Clock clock;
     private Messages messages;
 
@@ -61,7 +59,6 @@ public class DtoMapper {
                      AuthService authService,
                      ConfigData configData,
                      SortRules sortRules,
-                     ValidatorUtil validator,
                      Clock clock,
                      Messages messages) {
         this.wordService = wordService;
@@ -70,7 +67,6 @@ public class DtoMapper {
         this.expressionService = expressionService;
         this.configData = configData;
         this.sortRules = sortRules;
-        this.validator = validator;
         this.clock = clock;
         this.messages = messages;
     }
@@ -377,13 +373,6 @@ public class DtoMapper {
         return response;
     }
 
-
-    public <T> ResponseMessage<T> toResponseMessage(String message, T body) {
-        ResponseMessage<T> response = new ResponseMessage<>();
-        response.setMessage(message);
-        response.setPayload(body);
-        return response;
-    }
 
     public <T> RepetitionResponse<T> toRepetitionResponse(boolean isRemember, T payload) {
         return new RepetitionResponse<T>().

@@ -180,11 +180,6 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public long count() {
-        return userRepository.count();
-    }
-
-    @Transactional(readOnly = true)
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable);
     }

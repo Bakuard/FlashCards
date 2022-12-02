@@ -3,8 +3,6 @@ package com.bakuard.flashcards.dal;
 import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.RepeatDataFromEnglish;
-import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
@@ -658,14 +656,9 @@ class ExpressionRepositoryTest {
                 2, 0
         );
 
-        List<Expression> expected = expressions.stream().
-                sorted(Comparator.comparing((Expression e) -> e.getRepeatDataFromEnglish().nextDateOfRepeat())).
-                filter(e -> e.getRepeatDataFromEnglish().nextDateOfRepeat().compareTo(repeatDate) <= 0).
-                limit(2).
-                toList();
         Assertions.assertThat(actual).
                 usingRecursiveFieldByFieldElementComparator().
-                isEqualTo(expected);
+                isEqualTo(expressions.subList(0, 2));
     }
 
     @Test
@@ -726,14 +719,9 @@ class ExpressionRepositoryTest {
                 2, 0
         );
 
-        List<Expression> expected = expressions.stream().
-                sorted(Comparator.comparing((Expression e) -> e.getRepeatDataFromEnglish().nextDateOfRepeat())).
-                filter(e -> e.getRepeatDataFromEnglish().nextDateOfRepeat().compareTo(repeatDate) <= 0).
-                limit(2).
-                toList();
         Assertions.assertThat(actual).
                 usingRecursiveFieldByFieldElementComparator().
-                isEqualTo(expected);
+                isEqualTo(expressions.subList(0, 2));
     }
 
     @Test

@@ -23,7 +23,7 @@ public class WordTranscription {
     @NotBlankOrNull(message = "WordTranscription.note.notBlankOrNull")
     private String note;
     @Transient
-    private List<OuterSource> outerSource;
+    private final List<OuterSource> outerSource;
 
     @PersistenceCreator
     public WordTranscription(String value, String note) {
@@ -60,16 +60,6 @@ public class WordTranscription {
     public boolean hasOuterSource(String outerSourceName) {
         return outerSource.stream().
                 anyMatch(outerSource -> outerSource.sourceName().equals(outerSourceName));
-    }
-
-    public WordTranscription setValue(String value) {
-        this.value = value;
-        return this;
-    }
-
-    public WordTranscription setNote(String note) {
-        this.note = note;
-        return this;
     }
 
     public boolean merge(WordTranscription other) {
