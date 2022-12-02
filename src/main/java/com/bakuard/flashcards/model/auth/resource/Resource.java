@@ -11,6 +11,10 @@ public class Resource {
         return newBuilder().setPayload(payload).build();
     }
 
+    public static Resource of(String type) {
+        return newBuilder().setType(type).build();
+    }
+
     public static Resource of(String type, Object payload) {
         return Resource.newBuilder().
                 setType(type).
@@ -56,6 +60,12 @@ public class Resource {
     public boolean payloadTypeIs(Class<?> type) {
         return params.findFirstByKey("payload").
                 map(param -> param.isValueType(type)).
+                orElse(false);
+    }
+
+    public boolean payloadIsEqualTo(Object obj) {
+        return params.findFirstByKey("payload").
+                map(param -> Objects.equals(param.value(), obj)).
                 orElse(false);
     }
 

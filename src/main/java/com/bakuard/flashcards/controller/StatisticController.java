@@ -6,6 +6,7 @@ import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.statistic.ExpressionRepetitionByPeriodResponse;
 import com.bakuard.flashcards.dto.statistic.WordRepetitionByPeriodResponse;
+import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.statistic.ExpressionRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.model.statistic.WordRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.service.StatisticService;
@@ -26,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Tag(name = "Контроллер статистики")
@@ -42,16 +42,19 @@ public class StatisticController {
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
+    private Authorizer authorizer;
 
     @Autowired
     public StatisticController(StatisticService statisticService,
                                DtoMapper mapper,
                                RequestContext requestContext,
-                               Messages messages) {
+                               Messages messages,
+                               Authorizer authorizer) {
         this.statisticService = statisticService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
+        this.authorizer = authorizer;
     }
 
     @Operation(summary = "Возвращает статистику о результатах повторения указанного слова за указанный период.",
@@ -95,6 +98,7 @@ public class StatisticController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find statistic of user {} for wordId={}, startDate={}, endDate={}",
                 jwsUserId, userId, wordId, startDate, endDate);
+        authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForWordRepetition");
 
         WordRepetitionByPeriodStatistic statistic = statisticService.wordRepetitionByPeriod(
                 userId, wordId, startDate, endDate
@@ -172,6 +176,7 @@ public class StatisticController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find statistic of user {} for startDate={}, endDate={}, page={}, size={}, sort={}",
                 jwsUserId, userId, startDate, endDate, page, size, sort);
+        authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForWordsRepetition");
 
         Page<WordRepetitionByPeriodStatistic> statistic = statisticService.wordsRepetitionByPeriod(
                 userId, startDate, endDate, mapper.toPageable(page, size, mapper.toWordStatisticSort(sort))
@@ -221,6 +226,7 @@ public class StatisticController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find statistic of user {} for expressionId={}, startDate={}, endDate={}",
                 jwsUserId, userId, expressionId, startDate, endDate);
+        authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForExpressionRepetition");
 
         ExpressionRepetitionByPeriodStatistic statistic = statisticService.expressionRepetitionByPeriod(
                 userId, expressionId, startDate, endDate
@@ -298,6 +304,7 @@ public class StatisticController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find statistic of user {} for startDate={}, endDate={}, page={}, size={}, sort={}",
                 jwsUserId, userId, startDate, endDate, page, size, sort);
+        authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForExpressionsRepetition");
 
         Page<ExpressionRepetitionByPeriodStatistic> statistic = statisticService.expressionsRepetitionByPeriod(
                 userId, startDate, endDate, mapper.toPageable(page, size, mapper.toExpressionStatisticSort(sort))

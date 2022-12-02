@@ -5,6 +5,7 @@ import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.word.*;
+import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.WordService;
@@ -42,6 +43,7 @@ public class DictionaryOfWordsController {
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
+    private Authorizer authorizer;
 
     @Autowired
     public DictionaryOfWordsController(WordService wordService,
@@ -49,13 +51,15 @@ public class DictionaryOfWordsController {
                                        WordSupplementationService wordSupplementationService,
                                        DtoMapper mapper,
                                        RequestContext requestContext,
-                                       Messages messages) {
+                                       Messages messages,
+                                       Authorizer authorizer) {
         this.wordService = wordService;
         this.authService = authService;
         this.wordSupplementationService = wordSupplementationService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
+        this.authorizer = authorizer;
     }
 
     @Operation(summary = "Добавляет новое слово в словарь пользователя")
@@ -104,6 +108,7 @@ public class DictionaryOfWordsController {
     public ResponseEntity<WordResponse> update(@RequestBody WordUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} update word '{}' for user {}", userId, dto.getWordId(), dto.getUserId());
+        authorizer.assertToHasAccess(userId, "dictionary", dto.getUserId(), "update");
 
         Word word = mapper.toWord(dto);
         word = wordService.save(word);
@@ -133,6 +138,7 @@ public class DictionaryOfWordsController {
     public ResponseEntity<WordResponse> supplementNewWord(@RequestBody WordAddRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} supplement word '{}' for user {}", userId, dto.getValue(), dto.getUserId());
+        authorizer.assertToHasAccess(userId, "dictionary", dto.getUserId(), "supplementNewWord");
 
         Word word = wordSupplementationService.supplement(mapper.toWord(dto));
 
@@ -162,6 +168,7 @@ public class DictionaryOfWordsController {
     public ResponseEntity<WordResponse> supplementExistedWord(@RequestBody WordUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} supplement word '{}' for user {}", userId, dto.getValue(), dto.getUserId());
+        authorizer.assertToHasAccess(userId, "dictionary", dto.getUserId(), "supplementExistedWord");
 
         Word word = wordSupplementationService.supplement(mapper.toWord(dto));
 
@@ -224,6 +231,7 @@ public class DictionaryOfWordsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get words of user {} by page={}, size={}, sort={}",
                 jwsUserId, userId, page, size, sort);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findAllBy");
 
         authService.assertExists(userId);
         Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(sort));
@@ -260,6 +268,7 @@ public class DictionaryOfWordsController {
             UUID wordId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get word of user {} by id={}", jwsUserId, userId, wordId);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findById");
 
         Word word = wordService.tryFindById(userId, wordId);
         return ResponseEntity.ok(mapper.toWordResponse(word));
@@ -309,6 +318,7 @@ public class DictionaryOfWordsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get words of user {} by value '{}', levenshtein_distance {}, page {}, size {}",
                 jwsUserId, userId, value, maxDistance, page, size);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findByValue");
 
         Pageable pageable = mapper.toPageable(page, size);
         Page<Word> words = wordService.findByValue(userId, value, maxDistance, pageable);
@@ -351,6 +361,7 @@ public class DictionaryOfWordsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get words of user {} by translate '{}', page {}, size {}",
                 jwsUserId, userId, translate, page, size);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findByTranslate");
 
         Pageable pageable = mapper.toPageable(page, size);
         Page<Word> words = wordService.findByTranslate(userId, translate, pageable);
@@ -393,6 +404,7 @@ public class DictionaryOfWordsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get words of user {} by wordFirstCharacter '{}', size {}",
                 jwsUserId, userId, wordFirstCharacter, size);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "jumpToCharacter");
 
         Page<Word> words = wordService.jumpToCharacter(userId, wordFirstCharacter, size);
         return ResponseEntity.ok(mapper.toWordsForDictionaryListResponse(words));
@@ -424,6 +436,7 @@ public class DictionaryOfWordsController {
             UUID wordId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} delete word of user {} by id={}", jwsUserId, userId, wordId);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "delete");
 
         wordService.tryDeleteById(userId, wordId);
         return ResponseEntity.ok(messages.getMessage("dictionary.words.delete"));

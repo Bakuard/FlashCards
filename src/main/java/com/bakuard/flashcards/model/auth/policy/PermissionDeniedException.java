@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.auth.policy;
 
-import com.bakuard.flashcards.model.auth.credential.User;
+import com.bakuard.flashcards.model.auth.credential.Principal;
 import com.bakuard.flashcards.model.auth.request.AuthRequest;
 import com.bakuard.flashcards.model.auth.resource.Action;
 import com.bakuard.flashcards.model.auth.resource.Resource;
@@ -13,7 +13,7 @@ public class PermissionDeniedException extends RuntimeException {
         return new Builder();
     }
 
-    private final User user;
+    private final Principal principal;
     private final Resource resource;
     private final Action action;
 
@@ -21,17 +21,17 @@ public class PermissionDeniedException extends RuntimeException {
                                       Throwable cause,
                                       boolean enableSuppression,
                                       boolean writableStackTrace,
-                                      User user,
+                                      Principal principal,
                                       Resource resource,
                                       Action action) {
         super(message, cause, enableSuppression, writableStackTrace);
-        this.user = user;
+        this.principal = principal;
         this.resource = resource;
         this.action = action;
     }
 
-    public Optional<User> getUser() {
-        return Optional.ofNullable(user);
+    public Optional<Principal> getPrincipal() {
+        return Optional.ofNullable(principal);
     }
 
     public Optional<Resource> getResource() {
@@ -45,7 +45,7 @@ public class PermissionDeniedException extends RuntimeException {
 
     public static class Builder {
 
-        private User user;
+        private Principal principal;
         private Resource resource;
         private Action action;
         private String message;
@@ -58,8 +58,8 @@ public class PermissionDeniedException extends RuntimeException {
             writableStackTrace = true;
         }
 
-        public Builder setUser(User user) {
-            this.user = user;
+        public Builder setPrincipal(Principal principal) {
+            this.principal = principal;
             return this;
         }
 
@@ -74,7 +74,7 @@ public class PermissionDeniedException extends RuntimeException {
         }
 
         public Builder setUserAndResourceAndActionBy(AuthRequest request) {
-            user = request.getUser().orElse(null);
+            principal = request.getPrincipal().orElse(null);
             action = request.getAction().orElse(null);
             resource = request.getResource().orElse(null);
             return this;
@@ -88,9 +88,9 @@ public class PermissionDeniedException extends RuntimeException {
         public Builder setMessageBy(AuthRequest request) {
             StringBuilder sb = new StringBuilder("Permission denied for: ");
 
-            sb.append("user=");
-            request.getUser().ifPresentOrElse(
-                    u -> sb.append(u.getId()), () -> sb.append("null")
+            sb.append("principal=");
+            request.getPrincipal().ifPresentOrElse(
+                    p -> sb.append(p.getId()), () -> sb.append("null")
             );
             sb.append(", action=");
             request.getAction().ifPresentOrElse(
@@ -132,7 +132,7 @@ public class PermissionDeniedException extends RuntimeException {
                     cause,
                     enableSuppression,
                     writableStackTrace,
-                    user,
+                    principal,
                     resource,
                     action
             );

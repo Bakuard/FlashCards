@@ -5,6 +5,9 @@ import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.expression.*;
+import com.bakuard.flashcards.model.auth.credential.Principal;
+import com.bakuard.flashcards.model.auth.policy.Authorizer;
+import com.bakuard.flashcards.model.auth.resource.Resource;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
@@ -40,18 +43,21 @@ public class DictionaryOfExpressionsController {
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
+    private Authorizer authorizer;
 
     @Autowired
     public DictionaryOfExpressionsController(ExpressionService expressionService,
                                              AuthService authService,
                                              DtoMapper mapper,
                                              RequestContext requestContext,
-                                             Messages messages) {
+                                             Messages messages,
+                                             Authorizer authorizer) {
         this.expressionService = expressionService;
         this.authService = authService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
+        this.authorizer = authorizer;
     }
 
     @Operation(summary = "Добавляет новое устойчевое выражение в словарь пользователя")
@@ -100,6 +106,7 @@ public class DictionaryOfExpressionsController {
     public ResponseEntity<ExpressionResponse> update(@RequestBody ExpressionUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} update word '{}' for user {}", userId, dto.getExpressionId(), dto.getUserId());
+        authorizer.assertToHasAccess(userId, "dictionary", dto.getUserId(), "update");
 
         Expression expression = mapper.toExpression(dto);
         expression = expressionService.save(expression);
@@ -162,6 +169,7 @@ public class DictionaryOfExpressionsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get expressions of user {} by page={}, size={}, sort={}",
                 jwsUserId, userId, page, size, sort);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findAllBy");
 
         authService.assertExists(userId);
         Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(sort));
@@ -198,6 +206,7 @@ public class DictionaryOfExpressionsController {
             UUID expressionId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get expression of user {} by id={}", jwsUserId, userId, expressionId);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findById");
 
         Expression expression = expressionService.tryFindById(userId, expressionId);
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
@@ -247,6 +256,7 @@ public class DictionaryOfExpressionsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get expressions of user {} by value '{}', levenshtein_distance {}, page {}, size {}",
                 jwsUserId, userId, value, maxDistance, page, size);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findByValue");
 
         Pageable pageable = mapper.toPageable(page, size);
         Page<Expression> expressions = expressionService.findByValue(userId, value, maxDistance, pageable);
@@ -289,6 +299,7 @@ public class DictionaryOfExpressionsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get expressions of user {} by translate '{}', page {}, size {}",
                 jwsUserId, userId, translate, page, size);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findByTranslate");
 
         Pageable pageable = mapper.toPageable(page, size);
         Page<Expression> expressions = expressionService.findByTranslate(userId, translate, pageable);
@@ -321,6 +332,7 @@ public class DictionaryOfExpressionsController {
             UUID expressionId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} delete expression of user {} by id={}", jwsUserId, userId, expressionId);
+        authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "delete");
 
         expressionService.tryDeleteById(userId, expressionId);
         return ResponseEntity.ok(messages.getMessage("dictionary.expressions.delete"));

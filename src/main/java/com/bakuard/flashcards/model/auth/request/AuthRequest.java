@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.auth.request;
 
-import com.bakuard.flashcards.model.auth.credential.User;
+import com.bakuard.flashcards.model.auth.credential.Principal;
 import com.bakuard.flashcards.model.auth.policy.Access;
 import com.bakuard.flashcards.model.auth.resource.Action;
 import com.bakuard.flashcards.model.auth.resource.Resource;
@@ -11,13 +11,13 @@ import java.util.function.BiFunction;
 
 public class AuthRequest {
 
-    public static AuthRequest of(User user, Resource resource, Action action) {
-        return new AuthRequest(user, resource, action);
+    public static AuthRequest of(Principal principal, Resource resource, Action action) {
+        return new AuthRequest(principal, resource, action);
     }
 
-    public static AuthRequest of(User user, Resource resource, String action) {
+    public static AuthRequest of(Principal principal, Resource resource, String action) {
         return newBuilder().
-                setUser(user).
+                setPrincipal(principal).
                 setResource(resource).
                 setAction(action).
                 build();
@@ -28,18 +28,18 @@ public class AuthRequest {
     }
 
 
-    private final User user;
+    private final Principal principal;
     private final Resource resource;
     private final Action action;
 
-    private AuthRequest(User user, Resource resource, Action action) {
-        this.user = user;
+    private AuthRequest(Principal principal, Resource resource, Action action) {
+        this.principal = principal;
         this.resource = resource;
         this.action = action;
     }
 
-    public Optional<User> getUser() {
-        return Optional.ofNullable(user);
+    public Optional<Principal> getPrincipal() {
+        return Optional.ofNullable(principal);
     }
 
     public Optional<Resource> getResource() {
@@ -50,47 +50,47 @@ public class AuthRequest {
         return Optional.ofNullable(action);
     }
 
-    public boolean isUserAndResourcesPresent() {
-        return user != null && resource != null;
+    public boolean hasPrincipalAndResources() {
+        return principal != null && resource != null;
     }
 
-    public boolean isUserAndActionPresent() {
-        return user != null && action != null;
+    public boolean hasPrincipalAndAction() {
+        return principal != null && action != null;
     }
 
-    public boolean isResourceAndActionPresent() {
+    public boolean hasResourceAndAction() {
         return resource != null && action != null;
     }
 
-    public boolean isUserAndResourceAndActionPresent() {
-        return user != null && resource != null && action != null;
+    public boolean hasPrincipalAndResourceAndAction() {
+        return principal != null && resource != null && action != null;
     }
 
-    public boolean isUserAndResourceAndActionEmpty() {
-        return user == null && resource == null && action == null;
+    public boolean hasNotPrincipalAndResourceAndAction() {
+        return principal == null && resource == null && action == null;
     }
 
-    public Access mapUserAndResource(BiFunction<User, Resource, Access> mapper) {
+    public Access mapPrincipalAndResource(BiFunction<Principal, Resource, Access> mapper) {
         Access result = Access.UNKNOWN;
-        if(isUserAndResourcesPresent()) result = mapper.apply(user, resource);
+        if(hasPrincipalAndResources()) result = mapper.apply(principal, resource);
         return result;
     }
 
-    public Access mapUserAndAction(BiFunction<User, Action, Access> mapper) {
+    public Access mapPrincipalAndAction(BiFunction<Principal, Action, Access> mapper) {
         Access result = Access.UNKNOWN;
-        if(isUserAndActionPresent()) result = mapper.apply(user, action);
+        if(hasPrincipalAndAction()) result = mapper.apply(principal, action);
         return result;
     }
 
     public Access mapResourceAndAction(BiFunction<Resource, Action, Access> mapper) {
         Access result = Access.UNKNOWN;
-        if(isResourceAndActionPresent()) result = mapper.apply(resource, action);
+        if(hasResourceAndAction()) result = mapper.apply(resource, action);
         return result;
     }
 
-    public Access mapUserAndResourceAndAction(TriFunction<User, Resource, Action, Access> mapper) {
+    public Access mapPrincipalAndResourceAndAction(TriFunction<Principal, Resource, Action, Access> mapper) {
         Access result = Access.UNKNOWN;
-        if(isUserAndResourceAndActionPresent()) result = mapper.apply(user, resource, action);
+        if(hasPrincipalAndResourceAndAction()) result = mapper.apply(principal, resource, action);
         return result;
     }
 
@@ -99,20 +99,20 @@ public class AuthRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AuthRequest that = (AuthRequest) o;
-        return Objects.equals(user, that.user) &&
+        return Objects.equals(principal, that.principal) &&
                 Objects.equals(resource, that.resource) &&
                 Objects.equals(action, that.action);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(user, resource, action);
+        return Objects.hash(principal, resource, action);
     }
 
     @Override
     public String toString() {
         return "AuthRequest{" +
-                "user=" + user +
+                "principal=" + principal +
                 ", resource=" + resource +
                 ", action=" + action +
                 '}';
@@ -121,7 +121,7 @@ public class AuthRequest {
 
     public static class Builder {
 
-        private User user;
+        private Principal principal;
         private Resource resource;
         private Action action;
 
@@ -129,8 +129,8 @@ public class AuthRequest {
 
         }
 
-        public Builder setUser(User user) {
-            this.user = user;
+        public Builder setPrincipal(Principal principal) {
+            this.principal = principal;
             return this;
         }
 
@@ -150,7 +150,7 @@ public class AuthRequest {
         }
 
         public AuthRequest build() {
-            return new AuthRequest(user, resource, action);
+            return new AuthRequest(principal, resource, action);
         }
 
     }

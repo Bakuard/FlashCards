@@ -2,6 +2,7 @@ package com.bakuard.flashcards.model.auth.resource;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Params {
 
@@ -75,8 +76,7 @@ public class Params {
 
     public boolean containsValueByKey(String key, Object value) {
         return params.stream().
-                filter(param -> param.key().equals(key)).
-                anyMatch(param -> param.value().equals(value));
+                anyMatch(param -> param.key().equals(key) && Objects.equals(param.value(), value));
     }
 
     @Override
@@ -125,7 +125,10 @@ public class Params {
         }
 
         public Builder replaceFirstParamOrAdd(Param param) {
-            int index = params.indexOf(param);
+            int index = IntStream.range(0, params.size()).
+                    filter(i -> Objects.equals(params.get(i).key(), param.key())).
+                    findFirst().
+                    orElse(-1);
             if(index == -1) params.add(param);
             else params.set(index, param);
             return this;

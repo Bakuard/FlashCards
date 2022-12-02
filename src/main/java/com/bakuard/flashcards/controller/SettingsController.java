@@ -7,6 +7,7 @@ import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.settings.IntervalAddRequest;
 import com.bakuard.flashcards.dto.settings.IntervalReplaceRequest;
 import com.bakuard.flashcards.dto.settings.IntervalsResponse;
+import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.service.IntervalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,16 +39,19 @@ public class SettingsController {
     private RequestContext requestContext;
     private Messages messages;
     private DtoMapper mapper;
+    private Authorizer authorizer;
 
     @Autowired
     public SettingsController(IntervalService intervalService,
                               RequestContext requestContext,
                               Messages messages,
-                              DtoMapper mapper) {
+                              DtoMapper mapper,
+                              Authorizer authorizer) {
         this.intervalService = intervalService;
         this.requestContext = requestContext;
         this.messages = messages;
         this.mapper = mapper;
+        this.authorizer = authorizer;
     }
 
     @Operation(summary = """
@@ -75,6 +79,7 @@ public class SettingsController {
             UUID userId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find all repeat intervals of user {}", jwsUserId, userId);
+        authorizer.assertToHasAccess(jwsUserId, "settings", userId, "findAllIntervals");
 
         List<Integer> intervals = intervalService.findAll(userId);
 
@@ -103,6 +108,7 @@ public class SettingsController {
     public ResponseEntity<String> addInterval(IntervalAddRequest dto) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} add new interval for user {}", jwsUserId, dto.getUserId());
+        authorizer.assertToHasAccess(jwsUserId, "settings", dto.getUserId(), "addInterval");
 
         intervalService.add(dto.getUserId(), dto.getInterval());
 
@@ -134,6 +140,7 @@ public class SettingsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} replace interval {} to {} for user {}",
                 jwsUserId, dto.getOldInterval(), dto.getNewInterval(), dto.getUserId());
+        authorizer.assertToHasAccess(jwsUserId, "settings", dto.getUserId(), "replaceInterval");
 
         intervalService.replace(dto.getUserId(), dto.getOldInterval(), dto.getNewInterval());
 

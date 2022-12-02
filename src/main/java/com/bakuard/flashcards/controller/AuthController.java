@@ -7,7 +7,10 @@ import com.bakuard.flashcards.dto.credential.*;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.model.auth.JwsWithUser;
 import com.bakuard.flashcards.model.auth.credential.Credential;
+import com.bakuard.flashcards.model.auth.credential.Principal;
 import com.bakuard.flashcards.model.auth.credential.User;
+import com.bakuard.flashcards.model.auth.policy.Authorizer;
+import com.bakuard.flashcards.model.auth.resource.Resource;
 import com.bakuard.flashcards.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,16 +41,19 @@ public class AuthController {
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
+    private Authorizer authorizer;
 
     @Autowired
     public AuthController(AuthService authService,
                           DtoMapper mapper,
                           RequestContext requestContext,
-                          Messages messages) {
+                          Messages messages,
+                          Authorizer authorizer) {
         this.authService = authService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
+        this.authorizer = authorizer;
     }
 
     @Operation(summary = "Выполняет вход для указанного пользователя: возвращает jws если учетные данные верны.")
@@ -180,6 +186,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> update(@RequestBody UserUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} update user with id={}", userId, dto.getUserId());
+        authorizer.assertToHasAccess(userId, "user", userId, "update");
 
         User user = mapper.toUser(dto);
         authService.save(user);
@@ -226,6 +233,7 @@ public class AuthController {
             UUID userId) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} get user with id={}", jwsUserId, userId);
+        authorizer.assertToHasAccess(jwsUserId, "user", userId, "getUserById");
 
         User user = authService.tryFindById(userId);
 
@@ -278,6 +286,7 @@ public class AuthController {
             String sort) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find users by page={}, size={}, sort={}", userId, page, size, sort);
+        authorizer.assertToHasAccess(Principal.of(userId), Resource.of("users"), "findAllBy");
 
         Page<User> users = authService.findAll(mapper.toPageable(page, size, mapper.toUserSort(sort)));
 
@@ -316,6 +325,7 @@ public class AuthController {
             String email) {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} delete user with id={} and email={}. First step.", jwsUserId, userId, email);
+        authorizer.assertToHasAccess(jwsUserId, "user", userId, "delete");
 
         authService.deletionFirstStep(userId, email);
 

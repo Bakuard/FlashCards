@@ -15,6 +15,8 @@ import com.bakuard.flashcards.dal.impl.WordOuterSourceBufferImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.auth.credential.User;
+import com.bakuard.flashcards.model.auth.policy.Access;
+import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.*;
 import com.bakuard.flashcards.service.util.Transaction;
@@ -50,6 +52,7 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import javax.sql.DataSource;
 import javax.validation.Validator;
 import java.time.Clock;
+import java.util.UUID;
 
 @SpringBootApplication(
         exclude = {SecurityAutoConfiguration.class},
@@ -187,6 +190,52 @@ public class SpringConfig implements WebMvcConfigurer {
                                                                      ValidatorUtil validator,
                                                                      Transaction transaction) {
              return new WordSupplementationService(wordOuterSourceBuffer, clock, mapper, validator, transaction);
+        }
+
+        @Bean
+        public Authorizer authorizer(UserRepository userRepository,
+                                     ConfigData configData) {
+                User superAdmin = userRepository.findByRole(configData.superAdmin().roleName(), 1, 0).get(0);
+
+                return Authorizer.newBuilder().
+                        policy(request -> request.getPrincipal().
+                                filter(p -> p.getId().equals(superAdmin.getId())).
+                                map(p -> Access.ACCEPT).
+                                orElse(Access.UNKNOWN)).
+                        policy(request -> request.mapPrincipalAndResourceAndAction((p, r, a) ->
+                                r.typeIs("user") &&
+                                        a.nameIsOneOf("update", "delete", "getUserById") &&
+                                        r.payloadIsEqualTo(p.getId()) ? Access.ACCEPT : Access.UNKNOWN
+                        )).
+                        policy(request -> request.mapPrincipalAndResourceAndAction((p, r, a) ->
+                                r.typeIs("dictionary") &&
+                                        a.nameIsOneOf("update", "findAllBy", "findById",
+                                                "findByValue", "findByTranslate", "delete",
+                                                "supplementNewWord", "supplementExistedWord",
+                                                "jumpToCharacter") &&
+                                        r.payloadIsEqualTo(p.getId()) ? Access.ACCEPT : Access.UNKNOWN
+                        )).
+                        policy(request -> request.mapPrincipalAndResourceAndAction((p, r, a) ->
+                                r.typeIs("repetition") &&
+                                        a.nameIsOneOf("findAllFromEnglishBy", "repeatFromEnglish",
+                                                "findAllFromNativeBy", "repeatFromNative",
+                                                "markForRepetitionFromEnglish", "markForRepetitionFromNative") &&
+                                        r.payloadIsEqualTo(p.getId()) ? Access.ACCEPT : Access.UNKNOWN
+                        )).
+                        policy(request -> request.mapPrincipalAndResourceAndAction((p, r, a) ->
+                                r.typeIs("settings") &&
+                                        a.nameIsOneOf("findAllIntervals", "addInterval", "replaceInterval") &&
+                                        r.payloadIsEqualTo(p.getId()) ? Access.ACCEPT : Access.UNKNOWN
+                        )).
+                        policy(request -> request.mapPrincipalAndResourceAndAction((p, r, a) ->
+                                r.typeIs("statistic") &&
+                                        a.nameIsOneOf("findStatisticForWordRepetition",
+                                                "findStatisticForWordsRepetition",
+                                                "findStatisticForExpressionRepetition",
+                                                "findStatisticForExpressionsRepetition") &&
+                                        r.payloadIsEqualTo(p.getId()) ? Access.ACCEPT : Access.UNKNOWN
+                        )).
+                        build();
         }
 
         @Bean

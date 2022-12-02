@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.auth.policy;
 
-import com.bakuard.flashcards.model.auth.credential.User;
+import com.bakuard.flashcards.model.auth.credential.Principal;
 import com.bakuard.flashcards.model.auth.request.AuthRequest;
 import com.bakuard.flashcards.model.auth.resource.Action;
 import com.bakuard.flashcards.model.auth.resource.Resource;
@@ -8,6 +8,7 @@ import com.bakuard.flashcards.model.auth.resource.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class Authorizer {
 
@@ -24,8 +25,12 @@ public class Authorizer {
         this.exceptionLevel = exceptionLevel;
     }
 
-    public Access checkAccess(User user, Object payload, String action) {
-        return checkAccess(AuthRequest.of(user, Resource.of(payload), action));
+    public Access checkAccess(UUID principalId, String resourceType, Object resourcePayload, String action) {
+        return checkAccess(Principal.of(principalId), Resource.of(resourceType, resourcePayload), action);
+    }
+
+    public Access checkAccess(Principal principal, Resource resource, String action) {
+        return checkAccess(AuthRequest.of(principal, resource, action));
     }
 
     public Access checkAccess(AuthRequest request) {
@@ -38,7 +43,15 @@ public class Authorizer {
                 "Policy can't return null. Policy with index=" + i + " violated this rule.");
     }
 
-    public void assertThatCanAccess(AuthRequest request) {
+    public void assertToHasAccess(UUID principalId, String resourceType, Object resourcePayload, String action) {
+        assertToHasAccess(Principal.of(principalId), Resource.of(resourceType, resourcePayload), action);
+    }
+
+    public void assertToHasAccess(Principal principal, Resource resource, String action) {
+        assertToHasAccess(AuthRequest.of(principal, resource, action));
+    }
+
+    public void assertToHasAccess(AuthRequest request) {
         if(checkAccess(request).getLevel() <= exceptionLevel.getLevel()) {
             throw PermissionDeniedException.newBuilder().
                     setUserAndResourceAndActionBy(request).
@@ -47,23 +60,19 @@ public class Authorizer {
         }
     }
 
-    public void assertThatCanAccess(User user, Object payload, String action) {
-        assertThatCanAccess(AuthRequest.of(user, Resource.of(payload), action));
-    }
-
-    public List<Action> getAccessibleActions(User user, Resource resource) {
+    public List<Action> getAccessibleActions(Principal principal, Resource resource) {
         return resource.getActions().stream().
-                filter(action -> checkAccess(AuthRequest.of(user, resource, action)) == Access.ACCEPT).
+                filter(action -> checkAccess(AuthRequest.of(principal, resource, action)) == Access.ACCEPT).
                 toList();
     }
 
-    public List<Action> tryGetAccessibleActions(User user, Resource resource) {
-        List<Action> result = getAccessibleActions(user, resource);
+    public List<Action> tryGetAccessibleActions(Principal principal, Resource resource) {
+        List<Action> result = getAccessibleActions(principal, resource);
         if(result.isEmpty()) {
             throw PermissionDeniedException.newBuilder().
-                    setUser(user).
+                    setPrincipal(principal).
                     setResource(resource).
-                    setMessageBy(AuthRequest.of(user, resource, (Action)null)).
+                    setMessageBy(AuthRequest.of(principal, resource, (Action)null)).
                     build();
         }
         return result;
@@ -72,7 +81,7 @@ public class Authorizer {
 
     public static class Builder {
 
-        private List<Policy> policies;
+        private final List<Policy> policies;
         private Access exceptionLevel;
 
         private Builder() {

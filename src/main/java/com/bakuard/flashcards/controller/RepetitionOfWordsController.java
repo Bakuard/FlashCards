@@ -6,6 +6,7 @@ import com.bakuard.flashcards.dto.common.RepetitionResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.word.*;
 import com.bakuard.flashcards.model.RepetitionResult;
+import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.service.StatisticService;
 import com.bakuard.flashcards.service.WordService;
@@ -40,16 +41,19 @@ public class RepetitionOfWordsController {
     private StatisticService statisticService;
     private DtoMapper mapper;
     private RequestContext requestContext;
+    private Authorizer authorizer;
 
     @Autowired
     public RepetitionOfWordsController(WordService wordService,
                                        StatisticService statisticService,
                                        DtoMapper mapper,
-                                       RequestContext requestContext) {
+                                       RequestContext requestContext,
+                                       Authorizer authorizer) {
         this.wordService = wordService;
         this.statisticService = statisticService;
         this.mapper = mapper;
         this.requestContext = requestContext;
+        this.authorizer = authorizer;
     }
 
     @Operation(summary = """
@@ -86,6 +90,7 @@ public class RepetitionOfWordsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find all words from english to native of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
+        authorizer.assertToHasAccess(jwsUserId, "repetition", userId, "findAllFromEnglishBy");
 
         Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(null));
         Page<Word> result = wordService.findAllForRepeatFromEnglish(userId, pageable);
@@ -117,6 +122,7 @@ public class RepetitionOfWordsController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} repeat word from english to native {} as user {}. remember is {}",
                 userId, dto.getWordId(), dto.getUserId(), dto.isRemember());
+        authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "repeatFromEnglish");
 
         Word word = wordService.repeatFromEnglish(dto.getUserId(), dto.getWordId(), dto.isRemember());
         statisticService.appendWordFromEnglish(dto.getUserId(), dto.getWordId(), dto.isRemember());
@@ -158,6 +164,7 @@ public class RepetitionOfWordsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find all words from native to english of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
+        authorizer.assertToHasAccess(jwsUserId, "repetition", userId, "findAllFromNativeBy");
 
         Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(null));
         Page<Word> result = wordService.findAllForRepeatFromNative(userId, pageable);
@@ -189,6 +196,7 @@ public class RepetitionOfWordsController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} repeat word from native to english {} as user {}. inputTranslate is {}",
                 userId, dto.getWordId(), dto.getUserId(), dto.getInputValue());
+        authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "repeatFromNative");
 
         RepetitionResult<Word> repetitionResult =
                 wordService.repeatFromNative(dto.getUserId(), dto.getWordId(), dto.getInputValue());
@@ -227,6 +235,7 @@ public class RepetitionOfWordsController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} mark word {} of user {} for repetition from english.",
                 userId, dto.getWordId(), dto.getUserId());
+        authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "markForRepetitionFromEnglish");
 
         Word word = wordService.markForRepetitionFromEnglish(dto.getUserId(), dto.getWordId());
 
@@ -259,6 +268,7 @@ public class RepetitionOfWordsController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} mark word {} of user {} for repetition from native.",
                 userId, dto.getWordId(), dto.getUserId());
+        authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "markForRepetitionFromNative");
 
         Word word = wordService.markForRepetitionFromNative(dto.getUserId(), dto.getWordId());
 

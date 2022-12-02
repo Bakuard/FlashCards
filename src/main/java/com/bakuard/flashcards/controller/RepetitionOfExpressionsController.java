@@ -8,6 +8,7 @@ import com.bakuard.flashcards.dto.expression.*;
 import com.bakuard.flashcards.dto.word.WordMarkForRepetitionRequest;
 import com.bakuard.flashcards.dto.word.WordResponse;
 import com.bakuard.flashcards.model.RepetitionResult;
+import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.service.ExpressionService;
@@ -43,16 +44,19 @@ public class RepetitionOfExpressionsController {
     private StatisticService statisticService;
     private DtoMapper mapper;
     private RequestContext requestContext;
+    private Authorizer authorizer;
 
     @Autowired
     public RepetitionOfExpressionsController(ExpressionService expressionService,
                                              StatisticService statisticService,
                                              DtoMapper mapper,
-                                             RequestContext requestContext) {
+                                             RequestContext requestContext,
+                                             Authorizer authorizer) {
         this.expressionService = expressionService;
         this.statisticService = statisticService;
         this.mapper = mapper;
         this.requestContext = requestContext;
+        this.authorizer = authorizer;
     }
 
     @Operation(summary = """
@@ -89,6 +93,7 @@ public class RepetitionOfExpressionsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find all expressions from english to native of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
+        authorizer.assertToHasAccess(jwsUserId, "repetition", userId, "findAllFromEnglishBy");
 
         Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(null));
         Page<Expression> result = expressionService.findAllForRepeatFromEnglish(userId, pageable);
@@ -121,6 +126,7 @@ public class RepetitionOfExpressionsController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} repeat expression from english to native {} as user {}. remember is {}",
                 userId, dto.getExpressionId(), dto.getUserId(), dto.isRemember());
+        authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "repeatFromEnglish");
 
         Expression expression = expressionService.repeatFromEnglish(dto.getUserId(), dto.getExpressionId(), dto.isRemember());
         statisticService.appendExpressionFromEnglish(dto.getUserId(), dto.getExpressionId(), dto.isRemember());
@@ -162,6 +168,7 @@ public class RepetitionOfExpressionsController {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find all expressions from native to english of user {} for repeat by page={}, size={}",
                 jwsUserId, userId, page, size);
+        authorizer.assertToHasAccess(jwsUserId, "repetition", userId, "findAllFromNativeBy");
 
         Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(null));
         Page<Expression> result = expressionService.findAllForRepeatFromNative(userId, pageable);
@@ -194,6 +201,7 @@ public class RepetitionOfExpressionsController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} repeat expression from english to native {} as user {}. inputValue is {}",
                 userId, dto.getExpressionId(), dto.getUserId(), dto.getInputValue());
+        authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "repeatFromNative");
 
         RepetitionResult<Expression> repetitionResult =
                 expressionService.repeatFromNative(dto.getUserId(), dto.getExpressionId(), dto.getInputValue());
@@ -232,6 +240,7 @@ public class RepetitionOfExpressionsController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} mark expression {} of user {} for repetition from english.",
                 userId, dto.getExpressionId(), dto.getUserId());
+        authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "markForRepetitionFromEnglish");
 
         Expression expression = expressionService.markForRepetitionFromEnglish(dto.getUserId(), dto.getExpressionId());
 
@@ -264,6 +273,7 @@ public class RepetitionOfExpressionsController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} mark expression {} of user {} for repetition from native.",
                 userId, dto.getExpressionId(), dto.getUserId());
+        authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "markForRepetitionFromNative");
 
         Expression expression = expressionService.markForRepetitionFromNative(dto.getUserId(), dto.getExpressionId());
 
