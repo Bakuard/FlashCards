@@ -99,6 +99,17 @@ public class DictionaryOfWordsController {
                     description = "Если передан некорректный токен или токен не указан",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
+                            Если недостаточно прав для выполнения этой операции. Для выполнения этой
+                             операции необходимо одно из следующих прав и привелегий:<br/>
+                            <ol>
+                                <li>Иметь роль супер администратора.</li>
+                                <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
+                            </ol>
+                            """,
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
                     description = "Если не удалось найти слово или пользователя по указнным id.",
                     content = @Content(mediaType = "application/json",
@@ -127,6 +138,17 @@ public class DictionaryOfWordsController {
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401",
                     description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
+                            Если недостаточно прав для выполнения этой операции. Для выполнения этой
+                             операции необходимо одно из следующих прав и привелегий:<br/>
+                            <ol>
+                                <li>Иметь роль супер администратора.</li>
+                                <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
+                            </ol>
+                            """,
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
@@ -159,6 +181,17 @@ public class DictionaryOfWordsController {
                     description = "Если передан некорректный токен или токен не указан",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
+                            Если недостаточно прав для выполнения этой операции. Для выполнения этой
+                             операции необходимо одно из следующих прав и привелегий:<br/>
+                            <ol>
+                                <li>Иметь роль супер администратора.</li>
+                                <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
+                            </ol>
+                            """,
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
                     description = "Если не удалось найти пользователя по указанному id.",
                     content = @Content(mediaType = "application/json",
@@ -184,6 +217,17 @@ public class DictionaryOfWordsController {
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401",
                     description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
+                            Если недостаточно прав для выполнения этой операции. Для выполнения этой
+                             операции необходимо одно из следующих прав и привелегий:<br/>
+                            <ol>
+                                <li>Иметь роль супер администратора.</li>
+                                <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
+                            </ol>
+                            """,
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
@@ -253,6 +297,17 @@ public class DictionaryOfWordsController {
                     description = "Если передан некорректный токен или токен не указан",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
+                            Если недостаточно прав для выполнения этой операции. Для выполнения этой
+                             операции необходимо одно из следующих прав и привелегий:<br/>
+                            <ol>
+                                <li>Иметь роль супер администратора.</li>
+                                <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
+                            </ol>
+                            """,
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
                     description = "Если не удалось найти слово или пользователя по указанным идентификаторам.",
                     content = @Content(mediaType = "application/json",
@@ -287,6 +342,17 @@ public class DictionaryOfWordsController {
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401",
                     description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
+                            Если недостаточно прав для выполнения этой операции. Для выполнения этой
+                             операции необходимо одно из следующих прав и привелегий:<br/>
+                            <ol>
+                                <li>Иметь роль супер администратора.</li>
+                                <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
+                            </ol>
+                            """,
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
@@ -338,6 +404,17 @@ public class DictionaryOfWordsController {
                     description = "Если передан некорректный токен или токен не указан",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
+                            Если недостаточно прав для выполнения этой операции. Для выполнения этой
+                             операции необходимо одно из следующих прав и привелегий:<br/>
+                            <ol>
+                                <li>Иметь роль супер администратора.</li>
+                                <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
+                            </ol>
+                            """,
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
                     description = "Если пользователя с указанным id не существует.",
                     content = @Content(mediaType = "application/json",
@@ -384,6 +461,17 @@ public class DictionaryOfWordsController {
                     description = "Если передан некорректный токен или токен не указан",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
+                            Если недостаточно прав для выполнения этой операции. Для выполнения этой
+                             операции необходимо одно из следующих прав и привелегий:<br/>
+                            <ol>
+                                <li>Иметь роль супер администратора.</li>
+                                <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
+                            </ol>
+                            """,
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
                     description = "Если пользователя с указанным id не существует.",
                     content = @Content(mediaType = "application/json",
@@ -419,6 +507,17 @@ public class DictionaryOfWordsController {
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "401",
                     description = "Если передан некорректный токен или токен не указан",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
+                            Если недостаточно прав для выполнения этой операции. Для выполнения этой
+                             операции необходимо одно из следующих прав и привелегий:<br/>
+                            <ol>
+                                <li>Иметь роль супер администратора.</li>
+                                <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
+                            </ol>
+                            """,
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
