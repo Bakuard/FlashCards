@@ -20,10 +20,10 @@ public class TranslateResponse {
             """)
     private String note;
     @Schema(description = "Данные всех внешних источников из которых получен данный перевод.")
-    private List<OuterSourceResponse> sourceInfo;
+    private List<OuterSourceResponse> outerSource;
 
     public TranslateResponse() {
-        sourceInfo = new ArrayList<>();
+        outerSource = new ArrayList<>();
     }
 
     public String getValue() {
@@ -44,12 +44,12 @@ public class TranslateResponse {
         return this;
     }
 
-    public List<OuterSourceResponse> getSourceInfo() {
-        return sourceInfo;
+    public List<OuterSourceResponse> getOuterSource() {
+        return outerSource;
     }
 
-    public TranslateResponse setSourceInfo(List<OuterSourceResponse> sourceInfo) {
-        this.sourceInfo = sourceInfo;
+    public TranslateResponse setOuterSource(List<OuterSourceResponse> outerSource) {
+        this.outerSource = outerSource;
         return this;
     }
 
@@ -60,12 +60,12 @@ public class TranslateResponse {
         TranslateResponse that = (TranslateResponse) o;
         return Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
-                Objects.equals(sourceInfo, that.sourceInfo);
+                Objects.equals(outerSource, that.outerSource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note, sourceInfo);
+        return Objects.hash(value, note, outerSource);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class TranslateResponse {
         return "TranslateResponse{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
-                ", sourceInfo=" + sourceInfo +
+                ", sourceInfo=" + outerSource +
                 '}';
     }
 

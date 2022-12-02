@@ -19,7 +19,7 @@ public class TranscriptionResponse {
             """)
     private String note;
     @Schema(description = "Данные всех внешних источников из которых получена данная транскрипция.")
-    private List<OuterSourceResponse> sourceInfo;
+    private List<OuterSourceResponse> outerSource;
 
     public TranscriptionResponse() {
 
@@ -43,12 +43,12 @@ public class TranscriptionResponse {
         return this;
     }
 
-    public List<OuterSourceResponse> getSourceInfo() {
-        return sourceInfo;
+    public List<OuterSourceResponse> getOuterSource() {
+        return outerSource;
     }
 
-    public TranscriptionResponse setSourceInfo(List<OuterSourceResponse> sourceInfo) {
-        this.sourceInfo = sourceInfo;
+    public TranscriptionResponse setOuterSource(List<OuterSourceResponse> outerSource) {
+        this.outerSource = outerSource;
         return this;
     }
 
@@ -59,12 +59,12 @@ public class TranscriptionResponse {
         TranscriptionResponse that = (TranscriptionResponse) o;
         return Objects.equals(value, that.value) &&
                 Objects.equals(note, that.note) &&
-                Objects.equals(sourceInfo, that.sourceInfo);
+                Objects.equals(outerSource, that.outerSource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note, sourceInfo);
+        return Objects.hash(value, note, outerSource);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class TranscriptionResponse {
         return "TranscriptionResponse{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
-                ", sourceInfo=" + sourceInfo +
+                ", sourceInfo=" + outerSource +
                 '}';
     }
 

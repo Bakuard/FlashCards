@@ -16,10 +16,10 @@ public class ExampleResponse {
     @Schema(description = "Примечание к примеру.")
     private String note;
     @Schema(description = "Данные всех внешних источников из которых получены переводы для данного примера.")
-    private List<ExampleOuterSourceResponse> sourceInfo;
+    private List<ExampleOuterSourceResponse> outerSource;
 
     public ExampleResponse() {
-        sourceInfo = new ArrayList<>();
+        outerSource = new ArrayList<>();
     }
 
     public String getOrigin() {
@@ -49,12 +49,12 @@ public class ExampleResponse {
         return this;
     }
 
-    public List<ExampleOuterSourceResponse> getSourceInfo() {
-        return sourceInfo;
+    public List<ExampleOuterSourceResponse> getOuterSource() {
+        return outerSource;
     }
 
-    public ExampleResponse setSourceInfo(List<ExampleOuterSourceResponse> sourceInfo) {
-        this.sourceInfo = sourceInfo;
+    public ExampleResponse setOuterSource(List<ExampleOuterSourceResponse> outerSource) {
+        this.outerSource = outerSource;
         return this;
     }
 
@@ -66,12 +66,12 @@ public class ExampleResponse {
         return Objects.equals(origin, that.origin) &&
                 Objects.equals(translate, that.translate) &&
                 Objects.equals(note, that.note) &&
-                Objects.equals(sourceInfo, that.sourceInfo);
+                Objects.equals(outerSource, that.outerSource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(origin, translate, note, sourceInfo);
+        return Objects.hash(origin, translate, note, outerSource);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class ExampleResponse {
                 "origin='" + origin + '\'' +
                 ", translate='" + translate + '\'' +
                 ", note='" + note + '\'' +
-                ", sourceInfo=" + sourceInfo +
+                ", sourceInfo=" + outerSource +
                 '}';
     }
 

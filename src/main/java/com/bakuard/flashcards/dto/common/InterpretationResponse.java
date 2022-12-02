@@ -15,10 +15,10 @@ public class InterpretationResponse {
             """)
     private String value;
     @Schema(description = "Данные всех внешних источников из которых получено данное толкование.")
-    private List<OuterSourceResponse> sourceInfo;
+    private List<OuterSourceResponse> outerSource;
 
     public InterpretationResponse() {
-        sourceInfo = new ArrayList<>();
+        outerSource = new ArrayList<>();
     }
 
     public String getValue() {
@@ -30,12 +30,12 @@ public class InterpretationResponse {
         return this;
     }
 
-    public List<OuterSourceResponse> getSourceInfo() {
-        return sourceInfo;
+    public List<OuterSourceResponse> getOuterSource() {
+        return outerSource;
     }
 
-    public InterpretationResponse setSourceInfo(List<OuterSourceResponse> sourceInfo) {
-        this.sourceInfo = sourceInfo;
+    public InterpretationResponse setOuterSource(List<OuterSourceResponse> outerSource) {
+        this.outerSource = outerSource;
         return this;
     }
 
@@ -44,19 +44,19 @@ public class InterpretationResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         InterpretationResponse that = (InterpretationResponse) o;
-        return Objects.equals(value, that.value) && Objects.equals(sourceInfo, that.sourceInfo);
+        return Objects.equals(value, that.value) && Objects.equals(outerSource, that.outerSource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, sourceInfo);
+        return Objects.hash(value, outerSource);
     }
 
     @Override
     public String toString() {
         return "InterpretationResponse{" +
                 "value='" + value + '\'' +
-                ", sourceInfo=" + sourceInfo +
+                ", sourceInfo=" + outerSource +
                 '}';
     }
 
