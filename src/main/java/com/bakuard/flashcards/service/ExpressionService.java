@@ -48,7 +48,7 @@ public class ExpressionService {
         if(!existsById(userId, expressionId)) {
             throw new UnknownEntityException(
                     "Unknown expression with id=" + expressionId + " userId=" + userId,
-                    "Expression.unknown");
+                    "Expression.unknownId");
         }
         expressionRepository.deleteById(userId, expressionId);
     }

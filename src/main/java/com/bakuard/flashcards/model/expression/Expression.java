@@ -39,21 +39,17 @@ public class Expression implements Entity {
     @NotBlankOrNull(message = "Expression.note.notBlankOrNull")
     private String note;
     @MappedCollection(idColumn = "expression_id", keyColumn = "index")
-    @NotNull(message = "Expression.interpretations.notNull")
     @NotContainsNull(message = "Expression.interpretations.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Expression.interpretations.allUnique")
     private List<@Valid ExpressionInterpretation> interpretations;
     @MappedCollection(idColumn = "expression_id", keyColumn = "index")
-    @NotNull(message = "Expression.translations.notNull")
     @NotContainsNull(message = "Expression.translations.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Expression.translations.allUnique")
     private List<@Valid ExpressionTranslation> translations;
     @MappedCollection(idColumn = "expression_id", keyColumn = "index")
-    @NotNull(message = "Expression.examples.notNull")
     @NotContainsNull(message = "Expression.examples.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getOrigin", message = "Expression.examples.allUnique")
     private List<@Valid ExpressionExample> examples;
-    @NotNull(message = "Expression.repeatDataFromEnglish.notNull")
     @Embedded.Nullable
     @Valid
     private RepeatDataFromEnglish repeatDataFromEnglish;

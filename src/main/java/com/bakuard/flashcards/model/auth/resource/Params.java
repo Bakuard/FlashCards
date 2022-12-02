@@ -15,9 +15,9 @@ public class Params {
 
     private Params(List<Param> params) {
         if(params.stream().anyMatch(Objects::isNull))
-            throw new IncorrectParamException("Params can't contains null");
+            throw new IllegalArgumentException("Params can't contains null");
         if(params.stream().anyMatch(param -> param.key() == null || param.key().isBlank()))
-            throw new IncorrectParamException("Params key can't be blank or null");
+            throw new IllegalArgumentException("Params key can't be blank or null");
 
         this.params = params;
     }
