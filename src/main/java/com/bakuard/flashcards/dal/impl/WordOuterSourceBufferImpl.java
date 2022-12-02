@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.jdbc.core.JdbcAggregateOperations;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Array;
 import java.sql.Date;
@@ -30,8 +31,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
         this.jdbcAggregateOperations = jdbcAggregateOperations;
     }
 
-
-
+    @Transactional
     @Override
     public void saveDataFromOuterSource(Word word) {
         saveInterpretationsToBuffer(word.getValue(), word.getInterpretations());
@@ -40,6 +40,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
         saveExamplesToBuffer(word.getExamples());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public void mergeFromOuterSource(Word word) {
         getTranscriptionsFromOuterSourceFor(word.getValue()).forEach(word::mergeTranscription);
@@ -49,6 +50,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
                 forEach(word::mergeExampleIfPresent);
     }
 
+    @Transactional
     @Override
     public void deleteUnusedOuterSourceExamples() {
         int deletedRowsNumber = jdbcTemplate.update("""

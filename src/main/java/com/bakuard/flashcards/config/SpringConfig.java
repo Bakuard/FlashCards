@@ -8,10 +8,9 @@ import com.bakuard.flashcards.controller.message.MessagesImpl;
 import com.bakuard.flashcards.dal.*;
 import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.StatisticRepositoryImpl;
+import com.bakuard.flashcards.dal.impl.WordOuterSourceBufferImpl;
 import com.bakuard.flashcards.dal.impl.fragment.UserSaver;
 import com.bakuard.flashcards.dal.impl.fragment.UserSaverImpl;
-import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
-import com.bakuard.flashcards.dal.impl.WordOuterSourceBufferImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.auth.credential.User;
@@ -19,7 +18,6 @@ import com.bakuard.flashcards.model.auth.policy.Access;
 import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.*;
-import com.bakuard.flashcards.service.util.Transaction;
 import com.bakuard.flashcards.service.wordSupplementation.WordSupplementationService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,7 +50,6 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import javax.sql.DataSource;
 import javax.validation.Validator;
 import java.time.Clock;
-import java.util.UUID;
 
 @SpringBootApplication(
         exclude = {SecurityAutoConfiguration.class},
@@ -90,11 +87,6 @@ public class SpringConfig implements WebMvcConfigurer {
         @Bean("transactionManager")
         public PlatformTransactionManager transactionManager(DataSource dataSource) {
                 return new DataSourceTransactionManager(dataSource);
-        }
-
-        @Bean
-        public Transaction transaction(PlatformTransactionManager transactionManager) {
-             return new Transaction(transactionManager);
         }
 
         @Bean
@@ -187,9 +179,8 @@ public class SpringConfig implements WebMvcConfigurer {
         public WordSupplementationService wordSupplementationService(WordOuterSourceBuffer wordOuterSourceBuffer,
                                                                      Clock clock,
                                                                      ObjectMapper mapper,
-                                                                     ValidatorUtil validator,
-                                                                     Transaction transaction) {
-             return new WordSupplementationService(wordOuterSourceBuffer, clock, mapper, validator, transaction);
+                                                                     ValidatorUtil validator) {
+             return new WordSupplementationService(wordOuterSourceBuffer, clock, mapper, validator);
         }
 
         @Bean
