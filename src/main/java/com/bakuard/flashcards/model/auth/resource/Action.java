@@ -1,8 +1,6 @@
 package com.bakuard.flashcards.model.auth.resource;
 
-import javax.validation.constraints.NotBlank;
-
-public record Action(@NotBlank(message = "Action.name.notBlank") String name) {
+public record Action(String name) {
 
     public boolean nameIsOneOf(String... names) {
         boolean result = false;
