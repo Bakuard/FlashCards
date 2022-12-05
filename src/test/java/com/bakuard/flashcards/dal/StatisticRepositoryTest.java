@@ -15,6 +15,7 @@ import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -638,7 +639,7 @@ class StatisticRepositoryTest {
                 );
     }
 
-    @Test
+    @RepeatedTest(5)
     @DisplayName("""
             wordsRepetitionByPeriod(userId, start, end, pageable):
              user repeated words from native,
@@ -664,13 +665,6 @@ class StatisticRepositoryTest {
             wordRepository.save(wordD);
             wordRepository.save(wordE);
             wordRepository.save(wordF);
-
-            System.out.println("wordA -> " + wordA.getId());
-            System.out.println("wordB -> " + wordB.getId());
-            System.out.println("wordC -> " + wordC.getId());
-            System.out.println("wordD -> " + wordD.getId());
-            System.out.println("wordE -> " + wordE.getId());
-            System.out.println("wordF -> " + wordF.getId());
 
             statisticRepository.append(wordFromEnglish(user.getId(), wordA.getId(), 0, true));
             statisticRepository.append(wordFromEnglish(user.getId(), wordA.getId(), 1, false));
@@ -768,7 +762,7 @@ class StatisticRepositoryTest {
                 );
     }
 
-    @Test
+    @RepeatedTest(5)
     @DisplayName("""
             wordsRepetitionByPeriod(userId, start, end, pageable):
              user repeated words from native,
@@ -909,7 +903,7 @@ class StatisticRepositoryTest {
                 );
     }
 
-    @Test
+    @RepeatedTest(5)
     @DisplayName("""
             expressionsRepetitionByPeriod(userId, start, end, pageable):
              user repeated expressions from native,
@@ -1037,7 +1031,7 @@ class StatisticRepositoryTest {
                 );
     }
 
-    @Test
+    @RepeatedTest(5)
     @DisplayName("""
             expressionsRepetitionByPeriod(userId, start, end, pageable):
              user repeated expressions from native,
