@@ -15,11 +15,17 @@ public class ExpressionForDictionaryListResponse {
     @Schema(description = "Значение устойчевого выражения.")
     private String value;
     @Schema(description = """
-            Указывает - помнит ли пользователь это устойчевое выражение или нет. <br/>
-            Значение true указывает, что пользователь не смог вспомнить это устойчевое выражение во время повторения,
+            Указывает - помнит ли пользователь перевод этого выражения с английского на свой родной язык. <br/>
+            Значение true указывает, что пользователь не смог вспомнить это выражение во время повторения,
             или оно является новым.
             """)
-    private boolean isHotRepeat;
+    private boolean hotRepeatFromEnglish;
+    @Schema(description = """
+            Указывает - помнит ли пользователь перевод этого выражения с родного языка на английский. <br/>
+            Значение true указывает, что пользователь не смог вспомнить это выражение во время повторения,
+            или оно является новым.
+            """)
+    private boolean hotRepeatFromNative;
 
     public ExpressionForDictionaryListResponse() {
 
@@ -52,12 +58,21 @@ public class ExpressionForDictionaryListResponse {
         return this;
     }
 
-    public boolean isHotRepeat() {
-        return isHotRepeat;
+    public boolean isHotRepeatFromEnglish() {
+        return hotRepeatFromEnglish;
     }
 
-    public ExpressionForDictionaryListResponse setHotRepeat(boolean hotRepeat) {
-        isHotRepeat = hotRepeat;
+    public ExpressionForDictionaryListResponse setHotRepeatFromEnglish(boolean hotRepeatFromEnglish) {
+        this.hotRepeatFromEnglish = hotRepeatFromEnglish;
+        return this;
+    }
+
+    public boolean isHotRepeatFromNative() {
+        return hotRepeatFromNative;
+    }
+
+    public ExpressionForDictionaryListResponse setHotRepeatFromNative(boolean hotRepeatFromNative) {
+        this.hotRepeatFromNative = hotRepeatFromNative;
         return this;
     }
 
@@ -66,7 +81,8 @@ public class ExpressionForDictionaryListResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExpressionForDictionaryListResponse that = (ExpressionForDictionaryListResponse) o;
-        return isHotRepeat == that.isHotRepeat &&
+        return hotRepeatFromEnglish == that.hotRepeatFromEnglish &&
+                hotRepeatFromNative == that.hotRepeatFromNative &&
                 Objects.equals(expressionId, that.expressionId) &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(value, that.value);
@@ -74,7 +90,7 @@ public class ExpressionForDictionaryListResponse {
 
     @Override
     public int hashCode() {
-        return Objects.hash(expressionId, userId, value, isHotRepeat);
+        return Objects.hash(expressionId, userId, value, hotRepeatFromEnglish, hotRepeatFromNative);
     }
 
     @Override
@@ -83,7 +99,8 @@ public class ExpressionForDictionaryListResponse {
                 "expressionId=" + expressionId +
                 ", userId=" + userId +
                 ", value='" + value + '\'' +
-                ", isHotRepeat=" + isHotRepeat +
+                ", isHotRepeatFromEnglish=" + hotRepeatFromEnglish +
+                ", isHotRepeatFromNative=" + hotRepeatFromNative +
                 '}';
     }
 

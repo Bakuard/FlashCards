@@ -193,7 +193,8 @@ public class DtoMapper {
                         setUserId(expression.getUserId()).
                         setExpressionId(expression.getId()).
                         setValue(expression.getValue()).
-                        setHotRepeat(expressionService.isHotRepeatFromEnglish(expression))
+                        setHotRepeatFromEnglish(expressionService.isHotRepeatFromEnglish(expression)).
+                        setHotRepeatFromNative(expressionService.isHotRepeatFromNative(expression))
         );
     }
 

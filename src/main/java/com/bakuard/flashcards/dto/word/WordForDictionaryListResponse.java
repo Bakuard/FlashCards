@@ -19,13 +19,13 @@ public class WordForDictionaryListResponse {
             Значение true указывает, что пользователь не смог вспомнить это слово во время повторения,
             или оно является новым.
             """)
-    private boolean isHotRepeatFromEnglish;
+    private boolean hotRepeatFromEnglish;
     @Schema(description = """
             Указывает - помнит ли пользователь перевод этого слова с родного языка на английский. <br/>
             Значение true указывает, что пользователь не смог вспомнить это слово во время повторения,
             или оно является новым.
             """)
-    private boolean isHotRepeatFromNative;
+    private boolean hotRepeatFromNative;
 
     public WordForDictionaryListResponse() {
     }
@@ -58,20 +58,20 @@ public class WordForDictionaryListResponse {
     }
 
     public boolean isHotRepeatFromEnglish() {
-        return isHotRepeatFromEnglish;
+        return hotRepeatFromEnglish;
     }
 
     public WordForDictionaryListResponse setHotRepeatFromEnglish(boolean hotRepeatFromEnglish) {
-        isHotRepeatFromEnglish = hotRepeatFromEnglish;
+        this.hotRepeatFromEnglish = hotRepeatFromEnglish;
         return this;
     }
 
     public boolean isHotRepeatFromNative() {
-        return isHotRepeatFromNative;
+        return hotRepeatFromNative;
     }
 
     public WordForDictionaryListResponse setHotRepeatFromNative(boolean hotRepeatFromNative) {
-        isHotRepeatFromNative = hotRepeatFromNative;
+        this.hotRepeatFromNative = hotRepeatFromNative;
         return this;
     }
 
@@ -80,8 +80,8 @@ public class WordForDictionaryListResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WordForDictionaryListResponse that = (WordForDictionaryListResponse) o;
-        return isHotRepeatFromEnglish == that.isHotRepeatFromEnglish &&
-                isHotRepeatFromNative == that.isHotRepeatFromNative &&
+        return hotRepeatFromEnglish == that.hotRepeatFromEnglish &&
+                hotRepeatFromNative == that.hotRepeatFromNative &&
                 Objects.equals(wordId, that.wordId) &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(value, that.value);
@@ -89,7 +89,7 @@ public class WordForDictionaryListResponse {
 
     @Override
     public int hashCode() {
-        return Objects.hash(wordId, userId, value, isHotRepeatFromEnglish, isHotRepeatFromNative);
+        return Objects.hash(wordId, userId, value, hotRepeatFromEnglish, hotRepeatFromNative);
     }
 
     @Override
@@ -98,8 +98,8 @@ public class WordForDictionaryListResponse {
                 "wordId=" + wordId +
                 ", userId=" + userId +
                 ", value='" + value + '\'' +
-                ", isHotRepeatFromEnglish=" + isHotRepeatFromEnglish +
-                ", isHotRepeatFromNative=" + isHotRepeatFromNative +
+                ", isHotRepeatFromEnglish=" + hotRepeatFromEnglish +
+                ", isHotRepeatFromNative=" + hotRepeatFromNative +
                 '}';
     }
 
