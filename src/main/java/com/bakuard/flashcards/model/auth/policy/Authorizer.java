@@ -18,11 +18,11 @@ public class Authorizer {
 
 
     private final List<Policy> policies;
-    private final Access exceptionLevel;
+    private final boolean strictMode;
 
-    private Authorizer(List<Policy> policies, Access exceptionLevel) {
+    private Authorizer(List<Policy> policies, boolean strictMode) {
         this.policies = policies;
-        this.exceptionLevel = exceptionLevel;
+        this.strictMode = strictMode;
     }
 
     public Access checkAccess(UUID principalId, String resourceType, Object resourcePayload, String action) {
@@ -52,7 +52,8 @@ public class Authorizer {
     }
 
     public void assertToHasAccess(AuthRequest request) {
-        if(checkAccess(request).getLevel() <= exceptionLevel.getLevel()) {
+        Access access = checkAccess(request);
+        if(access == Access.DENY || access == Access.UNKNOWN && strictMode) {
             throw PermissionDeniedException.newBuilder().
                     setUserAndResourceAndActionBy(request).
                     setMessageBy(request).
@@ -82,11 +83,11 @@ public class Authorizer {
     public static class Builder {
 
         private final List<Policy> policies;
-        private Access exceptionLevel;
+        private boolean strictMode;
 
         private Builder() {
             policies = new ArrayList<>();
-            exceptionLevel = Access.UNKNOWN;
+            strictMode = true;
         }
 
         public Builder policy(Policy policy) {
@@ -94,13 +95,13 @@ public class Authorizer {
             return this;
         }
 
-        public Builder throwIfResultLessOrEqual(Access exceptionLevel) {
-            this.exceptionLevel = exceptionLevel;
+        public Builder throwIfAccessCheckReturnUnknown(boolean strictMode) {
+            this.strictMode = strictMode;
             return this;
         }
 
         public Authorizer build() {
-            return new Authorizer(policies, exceptionLevel);
+            return new Authorizer(policies, strictMode);
         }
 
     }

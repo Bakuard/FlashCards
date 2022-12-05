@@ -80,7 +80,7 @@ public class ExampleResponse {
                 "origin='" + origin + '\'' +
                 ", translate='" + translate + '\'' +
                 ", note='" + note + '\'' +
-                ", sourceInfo=" + outerSource +
+                ", outerSource=" + outerSource +
                 '}';
     }
 

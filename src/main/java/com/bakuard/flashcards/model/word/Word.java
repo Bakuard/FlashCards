@@ -158,6 +158,11 @@ public class Word implements Entity {
                 flatMap(transcription -> transcription.getRecentUpdateDate(outerSourceName));
     }
 
+    public boolean hasTranscriptionsOfOuterSource(String outerSourceName) {
+        return transcriptions.stream().
+                anyMatch(transcription -> transcription.hasOuterSource(outerSourceName));
+    }
+
     public List<WordTranslation> getTranslations() {
         return Collections.unmodifiableList(translations);
     }

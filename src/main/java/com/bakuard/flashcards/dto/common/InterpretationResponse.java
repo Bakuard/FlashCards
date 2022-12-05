@@ -56,7 +56,7 @@ public class InterpretationResponse {
     public String toString() {
         return "InterpretationResponse{" +
                 "value='" + value + '\'' +
-                ", sourceInfo=" + outerSource +
+                ", outerSource=" + outerSource +
                 '}';
     }
 

@@ -72,7 +72,7 @@ public class TranscriptionResponse {
         return "TranscriptionResponse{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
-                ", sourceInfo=" + outerSource +
+                ", outerSource=" + outerSource +
                 '}';
     }
 

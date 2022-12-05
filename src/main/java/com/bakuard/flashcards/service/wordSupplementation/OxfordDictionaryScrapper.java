@@ -35,9 +35,7 @@ public class OxfordDictionaryScrapper implements WordSupplementation {
 
     @Override
     public Word supplement(Word word) {
-        if(word.getTranscriptionsRecentUpdateDate(outerSourceName).
-                map(date -> durationGreaterThan(date, 90)).
-                orElse(true)) {
+        if(!word.hasTranscriptionsOfOuterSource(outerSourceName)) {
             try {
                 logger.info("get transcriptions for word '{}' from {}", word.getValue(), outerSourceName);
                 transcriptions(word.getValue()).forEach(word::mergeTranscription);

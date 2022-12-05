@@ -73,7 +73,7 @@ public class TranslateResponse {
         return "TranslateResponse{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
-                ", sourceInfo=" + outerSource +
+                ", outerSource=" + outerSource +
                 '}';
     }
 
