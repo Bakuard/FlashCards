@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @Tag(name = "Словарь слов пользователя")
-@SecurityRequirement(name = "JWTScheme")
+@SecurityRequirement(name = "commonToken")
 @RestController
 @RequestMapping("/dictionary/words")
 public class DictionaryOfWordsController {

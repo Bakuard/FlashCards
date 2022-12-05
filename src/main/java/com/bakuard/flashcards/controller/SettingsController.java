@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Общие настройки словарей и режимов повторения отдельного пользователя.")
-@SecurityRequirement(name = "JWTScheme")
+@SecurityRequirement(name = "commonToken")
 @RestController
 @RequestMapping("/settings")
 public class SettingsController {

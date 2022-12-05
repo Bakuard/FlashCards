@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @Tag(name = "Контроллер статистики")
-@SecurityRequirement(name = "JWTScheme")
+@SecurityRequirement(name = "commonToken")
 @RestController
 @RequestMapping("/statistic")
 public class StatisticController {

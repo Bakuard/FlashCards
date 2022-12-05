@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.dal.impl.fragment;
+package com.bakuard.flashcards.dal.fragment;
 
 public interface UserSaver<T> {
 

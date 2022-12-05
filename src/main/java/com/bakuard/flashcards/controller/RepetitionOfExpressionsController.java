@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @Tag(name = "Повторение устойчевых выражений пользователя")
-@SecurityRequirement(name = "JWTScheme")
+@SecurityRequirement(name = "commonToken")
 @RestController
 @RequestMapping("/repetition/expressions")
 public class RepetitionOfExpressionsController {

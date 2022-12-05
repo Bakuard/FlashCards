@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @Tag(name = "Словарь устойчевых выражений пользователя")
-@SecurityRequirement(name = "JWTScheme")
+@SecurityRequirement(name = "commonToken")
 @RestController
 @RequestMapping("/dictionary/expressions")
 public class DictionaryOfExpressionsController {

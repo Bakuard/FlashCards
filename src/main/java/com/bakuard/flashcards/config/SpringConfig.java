@@ -9,8 +9,8 @@ import com.bakuard.flashcards.dal.*;
 import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.StatisticRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.WordOuterSourceBufferImpl;
-import com.bakuard.flashcards.dal.impl.fragment.UserSaver;
-import com.bakuard.flashcards.dal.impl.fragment.UserSaverImpl;
+import com.bakuard.flashcards.dal.fragment.UserSaver;
+import com.bakuard.flashcards.dal.fragment.UserSaverImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.auth.credential.User;
@@ -61,7 +61,9 @@ import java.time.Clock;
 @EnableTransactionManagement
 @EnableJdbcRepositories(basePackages = {"com.bakuard.flashcards.dal"})
 @ConfigurationPropertiesScan
-@SecurityScheme(name = "JWTScheme", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
+@SecurityScheme(name = "commonToken", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
+@SecurityScheme(name = "registrationToken", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
+@SecurityScheme(name = "restorePassToken", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 public class SpringConfig implements WebMvcConfigurer {
 
         @Bean

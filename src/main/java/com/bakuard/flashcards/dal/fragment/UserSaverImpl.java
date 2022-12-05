@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.dal.impl.fragment;
+package com.bakuard.flashcards.dal.fragment;
 
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.model.auth.credential.User;

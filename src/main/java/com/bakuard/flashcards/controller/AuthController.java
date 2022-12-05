@@ -109,7 +109,7 @@ public class AuthController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @SecurityRequirement(name = "JWTScheme")
+    @SecurityRequirement(name = "registrationToken")
     @PostMapping("/registration/finalStep")
     public ResponseEntity<JwsResponse> registerFinalStep() {
         Credential credential = requestContext.getCurrentJwsBodyAs(Credential.class);
@@ -154,7 +154,7 @@ public class AuthController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @SecurityRequirement(name = "JWTScheme")
+    @SecurityRequirement(name = "restorePassToken")
     @PostMapping("/restorePassword/finalStep")
     public ResponseEntity<JwsResponse> restorePasswordFinalStep() {
         Credential credential = requestContext.getCurrentJwsBodyAs(Credential.class);
@@ -192,7 +192,7 @@ public class AuthController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @SecurityRequirement(name = "JWTScheme")
+    @SecurityRequirement(name = "commonToken")
     @PutMapping
     public ResponseEntity<UserResponse> update(@RequestBody UserUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
@@ -213,7 +213,7 @@ public class AuthController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @SecurityRequirement(name = "JWTScheme")
+    @SecurityRequirement(name = "commonToken")
     @GetMapping("/jws")
     public ResponseEntity<UserResponse> getUserByJws() {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
@@ -247,7 +247,7 @@ public class AuthController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @SecurityRequirement(name = "JWTScheme")
+    @SecurityRequirement(name = "commonToken")
     @GetMapping("/id")
     public ResponseEntity<UserResponse> getUserById(
             @RequestParam
@@ -281,7 +281,7 @@ public class AuthController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @SecurityRequirement(name = "JWTScheme")
+    @SecurityRequirement(name = "commonToken")
     @GetMapping
     public ResponseEntity<Page<UserResponse>> findAllBy(
             @RequestParam
@@ -354,7 +354,7 @@ public class AuthController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @SecurityRequirement(name = "JWTScheme")
+    @SecurityRequirement(name = "commonToken")
     @DeleteMapping("/deletion/firstStep")
     public ResponseEntity<String> deleteFirstStep(
             @RequestParam
@@ -384,7 +384,7 @@ public class AuthController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @SecurityRequirement(name = "JWTScheme")
+    @SecurityRequirement(name = "commonToken")
     @DeleteMapping("/deletion/finalStep")
     public ResponseEntity<String> deleteFinalStep() {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);
