@@ -19,6 +19,10 @@ public class MutableClock extends Clock {
         this.instant = LocalDate.of(years, month, days).atStartOfDay(zoneId).toInstant();
     }
 
+    public LocalDate getDate() {
+        return LocalDate.ofInstant(instant, zoneId);
+    }
+
     @Override
     public ZoneId getZone() {
         return zoneId;

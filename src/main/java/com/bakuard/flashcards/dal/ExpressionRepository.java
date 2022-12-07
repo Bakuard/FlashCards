@@ -21,7 +21,8 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
 
     @Query("""
             select * from expressions
-                where user_id = :userId and distance(:value, value, :maxDistance) != -1;
+                where user_id = :userId and distance(:value, value, :maxDistance) != -1
+                order by value limit :limit offset :offset;
             """)
     public List<Expression> findByValue(UUID userId, String value, int maxDistance, long limit, long offset);
 

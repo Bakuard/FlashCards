@@ -21,7 +21,8 @@ public interface WordRepository extends PagingAndSortingRepository<Word, UUID> {
 
     @Query("""
             select * from words
-                where user_id = :userId and distance(:value, value, :maxDistance) != -1;
+                where user_id = :userId and distance(:value, value, :maxDistance) != -1
+                order by value limit :limit offset :offset;
             """)
     public List<Word> findByValue(UUID userId, String value, int maxDistance, long limit, long offset);
 

@@ -266,7 +266,7 @@ public class DictionaryOfWordsController {
                     <ol>
                         <li>asc (по умолчанию)</li>
                         <li>ascending</li>
-                        <li>dec</li>
+                        <li>desc</li>
                         <li>descending</li>
                     </ol>
                     """,

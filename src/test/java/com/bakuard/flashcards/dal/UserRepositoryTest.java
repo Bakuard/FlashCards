@@ -5,6 +5,8 @@ import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
+import com.bakuard.flashcards.model.filter.SortRules;
+import com.bakuard.flashcards.model.filter.SortedEntity;
 import com.bakuard.flashcards.validation.InvalidParameter;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
@@ -16,6 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.TestPropertySource;
@@ -24,8 +30,12 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
@@ -42,6 +52,8 @@ class UserRepositoryTest {
     private ValidatorUtil validator;
     @Autowired
     private ConfigData configData;
+    @Autowired
+    private SortRules sortRules;
 
     @BeforeEach
     public void beforeEach() {
@@ -299,6 +311,51 @@ class UserRepositoryTest {
         Assertions.assertThat(actual).
                 usingRecursiveFieldByFieldElementComparator().
                 containsExactly(users.get(1), users.get(2));
+    }
+
+    @Test
+    @DisplayName("""
+            findAll(pageable):
+             sorted property is email
+             => return correct sorted result
+            """)
+    public void findAll1() {
+        List<User> users = IntStream.range(10, 61).mapToObj(this::user).toList();
+        commit(() -> users.forEach(u -> userRepository.save(u)));
+
+        Pageable pageable = PageRequest.of(3, 5, sortRules.toSort("email.desc", SortedEntity.USER));
+        Page<User> actual = userRepository.findAll(pageable);
+
+        Assertions.assertThat(actual.getContent()).
+                usingRecursiveFieldByFieldElementComparator().
+                containsExactly(
+                        users.get(35),
+                        users.get(34),
+                        users.get(33),
+                        users.get(32),
+                        users.get(31)
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            findAll(pageable):
+             sorted property is id
+             => return correct sorted result
+            """)
+    public void findAll2() {
+        List<User> users = IntStream.range(10, 61).
+                mapToObj(this::user).
+                collect(Collectors.toCollection(ArrayList::new));
+        commit(() -> users.forEach(u -> userRepository.save(u)));
+        users.sort(Comparator.comparing(u -> u.getId().toString()));
+
+        Pageable pageable = PageRequest.of(0, 15, sortRules.toSort("id", SortedEntity.USER));
+        Page<User> actual = userRepository.findAll(pageable);
+
+        Assertions.assertThat(actual.getContent()).
+                usingRecursiveFieldByFieldElementComparator().
+                containsExactlyElementsOf(users.subList(0, 15));
     }
 
 

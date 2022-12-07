@@ -97,7 +97,7 @@ class SortRulesTest {
         Sort actual = sortRules.getDefaultSort(SortedEntity.USER);
 
         Assertions.assertThat(actual).
-                containsExactly(Sort.Order.asc("user_id"));
+                containsExactly(Sort.Order.asc("id"));
     }
 
     @Test
@@ -184,7 +184,7 @@ class SortRulesTest {
         Sort actual = sortRules.toSort(null, SortedEntity.USER);
 
         Assertions.assertThat(actual).
-                containsExactly(Sort.Order.asc("user_id"));
+                containsExactly(Sort.Order.asc("id"));
     }
 
     @Test
@@ -223,12 +223,12 @@ class SortRulesTest {
              => return correct Sort object for USER
             """)
     public void toSort9() {
-        Sort actual1 = sortRules.toSort("user_id.asc", SortedEntity.USER);
+        Sort actual1 = sortRules.toSort("id.asc", SortedEntity.USER);
         Sort actual2 = sortRules.toSort("email.asc", SortedEntity.USER);
 
         SoftAssertions softAssertions = new SoftAssertions();
         softAssertions.assertThat(actual1).
-                containsExactly(Sort.Order.asc("user_id"));
+                containsExactly(Sort.Order.asc("id"));
         softAssertions.assertThat(actual2).
                 containsExactly(Sort.Order.asc("email"));
         softAssertions.assertAll();

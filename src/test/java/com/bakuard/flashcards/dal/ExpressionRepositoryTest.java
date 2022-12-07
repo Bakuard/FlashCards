@@ -9,6 +9,7 @@ import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.expression.ExpressionExample;
 import com.bakuard.flashcards.model.expression.ExpressionInterpretation;
 import com.bakuard.flashcards.model.expression.ExpressionTranslation;
+import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,8 @@ class ExpressionRepositoryTest {
     private ValidatorUtil validator;
     @Autowired
     private MutableClock clock;
+    @Autowired
+    private SortRules sortRules;
 
     @BeforeEach
     public void beforeEach() {
@@ -860,7 +863,7 @@ class ExpressionRepositoryTest {
                 usingRecursiveFieldByFieldElementComparator().
                 containsExactly(expressionD, expressionE, expressionF);
     }
-
+    
 
     private UUID toUUID(int number) {
         return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
@@ -891,7 +894,7 @@ class ExpressionRepositoryTest {
                 addExample(new ExpressionExample("exampleB", "exampleTranslate", "noteA")).
                 addExample(new ExpressionExample("exampleC", "exampleTranslate", "noteA"));
     }
-
+    
     private List<Expression> expressions(UUID userId) {
         ArrayList<Expression> expressions = new ArrayList<>();
 

@@ -6,7 +6,6 @@ import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public class SortRules {
@@ -23,7 +22,7 @@ public class SortRules {
             case EXPRESSION_STATISTIC, WORD_STATISTIC ->
                     result = Sort.by("remember_from_english", "value").ascending();
             case USER ->
-                    result = Sort.by("user_id").ascending();
+                    result = Sort.by("id").ascending();
             default -> throw new IllegalArgumentException("Unsupported sorted entity = '" + sortedEntity +'\'');
         }
         return result;
@@ -68,7 +67,7 @@ public class SortRules {
                     "repeat_interval_from_native",
                     "last_date_of_repeat_from_native");
             case USER -> assertParameterIsOneOf(processedParameter,
-                    "user_id", "email");
+                    "id", "email");
             case WORD_STATISTIC, EXPRESSION_STATISTIC -> assertParameterIsOneOf(processedParameter,
                     "value",
                     "remember_from_english",
@@ -105,8 +104,8 @@ public class SortRules {
                 }
             }
             case USER -> {
-                if(notContainsParam(sort, "user_id", "email")) {
-                    result = sort.and(Sort.by("user_id").ascending());
+                if(notContainsParam(sort, "id", "email")) {
+                    result = sort.and(Sort.by("id").ascending());
                 }
             }
         }

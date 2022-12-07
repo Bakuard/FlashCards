@@ -297,7 +297,7 @@ public class AuthController {
                     <br/></br>
                     Допустимые параметры (без учета регистра символов):
                     <ol>
-                        <li>user_id - сортировка по идентификатору</li>
+                        <li>id - сортировка по идентификатору</li>
                         <li>email - сортировка по почте</li>
                     </ol>
                     Параметры сортировки можно комбинировать через запятую.
@@ -307,11 +307,11 @@ public class AuthController {
                     <ol>
                         <li>asc (по умолчанию)</li>
                         <li>ascending</li>
-                        <li>dec</li>
+                        <li>desc</li>
                         <li>descending</li>
                     </ol>
                     """,
-                    schema = @Schema(defaultValue = "user_id.asc"))
+                    schema = @Schema(defaultValue = "id.asc"))
             String sort) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} find users by page={}, size={}, sort={}", userId, page, size, sort);
