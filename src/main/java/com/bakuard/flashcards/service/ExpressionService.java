@@ -146,12 +146,12 @@ public class ExpressionService {
 
     public boolean isHotRepeatFromEnglish(Expression expression) {
         List<Integer> intervals = intervalRepository.findAll(expression.getUserId());
-        return expression.isHotRepeatFromEnglish(intervals.get(0));
+        return expression.getRepeatDataFromEnglish().isHotRepeat(intervals.get(0));
     }
 
     public boolean isHotRepeatFromNative(Expression expression) {
         List<Integer> intervals = intervalRepository.findAll(expression.getUserId());
-        return expression.isHotRepeatFromNative(intervals.get(0));
+        return expression.getRepeatDataFromNative().isHotRepeat(intervals.get(0));
     }
 
 }

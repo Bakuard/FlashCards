@@ -21,6 +21,9 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * Подробные данные об устойчевом выражении в словаре пользователя.
+ */
 @Table("expressions")
 public class Expression implements Entity {
 
@@ -55,6 +58,18 @@ public class Expression implements Entity {
     @Valid
     private RepeatDataFromNative repeatDataFromNative;
 
+    /**
+     * Данный конструктор используется слоем доступа к данным для загрузки устойчевого выражения.
+     * @param id уникальный идентификатор устойчевого выражения.
+     * @param userId уникальный идентификатор пользователя к словарю которого относится это устойчевое выражение.
+     * @param value устойчевое выражение на английском языке
+     * @param note примечание к устоцчевому выражению.
+     * @param interpretations список интерпритаций устойчевого выражения.
+     * @param translations список переводов устойчевого выражения.
+     * @param examples список примеров к устойчевому выражению.
+     * @param repeatDataFromEnglish данные последнего повторения устойчевого выражения с английского языка.
+     * @param repeatDataFromNative данные последнего повторения устойчевого выражения с родного языка пользователя.
+     */
     @PersistenceCreator
     public Expression(UUID id,
                       UUID userId,
@@ -76,6 +91,15 @@ public class Expression implements Entity {
         this.repeatDataFromNative = repeatDataFromNative;
     }
 
+    /**
+     * Создает новое устойчевое выражение для словаря пользователя.
+     * @param userId уникальный идентификатор пользователя к словарю которого относится это устойчевое выражение.
+     * @param lowestIntervalForEnglish наименьший из всех интервалов повторения данного пользователя.
+     *                                 Подробнее см. {@link RepeatDataFromEnglish}.
+     * @param lowestIntervalForNative наименьший из всех интервалов повторения данного пользователя.
+     *                                Подробнее см. {@link RepeatDataFromNative}.
+     * @param clock используется для получения текущей даты и возможности её опредления в тестах.
+     */
     public Expression(UUID userId,
                       int lowestIntervalForEnglish,
                       int lowestIntervalForNative,
@@ -88,56 +112,91 @@ public class Expression implements Entity {
         this.repeatDataFromNative = new RepeatDataFromNative(lowestIntervalForNative, LocalDate.now(clock));
     }
 
+    /**
+     * см. {@link Entity#getId()}
+     */
     @Override
     public UUID getId() {
         return id;
     }
 
+    /**
+     * см. {@link Entity#isNew()}
+     */
     @Override
     public boolean isNew() {
         return id == null;
     }
 
+    /**
+     * Возвращает уникальный идентификатор пользователя к словарю которого отностися устойчевое выражение.
+     * @return уникальный идентификатор пользователя к словарю которого отностися устойчевое выражение.
+     */
     public UUID getUserId() {
         return userId;
     }
 
+    /**
+     * Возвращает устойчевое выражение на английском языке
+     * @return устойчевое выражение на английском языке
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * Возвращает примечание к устойчевому выражению добавленное пользователем.
+     * @return примечание к устойчевому выражению.
+     */
     public String getNote() {
         return note;
     }
 
+    /**
+     * Возвращает список всех интерпритация устойчевого выражения.
+     * @return список всех интерпритация устойчевого выражения.
+     */
     public List<ExpressionInterpretation> getInterpretations() {
         return Collections.unmodifiableList(interpretations);
     }
 
+    /**
+     * Возвращает список переводов устойчевого выражения.
+     * @return список переводов устойчевого выражения.
+     */
     public List<ExpressionTranslation> getTranslations() {
         return Collections.unmodifiableList(translations);
     }
 
+    /**
+     * Возвращает список примеров устойчевого выражения.
+     * @return список примеров устойчевого выражения.
+     */
     public List<ExpressionExample> getExamples() {
         return Collections.unmodifiableList(examples);
     }
 
+    /**
+     * Возвращает данные последнего повторения устойчевого выражения с английского языка на родной
+     * язык пользователя.
+     * @return данные последнего повторения устойчевого выражения с английского языка.
+     */
     public RepeatDataFromEnglish getRepeatDataFromEnglish() {
         return repeatDataFromEnglish;
     }
 
+    /**
+     * Возвращает данные последнего повторения устойчевого выражения с родного языка пользователя
+     * на английский язык.
+     * @return данные последнего повторения устойчевого выражения с родного языка пользователя.
+     */
     public RepeatDataFromNative getRepeatDataFromNative() {
         return repeatDataFromNative;
     }
 
-    public boolean isHotRepeatFromEnglish(int lowestInterval) {
-        return repeatDataFromEnglish.interval() == lowestInterval;
-    }
-
-    public boolean isHotRepeatFromNative(int lowestInterval) {
-        return repeatDataFromNative.interval() == lowestInterval;
-    }
-
+    /**
+     * см. {@link Entity#generateIdIfAbsent()}
+     */
     @Override
     public void generateIdIfAbsent() {
         if(id == null) id = UUID.randomUUID();
@@ -186,6 +245,15 @@ public class Expression implements Entity {
         return this;
     }
 
+    /**
+     * Задает результат последнего повторения этого устойчевого выражения с английского языка
+     * на родной язык пользователя.
+     * @param isRemember true - если пользователь правильно вспомнил переводы, произношение и толкования
+     *                   устойчевого выражения, иначе - false.
+     * @param lastDateOfRepeat дата текущего повторения.
+     * @param intervals все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     *                  пользователя.
+     */
     public void repeatFromEnglish(boolean isRemember, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
         int index = isRemember ?
                 Math.min(intervals.indexOf(repeatDataFromEnglish.interval()) + 1, intervals.size() - 1) : 0;
@@ -193,6 +261,16 @@ public class Expression implements Entity {
         repeatDataFromEnglish = new RepeatDataFromEnglish(intervals.get(index), lastDateOfRepeat);
     }
 
+    /**
+     * Проверяет указанное пользователем значение устойчевого выражения при его повторении с родного языка пользователя
+     * на английский язык. Если заданное значение равняется значению текущего устойчевого выражения - повторения
+     * считается успешным.
+     * @param inputValue значение устойчевого выражения на английском языке.
+     * @param lastDateOfRepeat дата текущего повторения.
+     * @param intervals все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     *                  пользователя.
+     * @return true - если повторение выполнено успешно, иначе - false.
+     */
     public boolean repeatFromNative(String inputValue, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
         boolean isRemember = inputValue.equalsIgnoreCase(value);
         int index = inputValue.equalsIgnoreCase(value) ?
@@ -203,10 +281,26 @@ public class Expression implements Entity {
         return isRemember;
     }
 
+    /**
+     * Указывает, что пользователь забыл перевод данного устойчевого выражения с английского на родной язык и его
+     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения,
+     * установит наименьший из интервалов повторения пользователя.
+     * @param lastDateOfRepeat текущая дата.
+     * @param lowestInterval наименьший из интервалов повторения пользователя
+     *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     */
     public void markForRepetitionFromEnglish(LocalDate lastDateOfRepeat, int lowestInterval) {
         repeatDataFromEnglish = new RepeatDataFromEnglish(lowestInterval, lastDateOfRepeat);
     }
 
+    /**
+     * Указывает, что пользователь забыл перевод данного устойчевого выражения с родного языка на английский и его
+     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения,
+     * установит наименьший из интервалов повторения пользователя.
+     * @param lastDateOfRepeat текущая дата.
+     * @param lowestInterval наименьший из интервалов повторения пользователя
+     *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     */
     public void markForRepetitionFromNative(LocalDate lastDateOfRepeat, int lowestInterval) {
         repeatDataFromNative = new RepeatDataFromNative(lowestInterval, lastDateOfRepeat);
     }

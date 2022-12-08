@@ -201,7 +201,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
                 ps -> ps.setString(1, wordValue));
 
         List<Pair<WordTranscription, OuterSource>> pairs = transcriptions.stream().
-                flatMap(transcription -> transcription.getSourceInfo().stream().
+                flatMap(transcription -> transcription.getOuterSource().stream().
                         map(s -> Pair.of(transcription, s))).
                 toList();
 
@@ -241,7 +241,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
                 ps -> ps.setString(1, wordValue));
 
         List<Pair<WordInterpretation, OuterSource>> pairs = interpretations.stream().
-                flatMap(interpretation -> interpretation.getSourceInfo().stream().
+                flatMap(interpretation -> interpretation.getOuterSource().stream().
                         map(s -> Pair.of(interpretation, s))).
                 toList();
 
@@ -281,7 +281,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
                 ps -> ps.setString(1, wordValue));
 
         List<Pair<WordTranslation, OuterSource>> pairs = translations.stream().
-                flatMap(translation -> translation.getSourceInfo().stream().
+                flatMap(translation -> translation.getOuterSource().stream().
                         map(s -> Pair.of(translation, s))).
                 toList();
 
@@ -327,7 +327,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
                         new BatchPreparedStatementSetter() {
                             @Override
                             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                                ExampleOuterSource outerSource = example.getSourceInfo().get(i);
+                                ExampleOuterSource outerSource = example.getOuterSource().get(i);
 
                                 ps.setString(1, example.getOrigin());
                                 ps.setString(2, outerSource.translate());
@@ -338,7 +338,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
 
                             @Override
                             public int getBatchSize() {
-                                return example.getSourceInfo().size();
+                                return example.getOuterSource().size();
                             }
                         }
                 )

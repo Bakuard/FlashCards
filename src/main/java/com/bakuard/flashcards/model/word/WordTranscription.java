@@ -46,7 +46,7 @@ public class WordTranscription {
         return note;
     }
 
-    public List<OuterSource> getSourceInfo() {
+    public List<OuterSource> getOuterSource() {
         return outerSource;
     }
 

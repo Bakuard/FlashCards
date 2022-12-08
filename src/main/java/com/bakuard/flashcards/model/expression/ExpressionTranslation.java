@@ -8,6 +8,9 @@ import org.springframework.data.relational.core.mapping.Table;
 import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
+/**
+ * Перевод устойчевого выражения.
+ */
 @Table("expressions_translations")
 public class ExpressionTranslation {
 
@@ -18,16 +21,29 @@ public class ExpressionTranslation {
     @NotBlankOrNull(message = "ExpressionTranslation.note.notBlankOrNull")
     private final String note;
 
+    /**
+     * Создает устойчевое выражение.
+     * @param value перевод устойчевого выражения.
+     * @param note примечание к переводу устойчевого выражения.
+     */
     @PersistenceCreator
     public ExpressionTranslation(String value, String note) {
         this.value = value;
         this.note = note;
     }
 
+    /**
+     * Возвращает перевод устойчевого выражения.
+     * @return перевод устойчевого выражения.
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * Возвращает примечание к переводу устойчевого выражения.
+     * @return примечание к переводу устойчевого выражения.
+     */
     public String getNote() {
         return note;
     }

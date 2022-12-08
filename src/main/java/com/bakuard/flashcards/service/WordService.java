@@ -163,12 +163,12 @@ public class WordService {
 
     public boolean isHotRepeatFromEnglish(Word word) {
         List<Integer> intervals = intervalRepository.findAll(word.getUserId());
-        return word.isHotRepeatFromEnglish(intervals.get(0));
+        return word.getRepeatDataFromEnglish().isHotRepeat(intervals.get(0));
     }
 
     public boolean isHotRepeatFromNative(Word word) {
         List<Integer> intervals = intervalRepository.findAll(word.getUserId());
-        return word.isHotRepeatFromNative(intervals.get(0));
+        return word.getRepeatDataFromNative().isHotRepeat(intervals.get(0));
     }
 
 

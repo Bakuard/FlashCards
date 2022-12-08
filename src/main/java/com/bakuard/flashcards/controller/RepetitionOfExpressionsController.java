@@ -295,6 +295,7 @@ public class RepetitionOfExpressionsController {
         authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "markForRepetitionFromEnglish");
 
         Expression expression = expressionService.markForRepetitionFromEnglish(dto.getUserId(), dto.getExpressionId());
+        statisticService.appendExpressionFromEnglish(dto.getUserId(), dto.getExpressionId(), false);
 
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }
@@ -339,6 +340,7 @@ public class RepetitionOfExpressionsController {
         authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "markForRepetitionFromNative");
 
         Expression expression = expressionService.markForRepetitionFromNative(dto.getUserId(), dto.getExpressionId());
+        statisticService.appendExpressionFromNative(dto.getUserId(), dto.getExpressionId(), false);
 
         return ResponseEntity.ok(mapper.toExpressionResponse(expression));
     }

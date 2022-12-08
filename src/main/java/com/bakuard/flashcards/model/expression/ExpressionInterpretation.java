@@ -7,6 +7,9 @@ import org.springframework.data.relational.core.mapping.Table;
 import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
+/**
+ * Интерпритация у устойчевому выражению.
+ */
 @Table("expressions_interpretations")
 public class ExpressionInterpretation {
 
@@ -14,11 +17,19 @@ public class ExpressionInterpretation {
     @NotBlank(message = "ExpressionInterpretation.value.notBlank")
     private final String value;
 
+    /**
+     * Создает интерпритацию к устойчевому выражению.
+     * @param value интерпритация к устойчевому выражению.
+     */
     @PersistenceCreator
     public ExpressionInterpretation(String value) {
         this.value = value;
     }
 
+    /**
+     * Возвращает интерпритацию к устойчевому выражению.
+     * @return интерпритацию к устойчевому выражению.
+     */
     public String getValue() {
         return value;
     }

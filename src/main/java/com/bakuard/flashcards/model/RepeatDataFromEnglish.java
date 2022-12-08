@@ -5,6 +5,11 @@ import org.springframework.data.relational.core.mapping.Column;
 import javax.validation.constraints.Min;
 import java.time.LocalDate;
 
+/**
+ * Данные о последнем повторении слова или устойчевого выражения с английского языка на родной язык пользователя.
+ * @param interval кол-во дней до слеущего повторения с английского языка на родной язык пользователя.
+ * @param lastDateOfRepeat дата последнего повторения с английского языка на родной язык пользователя.
+ */
 public record RepeatDataFromEnglish(
         @Column("repeat_interval_from_english")
         @Min(value = 1, message = "RepeatDataFromEnglish.interval.min")
@@ -12,8 +17,23 @@ public record RepeatDataFromEnglish(
         @Column("last_date_of_repeat_from_english")
         LocalDate lastDateOfRepeat) {
 
+    /**
+     * Создает и возвращает точную копию переданного объекта.
+     * @param data копируемый объект.
+     * @return точная копия переданног объекта.
+     */
     public static RepeatDataFromEnglish copy(RepeatDataFromEnglish data) {
         return new RepeatDataFromEnglish(data.interval, data.lastDateOfRepeat);
+    }
+
+
+    /**
+     * Проверяет - является ли слово новым в словаре пользователя или было ли последнее повторение слова успешным.
+     * @param lowestRepeatInterval наименьший из интервалов повторения пользователя.
+     * @return true - если выполняется описанное выше условие, иначе - false.
+     */
+    public boolean isHotRepeat(int lowestRepeatInterval) {
+        return lowestRepeatInterval == interval;
     }
 
 }

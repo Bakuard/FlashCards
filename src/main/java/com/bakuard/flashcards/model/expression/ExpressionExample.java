@@ -8,6 +8,9 @@ import org.springframework.data.relational.core.mapping.Table;
 import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
+/**
+ * Пример к устойчевому выражению.
+ */
 @Table("expressions_examples")
 public class ExpressionExample {
 
@@ -21,6 +24,12 @@ public class ExpressionExample {
     @NotBlankOrNull(message = "ExpressionExample.note.notBlankOrNull")
     private final String note;
 
+    /**
+     * Данный конструктор используется слоем доступа к данным для загрузки примера к устойчевому выражению.
+     * @param origin пример к устойчевому выражению на английском языке.
+     * @param translate перевод примера на родной язык пользователя.
+     * @param note примечание к примеру добавляемое пользователем.
+     */
     @PersistenceCreator
     public ExpressionExample(String origin, String translate, String note) {
         this.origin = origin;
@@ -28,14 +37,26 @@ public class ExpressionExample {
         this.note = note;
     }
 
+    /**
+     * Возвращает пример к устойчевому выражению на английском языке.
+     * @return пример к устойчевому выражению на английском языке.
+     */
     public String getOrigin() {
         return origin;
     }
 
+    /**
+     * Возвращает перевод примера на родной язык пользователя.
+     * @return перевод примера на родной язык пользователя.
+     */
     public String getTranslate() {
         return translate;
     }
 
+    /**
+     * Возвращает примечание к примеру добавляемое пользователем.
+     * @return примечание к примеру добавляемое пользователем.
+     */
     public String getNote() {
         return note;
     }

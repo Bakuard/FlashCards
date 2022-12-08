@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Пример к слову.
+ */
 @Table("words_examples")
 public class WordExample {
 
@@ -28,6 +31,12 @@ public class WordExample {
     @Transient
     private final List<ExampleOuterSource> outerSource;
 
+    /**
+     * Создает пример к слову.
+     * @param origin значение примера к слову на английском языке.
+     * @param translate перевод примера на родной язык пользователя.
+     * @param note примечание к примеру добавляемое пользователем.
+     */
     @PersistenceCreator
     public WordExample(String origin, String translate, String note) {
         this.origin = origin;
@@ -36,6 +45,10 @@ public class WordExample {
         this.outerSource = new ArrayList<>();
     }
 
+    /**
+     * ВЫполняет глубокое копирование переданного примера к слову.
+     * @param other копируемый пример к слову.
+     */
     public WordExample(WordExample other) {
         this.origin = other.origin;
         this.translate = other.translate;
@@ -43,22 +56,44 @@ public class WordExample {
         this.outerSource = new ArrayList<>(other.outerSource);
     }
 
+    /**
+     * Возвращает значение примера к слову на английском языке.
+     * @return значение примера к слову на английском языке.
+     */
     public String getOrigin() {
         return origin;
     }
 
+    /**
+     * Возвращает перевод к примеру слова.
+     * @return перевод к примеру слова.
+     */
     public String getTranslate() {
         return translate;
     }
 
+    /**
+     * Возвращает примечание к примеру заданное пользователем.
+     * @return примечание к примеру.
+     */
     public String getNote() {
         return note;
     }
 
-    public List<ExampleOuterSource> getSourceInfo() {
+    /**
+     * Возвращает данные обо всех внешних источниках, которые использователись для перевода данного примера.
+     * @return данные обо всех внешних источников, которые использователись для перевода данного примера.
+     */
+    public List<ExampleOuterSource> getOuterSource() {
         return outerSource;
     }
 
+    /**
+     * Вовзращает дату последнего обновления перевода данного примера из внешнего сервиса с указанным именем. Если
+     * среди переводов данного примера нет перевода полученного из указанного сервиса - возвращает пустой Optional.
+     * @param outerSourceName имя внешнего сервиса используемого для перевода примера к слову.
+     * @return дату последнего обновления перевода данного примера из внешнего сервиса с указанным именем
+     */
     public Optional<LocalDate> getRecentUpdateDate(String outerSourceName) {
         return outerSource.stream().
                 filter(outerSource -> outerSource.sourceName().equals(outerSourceName)).
@@ -71,7 +106,23 @@ public class WordExample {
         return this;
     }
 
-    public boolean merge(WordExample other) {
+    /**
+     * Выполняет слияние данного примера c переданным примером, а именно: <br/>
+     * 1. если {@link #getOrigin()} данного примера и примера other возвращает разные значения, то метод
+     *    ничего не делает. Иначе выполняются нижеописанные шаги. <br/>
+     * 2. если данный пример слова и пример other имеют переводы полученные из одних и тех же
+     *    внешних сервисов, то такие переводы данного примера будут заменены соответствующими переводами
+     *    примера other. <br/>
+     * 3. если пример other иммеет переводы полученные из таких внешних сервисов, переводы из которых отсутствуют
+     *    в данном примере, то эти переводы будут добавленны в данный пример.<br/>
+     * 4. если данный пример имеет переводы полученные из таких внешних источников, переводы из которых
+     *    отсутствуют в примере other, то эти переводы остаются без изменений.<br/>
+     * 5. если данный пример не имеет перевода, то для него будет присвоено значение перевода примера other.
+     * @param other пример, данные которого сливаются с данными текущего примера по описаннмоу выше алгоритму.
+     * @return true - если значение данного примера на английском и аналогичное значение примера other совпадают,
+     *         иначе - false.
+     */
+    public boolean mergeIfHasSameValue(WordExample other) {
         boolean isMerged = origin.equals(other.origin);
         if(isMerged) {
             for(int i = 0; i < other.outerSource.size(); i++) {
@@ -92,6 +143,11 @@ public class WordExample {
         return isMerged;
     }
 
+    /**
+     * Добавляет к данному примеру перевод из нового внешнего сервиса и данные об этом сервисе.
+     * @param info перевод из нового внешнего сервиса и данные об этом сервисе.
+     * @return ссылку на этот же объект.
+     */
     public WordExample addSourceInfo(ExampleOuterSource info) {
         outerSource.add(info);
         return this;

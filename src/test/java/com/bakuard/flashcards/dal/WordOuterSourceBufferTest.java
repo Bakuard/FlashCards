@@ -144,10 +144,10 @@ class WordOuterSourceBufferTest {
         wordOuterSourceBuffer.mergeFromOuterSource(actualB);
         SoftAssertions softAssertions = new SoftAssertions();
         softAssertions.assertThat(actualA.getExamples()).
-                extracting(example -> example.getSourceInfo().size()).
+                extracting(example -> example.getOuterSource().size()).
                 containsExactly(0, 0, 0);
         softAssertions.assertThat(actualB.getExamples()).
-                extracting(example -> example.getSourceInfo().size()).
+                extracting(example -> example.getOuterSource().size()).
                 containsExactly(0, 0, 0);
         softAssertions.assertAll();
     }

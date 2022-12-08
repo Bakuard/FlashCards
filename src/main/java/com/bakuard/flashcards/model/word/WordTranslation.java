@@ -47,7 +47,7 @@ public class WordTranslation {
         return note;
     }
 
-    public List<OuterSource> getSourceInfo() {
+    public List<OuterSource> getOuterSource() {
         return outerSource;
     }
 

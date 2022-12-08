@@ -22,6 +22,9 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Подробные данные об одном слове английского языка в словаре пользователя.
+ */
 @Table("words")
 public class Word implements Entity {
 
@@ -60,6 +63,19 @@ public class Word implements Entity {
     @Valid
     private RepeatDataFromNative repeatDataFromNative;
 
+    /**
+     * Данный конструктор используется слоем доступа к данным для загрузки слова.
+     * @param id уникальный идентификатор слова.
+     * @param userId уникальный идентификатор пользователя к словарю которого относится это слово.
+     * @param value значение слова на английском языке.
+     * @param note примечание к слову добавляемое пользователем.
+     * @param interpretations интерпритации слова.
+     * @param transcriptions транскрипции слова.
+     * @param translations переводы слова.
+     * @param examples примеры слова.
+     * @param repeatDataFromEnglish данные последнего повторения слова с английского языка.
+     * @param repeatDataFromNative данные последнего повторения слова с родного языка пользователя.
+     */
     @PersistenceCreator
     public Word(UUID id,
                 UUID userId,
@@ -83,6 +99,15 @@ public class Word implements Entity {
         this.repeatDataFromNative = repeatDataFromNative;
     }
 
+    /**
+     * Создает новое слово для словаря указанного пользователя.
+     * @param userId уникальный идентификатор пользователя к словарю которого относится это слово.
+     * @param lowestIntervalForEnglish наименьший из всех интервалов повторения данного пользователя.
+     *                                 Подробнее см. {@link RepeatDataFromEnglish}.
+     * @param lowestIntervalForNative наименьший из всех интервалов повторения данного пользователя.
+     *                                Подробнее см. {@link RepeatDataFromNative}.
+     * @param clock используется для получения текущей даты и возможности её опредления в тестах.
+     */
     public Word(UUID userId, int lowestIntervalForEnglish, int lowestIntervalForNative, Clock clock) {
         this.userId = userId;
         this.interpretations = new ArrayList<>();
@@ -93,6 +118,10 @@ public class Word implements Entity {
         this.repeatDataFromNative = new RepeatDataFromNative(lowestIntervalForNative, LocalDate.now(clock));
     }
 
+    /**
+     * Выполняет глубокое копирование для указанного слова.
+     * @param other копируемое слово.
+     */
     public Word(Word other) {
         this.id = other.id;
         this.userId = other.userId;
@@ -114,32 +143,61 @@ public class Word implements Entity {
         this.repeatDataFromNative = RepeatDataFromNative.copy(other.repeatDataFromNative);
     }
 
+    /**
+     * см. {@link Entity#getId()}
+     */
     @Override
     public UUID getId() {
         return id;
     }
 
+    /**
+     * см. {@link Entity#isNew()}
+     */
     @Override
     public boolean isNew() {
         return id == null;
     }
 
+    /**
+     * Возвращает уникальный идентификатор пользователя к словарю которого отностися слово.
+     * @return уникальный идентификатор пользователя к словарю которого отностися слово.
+     */
     public UUID getUserId() {
         return userId;
     }
 
+    /**
+     * Возвращает значение слова на английском языке.
+     * @return значение слова на английском языке.
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * Возвращает примечание к слову добавленное пользователем.
+     * @return примечание к слову.
+     */
     public String getNote() {
         return note;
     }
 
+    /**
+     * Возвращает список всех интерпритация слова.
+     * @return список всех интерпритация слова.
+     */
     public List<WordInterpretation> getInterpretations() {
         return Collections.unmodifiableList(interpretations);
     }
 
+    /**
+     * Возвращает дату последнего обновления интерпитаций к слову из внешнего сервиса с указанным именем. Если
+     * среди интерпритаций слова нет интерпритаций полученных из указанного внешнего источника, то метод возвращает
+     * пустой Optional.
+     * @param outerSourceName имя внешнего сервиса используемого для получения интерпритаций к слову.
+     * @return дата последнего обновления интерпитаций к слову.
+     */
     public Optional<LocalDate> getInterpretationsRecentUpdateDate(String outerSourceName) {
         return interpretations.stream().
                 filter(interpretation -> interpretation.hasOuterSource(outerSourceName)).
@@ -147,10 +205,21 @@ public class Word implements Entity {
                 flatMap(interpretation -> interpretation.getRecentUpdateDate(outerSourceName));
     }
 
+    /**
+     * Возвращает список всех транскрипций слова.
+     * @return список всех транскрипций слова.
+     */
     public List<WordTranscription> getTranscriptions() {
         return Collections.unmodifiableList(transcriptions);
     }
 
+    /**
+     * Возвращает дату последнего обновления транскрипций к слову из внешнего сервиса с указанным именем. Если
+     * среди транскрипций слова нет транскрипций полученных из указанного внешнего источника, то метод возвращает
+     * пустой Optional.
+     * @param outerSourceName имя внешнего сервиса используемого для получения транскрипций к слову.
+     * @return дата последнего обновления транскрипций к слову.
+     */
     public Optional<LocalDate> getTranscriptionsRecentUpdateDate(String outerSourceName) {
         return transcriptions.stream().
                 filter(transcription -> transcription.hasOuterSource(outerSourceName)).
@@ -158,15 +227,31 @@ public class Word implements Entity {
                 flatMap(transcription -> transcription.getRecentUpdateDate(outerSourceName));
     }
 
+    /**
+     * Проверяет - имеет ли слово транскрипции полученные из внешнего сервиса с указанным именем.
+     * @param outerSourceName имя внешнего сервиса.
+     * @return true - если слово имеет транскрипции полученные из указанного внешнего сервиса, иначе - false.
+     */
     public boolean hasTranscriptionsOfOuterSource(String outerSourceName) {
         return transcriptions.stream().
                 anyMatch(transcription -> transcription.hasOuterSource(outerSourceName));
     }
 
+    /**
+     * Возвращает все переводы данного слова.
+     * @return все переводы данного слова.
+     */
     public List<WordTranslation> getTranslations() {
         return Collections.unmodifiableList(translations);
     }
 
+    /**
+     * Возвращает дату последнего обновления переводов слова из внешнего сервиса с указанным именем. Если
+     * среди переводов слова нет переводов полученных из указанного внешнего источника, то метод возвращает
+     * пустой Optional.
+     * @param outerSourceName имя внешнего сервиса используемого для получения переводов к слову.
+     * @return дата последнего обновления переводов к слову.
+     */
     public Optional<LocalDate> getTranslationsRecentUpdateDate(String outerSourceName) {
         return translations.stream().
                 filter(translation -> translation.hasOuterSource(outerSourceName)).
@@ -174,26 +259,33 @@ public class Word implements Entity {
                 flatMap(translation -> translation.getRecentUpdateDate(outerSourceName));
     }
 
+    /**
+     * Возвращает список всех примеров к слову.
+     * @return список всех примеров к слову.
+     */
     public List<WordExample> getExamples() {
         return Collections.unmodifiableList(examples);
     }
 
+    /**
+     * Возвращает данные последнего повторения слова с английского языка на родной язык пользователя.
+     * @return данные последнего повторения слова с английского языка.
+     */
     public RepeatDataFromEnglish getRepeatDataFromEnglish() {
         return repeatDataFromEnglish;
     }
 
+    /**
+     * Возвращает данные последнего повторения слова с родного языка пользователя на английский язык.
+     * @return данные последнего повторения слова с родного языка пользователя.
+     */
     public RepeatDataFromNative getRepeatDataFromNative() {
         return repeatDataFromNative;
     }
 
-    public boolean isHotRepeatFromEnglish(int lowestInterval) {
-        return repeatDataFromEnglish.interval() == lowestInterval;
-    }
-
-    public boolean isHotRepeatFromNative(int lowestInterval) {
-        return repeatDataFromNative.interval() == lowestInterval;
-    }
-
+    /**
+     * см. {@link Entity#generateIdIfAbsent()}
+     */
     @Override
     public void generateIdIfAbsent() {
         if(id == null) id = UUID.randomUUID();
@@ -233,6 +325,14 @@ public class Word implements Entity {
         return this;
     }
 
+    /**
+     * Ищет среди интерпритаций слова такую, значение ({@link WordInterpretation#getValue()}) которой
+     * равняется значению указанной интерпитации. Если такая интерпритация есть, то для неё будет вызван
+     * метод {@link WordInterpretation#merge(WordInterpretation)}. Если такой интерпритации нет, то заданная
+     * интерпритация будет добавлена в список интерпритаций этого слова.
+     * @param interpretation интерпритация, данные которой копируются в список интерпритаций этого слова.
+     * @return ссылку на этот же объект.
+     */
     public Word mergeInterpretation(WordInterpretation interpretation) {
         boolean isMerged = false;
         for(int i = 0; i < interpretations.size() && !isMerged; i++) {
@@ -242,6 +342,14 @@ public class Word implements Entity {
         return this;
     }
 
+    /**
+     * Ищет среди транскрипций слова такую, значение ({@link WordTranscription#getValue()}) которой
+     * равняется значению указанной транскрипции. Если такая транскрипция есть, то для неё будет вызван
+     * метод {@link WordTranscription#merge(WordTranscription)}. Если такой транскрипции нет, то заданная
+     * транскрипция будет добавлена в список транскрипций этого слова.
+     * @param transcription транскрипция, данные которой копируются в список транскрипций этого слова.
+     * @return ссылку на этот же объект.
+     */
     public Word mergeTranscription(WordTranscription transcription) {
         boolean isMerged = false;
         for(int i = 0; i < transcriptions.size() && !isMerged; i++) {
@@ -251,6 +359,14 @@ public class Word implements Entity {
         return this;
     }
 
+    /**
+     * Ищет среди переводов слова такое, значение ({@link WordTranslation#getValue()}) которого
+     * равняется значению указанного перевода. Если такой перевод есть, то для него будет вызван
+     * метод {@link WordTranslation#merge(WordTranslation)}. Если такого перевода нет, то заданный
+     * перевод будет добавлен в список переводов этого слова.
+     * @param translation перевод, данные которого копируются в список переводов этого слова.
+     * @return ссылку на этот же объект.
+     */
     public Word mergeTranslation(WordTranslation translation) {
         boolean isMerged = false;
         for(int i = 0; i < translations.size() && !isMerged; i++) {
@@ -260,10 +376,18 @@ public class Word implements Entity {
         return this;
     }
 
+    /**
+     * Ищет среди примеров слова такое, значение ({@link WordTranslation#getValue()}) которого
+     * равняется значению указанного примера. Если такой пример есть, то для него будет вызван
+     * метод {@link WordTranslation#merge(WordTranslation)}. Если такого перевода нет, то метод
+     * ничего не делает.
+     * @param example пример, данные которого копируются в список примеров этого слова.
+     * @return ссылку на этот же объект.
+     */
     public Word mergeExampleIfPresent(WordExample example) {
         boolean isMerged = false;
         for(int i = 0; i < examples.size() && !isMerged; i++) {
-            isMerged = examples.get(i).merge(example);
+            isMerged = examples.get(i).mergeIfHasSameValue(example);
         }
         return this;
     }
@@ -288,6 +412,14 @@ public class Word implements Entity {
         return this;
     }
 
+    /**
+     * Задает результат последнего повторения этого слова с английского языка на родной язык пользователя.
+     * @param isRemember true - если пользователь правильно вспомнил переводы, произношение и толкования слова,
+     *                   иначе - false.
+     * @param lastDateOfRepeat дата текущего повторения.
+     * @param intervals все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     *                  пользователя.
+     */
     public void repeatFromEnglish(boolean isRemember, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
         int index = isRemember ?
                 Math.min(intervals.indexOf(repeatDataFromEnglish.interval()) + 1, intervals.size() - 1) : 0;
@@ -295,6 +427,15 @@ public class Word implements Entity {
         repeatDataFromEnglish = new RepeatDataFromEnglish(intervals.get(index), lastDateOfRepeat);
     }
 
+    /**
+     * Проверяет указанное пользователем значение английского слова при его повторении с родного языка пользователя
+     * на английский язык. Если заданное значение равняется значению текущего слова - повторения считается успешным.
+     * @param inputValue значение слова на английском языке.
+     * @param lastDateOfRepeat дата текущего повторения.
+     * @param intervals все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     *                  пользователя.
+     * @return true - если повторение выполнено успешно, иначе - false.
+     */
     public boolean repeatFromNative(String inputValue, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
         boolean isRemember = inputValue.equalsIgnoreCase(value);
         int index = isRemember ?
@@ -305,10 +446,26 @@ public class Word implements Entity {
         return isRemember;
     }
 
+    /**
+     * Указывает, что пользователь забыл перевод данного слова с английского на родной язык и его требуется повторить
+     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения, установит наименьший из интервалов
+     * повторения пользователя.
+     * @param lastDateOfRepeat текущая дата.
+     * @param lowestInterval наименьший из интервалов повторения пользователя
+     *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     */
     public void markForRepetitionFromEnglish(LocalDate lastDateOfRepeat, int lowestInterval) {
         repeatDataFromEnglish = new RepeatDataFromEnglish(lowestInterval, lastDateOfRepeat);
     }
 
+    /**
+     * Указывает, что пользователь забыл перевод данного слова с родного языка на английский и его требуется повторить
+     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения, установит наименьший из интервалов
+     * повторения пользователя.
+     * @param lastDateOfRepeat текущая дата.
+     * @param lowestInterval наименьший из интервалов повторения пользователя
+     *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     */
     public void markForRepetitionFromNative(LocalDate lastDateOfRepeat, int lowestInterval) {
         repeatDataFromNative = new RepeatDataFromNative(lowestInterval, lastDateOfRepeat);
     }

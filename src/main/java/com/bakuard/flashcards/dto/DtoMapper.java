@@ -403,7 +403,7 @@ public class DtoMapper {
                 setOrigin(wordExample.getOrigin()).
                 setTranslate(wordExample.getTranslate()).
                 setNote(wordExample.getNote()).
-                setOuterSource(wordExample.getSourceInfo().stream().
+                setOuterSource(wordExample.getOuterSource().stream().
                         map(this::toExampleOuterSourceResponse).
                         toList());
     }
@@ -411,7 +411,7 @@ public class DtoMapper {
     private InterpretationResponse toInterpretationResponse(WordInterpretation wordInterpretation) {
         return new InterpretationResponse().
                 setValue(wordInterpretation.getValue()).
-                setOuterSource(wordInterpretation.getSourceInfo().stream().
+                setOuterSource(wordInterpretation.getOuterSource().stream().
                         map(this::toOuterSourceResponse).
                         toList());
     }
@@ -420,7 +420,7 @@ public class DtoMapper {
         return new TranscriptionResponse().
                 setValue(wordTranscription.getValue()).
                 setNote(wordTranscription.getNote()).
-                setOuterSource(wordTranscription.getSourceInfo().stream().
+                setOuterSource(wordTranscription.getOuterSource().stream().
                         map(this::toOuterSourceResponse).
                         toList());
     }
@@ -429,7 +429,7 @@ public class DtoMapper {
         return new TranslateResponse().
                 setValue(wordTranslation.getValue()).
                 setNote(wordTranslation.getNote()).
-                setOuterSource(wordTranslation.getSourceInfo().stream().
+                setOuterSource(wordTranslation.getOuterSource().stream().
                         map(this::toOuterSourceResponse).
                         toList());
     }
