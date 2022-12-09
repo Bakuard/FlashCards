@@ -10,8 +10,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Проверяет доступ для запроса представленного в виде {@link AuthRequest}, последовательно перебирая цепочку
+ * политик до тех пор, пока одна из политик не вернет {@link Access#ACCEPT} или {@link Access#DENY},
+ * или не закончатся политики в цепочке.
+ */
 public class Authorizer {
 
+    /**
+     * Создается и возвращается новый объект для создания экземпляра {@link Authorizer}.
+     * @return новый объект для создания экземпляра {@link Authorizer}.
+     */
     public static Builder newBuilder() {
         return new Builder();
     }
@@ -33,6 +42,15 @@ public class Authorizer {
         return checkAccess(AuthRequest.of(principal, resource, action));
     }
 
+    /**
+     * Проверяет: <br/>
+     * 1. имеет ли право пользователь {@link AuthRequest#getPrincipal()} <br/>
+     * 2. выполнить действие {@link AuthRequest#getAction()} <br/>
+     * 3. над ресурсом {@link AuthRequest#getResource()} <br/>
+     * Результат будет представлять один из трех вариантов описанных в {@link Access}.
+     * @param request см. {@link AuthRequest}
+     * @return результат проверки в виде одного из трех вариантов описанных в {@link Access}.
+     */
     public Access checkAccess(AuthRequest request) {
         Access result = Access.UNKNOWN;
         int i = 0;
@@ -51,6 +69,14 @@ public class Authorizer {
         assertToHasAccess(AuthRequest.of(principal, resource, action));
     }
 
+    /**
+     * Проверяет: <br/>
+     * 1. имеет ли право пользователь {@link AuthRequest#getPrincipal()} <br/>
+     * 2. выполнить действие {@link AuthRequest#getAction()} <br/>
+     * 3. над ресурсом {@link AuthRequest#getResource()} <br/>
+     *
+     * @param request см. {@link AuthRequest}
+     */
     public void assertToHasAccess(AuthRequest request) {
         Access access = checkAccess(request);
         if(access == Access.DENY || access == Access.UNKNOWN && strictMode) {

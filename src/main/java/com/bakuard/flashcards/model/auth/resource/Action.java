@@ -1,7 +1,7 @@
 package com.bakuard.flashcards.model.auth.resource;
 
 /**
- * Одно из действий которое можно выполнить над ресурсом.
+ * Описание одного из действий, которое можно выполнить над ресурсом.
  * @param name имя действия.
  */
 public record Action(String name) {
