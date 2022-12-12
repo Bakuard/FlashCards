@@ -9,8 +9,8 @@ import java.util.UUID;
  * @param value значение слова, по которому собирается статистика.
  * @param rememberFromEnglish кол-во успешных повторений с английского языка на родной язык пользователя.
  * @param notRememberFromEnglish кол-во не успешных повторений с английского языка на родной язык пользователя.
- * @param rememberFromNative кол-во успешных повторений с родноо языка пользователя на английский язык.
- * @param notRememberFromNative кол-во не успешных повторений с родноо языка пользователя на английский язык.
+ * @param rememberFromNative кол-во успешных повторений с родного языка пользователя на английский язык.
+ * @param notRememberFromNative кол-во не успешных повторений с родного языка пользователя на английский язык.
  */
 public record WordRepetitionByPeriodStatistic(UUID userId,
                                               UUID wordId,

@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
 /**
- * Перевод устойчевого выражения.
+ * Перевод устойчивого выражения.
  */
 @Table("expressions_translations")
 public class ExpressionTranslation {
@@ -22,9 +22,9 @@ public class ExpressionTranslation {
     private final String note;
 
     /**
-     * Создает устойчевое выражение.
-     * @param value перевод устойчевого выражения.
-     * @param note примечание к переводу устойчевого выражения.
+     * Создает устойчивое выражение.
+     * @param value перевод устойчивого выражения.
+     * @param note примечание к переводу устойчивого выражения.
      */
     @PersistenceCreator
     public ExpressionTranslation(String value, String note) {
@@ -33,16 +33,16 @@ public class ExpressionTranslation {
     }
 
     /**
-     * Возвращает перевод устойчевого выражения.
-     * @return перевод устойчевого выражения.
+     * Возвращает перевод устойчивого выражения.
+     * @return перевод устойчивого выражения.
      */
     public String getValue() {
         return value;
     }
 
     /**
-     * Возвращает примечание к переводу устойчевого выражения.
-     * @return примечание к переводу устойчевого выражения.
+     * Возвращает примечание к переводу устойчивого выражения.
+     * @return примечание к переводу устойчивого выражения.
      */
     public String getNote() {
         return note;

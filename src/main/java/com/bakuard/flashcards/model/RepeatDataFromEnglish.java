@@ -6,8 +6,8 @@ import javax.validation.constraints.Min;
 import java.time.LocalDate;
 
 /**
- * Данные о последнем повторении слова или устойчевого выражения с английского языка на родной язык пользователя.
- * @param interval кол-во дней до слеущего повторения с английского языка на родной язык пользователя.
+ * Данные о последнем повторении слова или устойчивого выражения с английского языка на родной язык пользователя.
+ * @param interval кол-во дней до следующего повторения с английского языка на родной язык пользователя.
  * @param lastDateOfRepeat дата последнего повторения с английского языка на родной язык пользователя.
  */
 public record RepeatDataFromEnglish(
@@ -20,7 +20,7 @@ public record RepeatDataFromEnglish(
     /**
      * Создает и возвращает точную копию переданного объекта.
      * @param data копируемый объект.
-     * @return точная копия переданног объекта.
+     * @return точная копия переданного объекта.
      */
     public static RepeatDataFromEnglish copy(RepeatDataFromEnglish data) {
         return new RepeatDataFromEnglish(data.interval, data.lastDateOfRepeat);

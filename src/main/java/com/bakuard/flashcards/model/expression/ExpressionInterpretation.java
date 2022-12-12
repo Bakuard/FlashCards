@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
 /**
- * Интерпритация у устойчевому выражению.
+ * Интерпретация устойчивому выражению.
  */
 @Table("expressions_interpretations")
 public class ExpressionInterpretation {
@@ -18,8 +18,8 @@ public class ExpressionInterpretation {
     private final String value;
 
     /**
-     * Создает интерпритацию к устойчевому выражению.
-     * @param value интерпритация к устойчевому выражению.
+     * Создает интерпретацию к устойчивому выражению.
+     * @param value Интерпретация к устойчивому выражению.
      */
     @PersistenceCreator
     public ExpressionInterpretation(String value) {
@@ -27,8 +27,8 @@ public class ExpressionInterpretation {
     }
 
     /**
-     * Возвращает интерпритацию к устойчевому выражению.
-     * @return интерпритацию к устойчевому выражению.
+     * Возвращает интерпретацию к устойчивому выражению.
+     * @return интерпретацию к устойчивому выражению.
      */
     public String getValue() {
         return value;

@@ -69,7 +69,7 @@ public class Word implements Entity {
      * @param userId уникальный идентификатор пользователя к словарю которого относится это слово.
      * @param value значение слова на английском языке.
      * @param note примечание к слову добавляемое пользователем.
-     * @param interpretations интерпритации слова.
+     * @param interpretations интерпретация слова.
      * @param transcriptions транскрипции слова.
      * @param translations переводы слова.
      * @param examples примеры слова.
@@ -102,11 +102,11 @@ public class Word implements Entity {
     /**
      * Создает новое слово для словаря указанного пользователя.
      * @param userId уникальный идентификатор пользователя к словарю которого относится это слово.
-     * @param lowestIntervalForEnglish наименьший из всех интервалов повторения данного пользователя.
+     * @param lowestIntervalForEnglish Наименьший из всех интервалов повторения данного пользователя.
      *                                 Подробнее см. {@link RepeatDataFromEnglish}.
-     * @param lowestIntervalForNative наименьший из всех интервалов повторения данного пользователя.
+     * @param lowestIntervalForNative Наименьший из всех интервалов повторения данного пользователя.
      *                                Подробнее см. {@link RepeatDataFromNative}.
-     * @param clock используется для получения текущей даты и возможности её опредления в тестах.
+     * @param clock используется для получения текущей даты и возможности её определения в тестах.
      */
     public Word(UUID userId, int lowestIntervalForEnglish, int lowestIntervalForNative, Clock clock) {
         this.userId = userId;
@@ -160,8 +160,8 @@ public class Word implements Entity {
     }
 
     /**
-     * Возвращает уникальный идентификатор пользователя к словарю которого отностися слово.
-     * @return уникальный идентификатор пользователя к словарю которого отностися слово.
+     * Возвращает уникальный идентификатор пользователя к словарю которого относится слово.
+     * @return уникальный идентификатор пользователя к словарю которого относится слово.
      */
     public UUID getUserId() {
         return userId;
@@ -184,19 +184,19 @@ public class Word implements Entity {
     }
 
     /**
-     * Возвращает список всех интерпритация слова.
-     * @return список всех интерпритация слова.
+     * Возвращает список всех интерпретация слова.
+     * @return список всех интерпретация слова.
      */
     public List<WordInterpretation> getInterpretations() {
         return Collections.unmodifiableList(interpretations);
     }
 
     /**
-     * Возвращает дату последнего обновления интерпитаций к слову из внешнего сервиса с указанным именем. Если
-     * среди интерпритаций слова нет интерпритаций полученных из указанного внешнего источника, то метод возвращает
+     * Возвращает дату последнего обновления интерпретаций к слову из внешнего сервиса с указанным именем. Если
+     * среди интерпретаций слова нет интерпретаций полученных из указанного внешнего источника, то метод возвращает
      * пустой Optional.
-     * @param outerSourceName имя внешнего сервиса используемого для получения интерпритаций к слову.
-     * @return дата последнего обновления интерпитаций к слову.
+     * @param outerSourceName имя внешнего сервиса используемого для получения интерпретаций к слову.
+     * @return дата последнего обновления интерпретаций к слову.
      */
     public Optional<LocalDate> getInterpretationsRecentUpdateDate(String outerSourceName) {
         return interpretations.stream().
@@ -326,11 +326,11 @@ public class Word implements Entity {
     }
 
     /**
-     * Ищет среди интерпритаций слова такую, значение ({@link WordInterpretation#getValue()}) которой
-     * равняется значению указанной интерпитации. Если такая интерпритация есть, то для неё будет вызван
-     * метод {@link WordInterpretation#merge(WordInterpretation)}. Если такой интерпритации нет, то заданная
-     * интерпритация будет добавлена в список интерпритаций этого слова.
-     * @param interpretation интерпритация, данные которой копируются в список интерпритаций этого слова.
+     * Ищет среди интерпретаций слова такую, значение ({@link WordInterpretation#getValue()}) которой
+     * равняется значению указанной интерпретации. Если такая интерпретация есть, то для неё будет вызван
+     * метод {@link WordInterpretation#merge(WordInterpretation)}. Если такой интерпретации нет, то заданная
+     * интерпретация будет добавлена в список интерпретаций этого слова.
+     * @param interpretation интерпретация, данные которой копируются в список интерпретаций этого слова.
      * @return ссылку на этот же объект.
      */
     public Word mergeInterpretation(WordInterpretation interpretation) {
@@ -417,7 +417,7 @@ public class Word implements Entity {
      * @param isRemember true - если пользователь правильно вспомнил переводы, произношение и толкования слова,
      *                   иначе - false.
      * @param lastDateOfRepeat дата текущего повторения.
-     * @param intervals все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     * @param intervals Все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
      *                  пользователя.
      */
     public void repeatFromEnglish(boolean isRemember, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
@@ -432,7 +432,7 @@ public class Word implements Entity {
      * на английский язык. Если заданное значение равняется значению текущего слова - повторения считается успешным.
      * @param inputValue значение слова на английском языке.
      * @param lastDateOfRepeat дата текущего повторения.
-     * @param intervals все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
+     * @param intervals Все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
      *                  пользователя.
      * @return true - если повторение выполнено успешно, иначе - false.
      */
@@ -451,7 +451,7 @@ public class Word implements Entity {
      * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения, установит наименьший из интервалов
      * повторения пользователя.
      * @param lastDateOfRepeat текущая дата.
-     * @param lowestInterval наименьший из интервалов повторения пользователя
+     * @param lowestInterval Наименьший из интервалов повторения пользователя
      *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
      */
     public void markForRepetitionFromEnglish(LocalDate lastDateOfRepeat, int lowestInterval) {
@@ -463,7 +463,7 @@ public class Word implements Entity {
      * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения, установит наименьший из интервалов
      * повторения пользователя.
      * @param lastDateOfRepeat текущая дата.
-     * @param lowestInterval наименьший из интервалов повторения пользователя
+     * @param lowestInterval Наименьший из интервалов повторения пользователя
      *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
      */
     public void markForRepetitionFromNative(LocalDate lastDateOfRepeat, int lowestInterval) {
