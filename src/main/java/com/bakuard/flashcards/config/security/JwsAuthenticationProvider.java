@@ -1,14 +1,11 @@
 package com.bakuard.flashcards.config.security;
 
-import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.service.JwsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-
-import java.util.UUID;
 
 public class JwsAuthenticationProvider implements AuthenticationProvider {
 
@@ -26,12 +23,7 @@ public class JwsAuthenticationProvider implements AuthenticationProvider {
         String jws = request.getJws();
 
         try {
-            Object jwsBody = jwsService.parseJws(jws, bodyTypeName -> {
-                Class<?> bodyType = null;
-                if (bodyTypeName.equals(UUID.class.getName())) bodyType = UUID.class;
-                else if (bodyTypeName.equals(Credential.class.getName())) bodyType = Credential.class;
-                return bodyType;
-            }).orElseThrow();
+            Object jwsBody = jwsService.parseJws(jws);
 
             JwsAuthentication response = new JwsAuthentication(jws, jwsBody);
             response.setAuthenticated(true);

@@ -202,44 +202,84 @@ public class Expression implements Entity {
         if(id == null) id = UUID.randomUUID();
     }
 
+    /**
+     * Устанавливает значение устойчивого выражения
+     * @param value значение устойчивого выражения
+     * @return ссылку на этот же объект
+     */
     public Expression setValue(String value) {
         this.value = value;
         return this;
     }
 
+    /**
+     * Устанавливает примечание к устойчивому выражению
+     * @param note примечание к устойчивому выражению
+     * @return ссылку на этот же объект
+     */
     public Expression setNote(String note) {
         this.note = note;
         return this;
     }
 
+    /**
+     * Устанавливает список интерпретаций к устойчивому выражению.
+     * @param interpretations список интерпретаций к устойчивому выражению
+     * @return ссылку на этот же объект
+     */
     public Expression setInterpretations(List<ExpressionInterpretation> interpretations) {
         this.interpretations.clear();
         if(interpretations != null) this.interpretations.addAll(interpretations);
         return this;
     }
 
+    /**
+     * Устанавливает список переводов устойчивого выражения.
+     * @param translations список переводов устойчивого выражения
+     * @return ссылку на этот же объект
+     */
     public Expression setTranslations(List<ExpressionTranslation> translations) {
         this.translations.clear();
         if(translations != null) this.translations.addAll(translations);
         return this;
     }
 
+    /**
+     * Устанавливает список примеров к устойчивому выражению.
+     * @param examples список примеров к устойчивому выражению
+     * @return ссылку на этот же объект
+     */
     public Expression setExamples(List<ExpressionExample> examples) {
         this.examples.clear();
         if(examples != null) this.examples.addAll(examples);
         return this;
     }
 
+    /**
+     * Добавляет указанную интерпретацию к данному устойчивому выражению.
+     * @param interpretation добавляемая интерпретация
+     * @return ссылку на этот же объект
+     */
     public Expression addInterpretation(ExpressionInterpretation interpretation) {
         interpretations.add(interpretation);
         return this;
     }
 
+    /**
+     * Добавляет указанный перевод к данному устойчивому выражению.
+     * @param translation добавляемый перевод
+     * @return ссылку на этот же объект
+     */
     public Expression addTranslation(ExpressionTranslation translation) {
         translations.add(translation);
         return this;
     }
 
+    /**
+     * Добавляет указанный пример к данному устойчивому выражению.
+     * @param example добавляемый пример
+     * @return ссылку на этот же объект
+     */
     public Expression addExample(ExpressionExample example) {
         examples.add(example);
         return this;
@@ -247,7 +287,15 @@ public class Expression implements Entity {
 
     /**
      * Задает результат последнего повторения этого устойчивого выражения с английского языка
-     * на родной язык пользователя.
+     * на родной язык пользователя. Метод изменяет данные о последнем повторении устойчивого выражения,
+     * а именно: <br/>
+     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
+     * 2. Если повторение было успешно (isRemember = true), то будет выбран наименьший интервал
+     *    повторения из списка intervals, который больше текущего интервала
+     *    (см. {@link RepeatDataFromEnglish#interval()}). <br/>
+     *    Если текущий интервал повторения равен наибольшему в списке - он остается без изменения. <br/>
+     * 3. Если повторение не было успешно (isRemember = false), то будет выбран наименьший интервал
+     *    из списка intervals.
      * @param isRemember true - если пользователь правильно вспомнил переводы, произношение и толкования
      *                   устойчивого выражения, иначе - false.
      * @param lastDateOfRepeat дата текущего повторения.
@@ -263,8 +311,13 @@ public class Expression implements Entity {
 
     /**
      * Проверяет указанное пользователем значение устойчивого выражения при его повторении с родного языка пользователя
-     * на английский язык. Если заданное значение равняется значению текущего устойчивого выражения - повторения
-     * считается успешным.
+     * на английский язык. Если заданное значение равняется значению текущего устойчивого выражения - повторение
+     * считается успешным. Метод изменяет данные о последнем повторении устойчивого выражения, а именно: <br/>
+     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
+     * 2. Если повторение было успешно, то будет выбран наименьший интервал повторения из списка intervals,
+     *    который больше текущего интервала (см. {@link RepeatDataFromEnglish#interval()}). <br/>
+     *    Если текущий интервал повторения равен наибольшему в списке - он остается без изменения. <br/>
+     * 3. Если повторение не было успешно, то будет выбран наименьший интервал из списка intervals.
      * @param inputValue значение устойчивого выражения на английском языке.
      * @param lastDateOfRepeat дата текущего повторения.
      * @param intervals Все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
@@ -283,7 +336,7 @@ public class Expression implements Entity {
 
     /**
      * Указывает, что пользователь забыл перевод данного устойчивого выражения с английского на родной язык и его
-     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения,
+     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и
      * установит наименьший из интервалов повторения пользователя.
      * @param lastDateOfRepeat текущая дата.
      * @param lowestInterval Наименьший из интервалов повторения пользователя
@@ -295,7 +348,7 @@ public class Expression implements Entity {
 
     /**
      * Указывает, что пользователь забыл перевод данного устойчивого выражения с родного языка на английский и его
-     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения,
+     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и
      * установит наименьший из интервалов повторения пользователя.
      * @param lastDateOfRepeat текущая дата.
      * @param lowestInterval Наименьший из интервалов повторения пользователя

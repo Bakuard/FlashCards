@@ -291,34 +291,64 @@ public class Word implements Entity {
         if(id == null) id = UUID.randomUUID();
     }
 
+    /**
+     * Устанавливает значение слова.
+     * @param value значение слова
+     * @return ссылку на этот же объект
+     */
     public Word setValue(String value) {
         this.value = value;
         return this;
     }
 
+    /**
+     * Устанавливает примечание к слову.
+     * @param note примечание к слову
+     * @return ссылку на этот же объект
+     */
     public Word setNote(String note) {
         this.note = note;
         return this;
     }
 
+    /**
+     * Устанавливает список интерпретаций к слову.
+     * @param interpretations список интерпретаций к слову
+     * @return ссылку на этот же объект
+     */
     public Word setInterpretations(List<WordInterpretation> interpretations) {
         this.interpretations.clear();
         if(interpretations != null) this.interpretations.addAll(interpretations);
         return this;
     }
 
+    /**
+     * Устанавливает список транскрипций к слову.
+     * @param transcriptions список транскрипций к слову
+     * @return ссылку на этот же объект
+     */
     public Word setTranscriptions(List<WordTranscription> transcriptions) {
         this.transcriptions.clear();
         if(transcriptions != null) this.transcriptions.addAll(transcriptions);
         return this;
     }
 
+    /**
+     * Устанавливает список переводов к слову.
+     * @param translations список переводов к слову
+     * @return ссылку на этот же объект
+     */
     public Word setTranslations(List<WordTranslation> translations) {
         this.translations.clear();
         if(translations != null) this.translations.addAll(translations);
         return this;
     }
 
+    /**
+     * Устанавливает список примеров к слову.
+     * @param examples список примеров к слову
+     * @return ссылку на этот же объект
+     */
     public Word setExamples(List<WordExample> examples) {
         this.examples.clear();
         if(examples != null) this.examples.addAll(examples);
@@ -392,21 +422,41 @@ public class Word implements Entity {
         return this;
     }
 
+    /**
+     * Добавляет указанную интерпретацию к данному слову.
+     * @param interpretation добавляемая интерпретация
+     * @return ссылку на этот же объект
+     */
     public Word addInterpretation(WordInterpretation interpretation) {
         interpretations.add(interpretation);
         return this;
     }
 
+    /**
+     * Добавляет указанную транскрипцию к данному слову.
+     * @param transcription добавляемая транскрипция
+     * @return ссылку на этот же объект
+     */
     public Word addTranscription(WordTranscription transcription) {
         transcriptions.add(transcription);
         return this;
     }
 
+    /**
+     * Добавляет указанный перевод к данному слову.
+     * @param translation добавляемый перевод
+     * @return ссылку на этот же объект
+     */
     public Word addTranslation(WordTranslation translation) {
         translations.add(translation);
         return this;
     }
 
+    /**
+     * Добавляет указанный пример к данному слову.
+     * @param example добавляемый пример
+     * @return ссылку на этот же объект
+     */
     public Word addExample(WordExample example) {
         examples.add(example);
         return this;
@@ -414,6 +464,14 @@ public class Word implements Entity {
 
     /**
      * Задает результат последнего повторения этого слова с английского языка на родной язык пользователя.
+     * Метод изменяет данные о последнем повторении слова, а именно: <br/>
+     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
+     * 2. Если повторение было успешно (isRemember = true), то будет выбран наименьший интервал
+     *    повторения из списка intervals, который больше текущего интервала
+     *    (см. {@link RepeatDataFromEnglish#interval()}). <br/>
+     *    Если текущий интервал повторения равен наибольшему в списке - он остается без изменения. <br/>
+     * 3. Если повторение не было успешно (isRemember = false), то будет выбран наименьший интервал
+     *    из списка intervals.
      * @param isRemember true - если пользователь правильно вспомнил переводы, произношение и толкования слова,
      *                   иначе - false.
      * @param lastDateOfRepeat дата текущего повторения.
@@ -429,7 +487,13 @@ public class Word implements Entity {
 
     /**
      * Проверяет указанное пользователем значение английского слова при его повторении с родного языка пользователя
-     * на английский язык. Если заданное значение равняется значению текущего слова - повторения считается успешным.
+     * на английский язык. Если заданное значение равняется значению текущего слова - повторение считается успешным.
+     * Метод изменяет данные о последнем повторении слова, а именно: <br/>
+     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
+     * 2. Если повторение было успешно, то будет выбран наименьший интервал повторения из списка intervals,
+     *    который больше текущего интервала (см. {@link RepeatDataFromEnglish#interval()}). <br/>
+     *    Если текущий интервал повторения равен наибольшему в списке - он остается без изменения. <br/>
+     * 3. Если повторение не было успешно, то будет выбран наименьший интервал из списка intervals.
      * @param inputValue значение слова на английском языке.
      * @param lastDateOfRepeat дата текущего повторения.
      * @param intervals Все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
@@ -448,7 +512,7 @@ public class Word implements Entity {
 
     /**
      * Указывает, что пользователь забыл перевод данного слова с английского на родной язык и его требуется повторить
-     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения, установит наименьший из интервалов
+     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и установит наименьший из интервалов
      * повторения пользователя.
      * @param lastDateOfRepeat текущая дата.
      * @param lowestInterval Наименьший из интервалов повторения пользователя
@@ -460,7 +524,7 @@ public class Word implements Entity {
 
     /**
      * Указывает, что пользователь забыл перевод данного слова с родного языка на английский и его требуется повторить
-     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения, установит наименьший из интервалов
+     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и установит наименьший из интервалов
      * повторения пользователя.
      * @param lastDateOfRepeat текущая дата.
      * @param lowestInterval Наименьший из интервалов повторения пользователя
