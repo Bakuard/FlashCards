@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Отвечает за дополнение слова транскрипциями и толкованиями из <a href="https://www.oxfordlearnersdictionaries.com/">Oxford Dictionary</a>
+ */
 public class OxfordDictionaryScrapper implements WordSupplementation {
 
     private static final Logger logger = LoggerFactory.getLogger(OxfordDictionaryScrapper.class.getName());
@@ -33,6 +36,9 @@ public class OxfordDictionaryScrapper implements WordSupplementation {
         this.clock = clock;
     }
 
+    /**
+     * см. {@link WordSupplementation#supplement(Word)}
+     */
     @Override
     public Word supplement(Word word) {
         if(!word.hasTranscriptionsOfOuterSource(outerSourceName)) {

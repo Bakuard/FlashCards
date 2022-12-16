@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Transactional
 public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
 
     private static final Logger logger = LoggerFactory.getLogger(WordOuterSourceBufferImpl.class.getName());

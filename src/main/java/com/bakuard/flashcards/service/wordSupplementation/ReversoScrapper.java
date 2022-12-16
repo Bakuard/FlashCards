@@ -20,6 +20,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * Отвечает за дополнение слова переводами и переводами примеров из <a href="https://www.reverso.net/text-translation">Reverso translate</a>
+ */
 public class ReversoScrapper implements WordSupplementation {
 
     private static final Logger logger = LoggerFactory.getLogger(ReversoScrapper.class.getName());
@@ -35,6 +38,9 @@ public class ReversoScrapper implements WordSupplementation {
         this.clock = clock;
     }
 
+    /**
+     * см. {@link WordSupplementation#supplement(Word)}
+     */
     @Override
     public Word supplement(Word word) {
         if(word.getTranslationsRecentUpdateDate(outerSourceName).

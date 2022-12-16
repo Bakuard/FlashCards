@@ -21,6 +21,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Отвечает за дополнение слова переводами и переводами примеров из <a href="https://translate.yandex.ru/?utm_source=yamain&utm_medium=personal">Yandex translate</a>
+ */
 public class YandexTranslateScrapper implements WordSupplementation {
 
     private static final Logger logger = LoggerFactory.getLogger(YandexTranslateScrapper.class.getName());
@@ -36,6 +39,9 @@ public class YandexTranslateScrapper implements WordSupplementation {
         this.clock = clock;
     }
 
+    /**
+     * см. {@link WordSupplementation#supplement(Word)}
+     */
     @Override
     public Word supplement(Word word) {
         if(word.getTranslationsRecentUpdateDate(outerSourceName).

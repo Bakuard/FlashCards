@@ -270,7 +270,7 @@ class ExpressionRepositoryTest {
     @DisplayName("""
             deleteById(userId, expressionId):
              there is not expression with such expressionId
-             => do nothing
+             => don't delete any expressions
             """)
     public void deleteById1() {
         User user = commit(() -> userRepository.save(user(1)));
@@ -286,10 +286,27 @@ class ExpressionRepositoryTest {
     @Test
     @DisplayName("""
             deleteById(userId, expressionId):
+             there is not expression with such expressionId
+             => return false
+            """)
+    public void deleteById2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expected = commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
+
+        boolean actual = commit(() -> expressionRepository.deleteById(user.getId(), toUUID(1)));
+
+        Assertions.assertThat(actual).isFalse();
+    }
+
+    @Test
+    @DisplayName("""
+            deleteById(userId, expressionId):
              there is expression with such expressionId
              => delete this expression
             """)
-    public void deleteById2() {
+    public void deleteById3() {
         User user = commit(() -> userRepository.save(user(1)));
         Expression expected = commit(() -> expressionRepository.save(
                 expression(user.getId(), "value 1", "note 1", 1)
@@ -298,6 +315,23 @@ class ExpressionRepositoryTest {
         commit(() -> expressionRepository.deleteById(user.getId(), expected.getId()));
 
         Assertions.assertThat(expressionRepository.existsById(expected.getId())).isFalse();
+    }
+
+    @Test
+    @DisplayName("""
+            deleteById(userId, expressionId):
+             there is expression with such expressionId
+             => return true
+            """)
+    public void deleteById4() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expected = commit(() -> expressionRepository.save(
+                expression(user.getId(), "value 1", "note 1", 1)
+        ));
+
+        boolean actual = commit(() -> expressionRepository.deleteById(user.getId(), expected.getId()));
+
+        Assertions.assertThat(actual).isTrue();
     }
 
     @Test

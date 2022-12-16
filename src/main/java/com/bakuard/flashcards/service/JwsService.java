@@ -2,9 +2,7 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 
 import java.security.KeyPair;
@@ -26,6 +24,11 @@ public class JwsService {
     private Map<String, KeyPair> keyPairs;
     private ObjectMapper objectMapper;
 
+    /**
+     * Создает новый сервис генерации и парсинг JWS токенов.
+     * @param configData общие данные конфигурации приложения
+     * @param clock часы используемые для получения текущей даты (параметр добавлен для удобства тестирования)
+     */
     public JwsService(ConfigData configData, Clock clock) {
         this.configData = configData;
         this.clock = clock;
@@ -48,7 +51,7 @@ public class JwsService {
         Objects.requireNonNull(keyName, "keyName can't be null");
 
         LocalDateTime expiration = LocalDateTime.now(clock).plusDays(configData.jwsLifeTimeInDays());
-        String json = tryCatch(() -> objectMapper.writeValueAsString(jwsBody));
+        String json = tryCatch(() -> objectMapper.writeValueAsString(jwsBody), RuntimeException::new);
         KeyPair keyPair = keyPairs.computeIfAbsent(keyName, key -> Keys.keyPairFor(SignatureAlgorithm.RS512));
 
         return Jwts.builder().
@@ -66,20 +69,21 @@ public class JwsService {
      * @param <T> тип объекта представляющего десериализованное тело токена
      * @return тело токена в виде отдельного объекта с типом T.
      * @throws NullPointerException если jws равен null.
+     * @throws JwtException если выполняется хотя бы одна из следующих причин: <br/>
+     *                      1. если указанный токен не соответствует формату JWT. <br/>
+     *                      2. если срок действия токена истек. <br/>
+     *                      3. если токен был изменен после его подписания. <br/>
      */
     public <T> T parseJws(String jws) {
         Objects.requireNonNull(jws, "jws can't be null");
 
         String keyPairName = parseKeyPairName(jws);
-        KeyPair keyPair = keyPairs.get(keyPairName);
-        if(keyPair == null) {
-            throw new IllegalStateException("Unknown key-pair with name '" + keyPairName + '\'');
-        }
+        KeyPair keyPair = getKeyPairByName(keyPairName);
 
         Claims claims = parseJws(jws, keyPair);
         String json = claims.get("body", String.class);
-        Class<?> jwsBodyType = tryCatch(() -> Class.forName(claims.get("bodyType", String.class)));
-        return tryCatch(() -> objectMapper.readValue(json, (Class<T>) jwsBodyType));
+        Class<?> jwsBodyType = tryCatch(() -> Class.forName(claims.get("bodyType", String.class)), RuntimeException::new);
+        return tryCatch(() -> objectMapper.readValue(json, (Class<T>) jwsBodyType), RuntimeException::new);
     }
 
 
@@ -93,12 +97,21 @@ public class JwsService {
                 getBody();
     }
 
+    private KeyPair getKeyPairByName(String keyPairName) {
+        KeyPair keyPair = keyPairs.get(keyPairName);
+        if(keyPair == null) throw new MalformedJwtException("Unknown key-pair with name '" + keyPairName + '\'');
+        return keyPair;
+    }
+
     private String parseKeyPairName(String jws) {
         final String preparedJws = jws.startsWith("Bearer ") ? jws.substring(7) : jws;
 
-        return tryCatch(() -> objectMapper.readTree(decodeJwsBody(preparedJws))).
+        String keyPairName =  tryCatch(() -> objectMapper.readTree(decodeJwsBody(preparedJws)),
+                e -> new MalformedJwtException("Jws has incorrect format '" + jws + '\'')).
                 findPath("keyName").
                 textValue();
+        if(keyPairName == null) throw new MalformedJwtException("Missing key name");
+        return keyPairName;
     }
 
     private String decodeJwsBody(String jws) {
@@ -106,11 +119,12 @@ public class JwsService {
         return new String(Base64.getUrlDecoder().decode(data[1]));
     }
 
-    private <T> T tryCatch(Callable<T> callable) {
+    private <T> T tryCatch(Callable<T> callable,
+                           Function<Exception, ? extends RuntimeException> exceptionFabric) {
         try {
             return callable.call();
         } catch(Exception e) {
-            throw new RuntimeException(e);
+            throw exceptionFabric.apply(e);
         }
     }
 

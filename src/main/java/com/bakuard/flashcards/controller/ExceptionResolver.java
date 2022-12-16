@@ -3,10 +3,7 @@ package com.bakuard.flashcards.controller;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.model.auth.policy.PermissionDeniedException;
-import com.bakuard.flashcards.validation.FailToSendMailException;
-import com.bakuard.flashcards.validation.IncorrectCredentials;
-import com.bakuard.flashcards.validation.InvalidParameter;
-import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +56,19 @@ public class ExceptionResolver {
     @ExceptionHandler(value = InvalidParameter.class)
     public ResponseEntity<ExceptionResponse> handle(InvalidParameter exception) {
         logger.error("Invalid parameter", exception);
+
+        ExceptionResponse response = mapper.toExceptionResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessageKey());
+
+        return ResponseEntity.
+                status(HttpStatus.BAD_REQUEST).
+                body(response);
+    }
+
+    @ExceptionHandler(value = InvalidParameter.class)
+    public ResponseEntity<ExceptionResponse> handle(DataStoreConstraintViolationException exception) {
+        logger.error("Data store constraint violation", exception);
 
         ExceptionResponse response = mapper.toExceptionResponse(
                 HttpStatus.BAD_REQUEST,

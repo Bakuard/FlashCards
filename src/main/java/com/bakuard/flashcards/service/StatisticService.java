@@ -12,6 +12,7 @@ import java.util.UUID;
 
 /**
  * Сервис по сбору и предоставлению статистики связанной с повторением слов и устойчивых выражений.
+ * Каждый метод этого класса выполняется в отдельной транзакции.
  */
 @Transactional
 public class StatisticService {
@@ -19,17 +20,23 @@ public class StatisticService {
     private StatisticRepository statisticRepository;
     private Clock clock;
 
+    /**
+     * Создает новый сервис статистики.
+     * @param statisticRepository репозиторий статистики
+     * @param clock часы используемые для получения текущей даты (параметр добавлен для удобства тестирования)
+     */
     public StatisticService(StatisticRepository statisticRepository, Clock clock) {
         this.statisticRepository = statisticRepository;
         this.clock = clock;
     }
 
     /**
-     * Добавляет к общей статистике данные об одном конкретном повторении слова wordId из словаря пользователя
-     * userId. Данные относятся к повторению слова с английского на родной язык пользователя.
+     * Делегирует вызов методу {@link StatisticRepository#append(RepeatWordFromEnglishStatistic)}.
      * @param userId идентификатор пользователя, к словарю которого относится слово
      * @param wordId идентификатор слова
-     * @param isRemember true - если пользователь успешно повторил слово с английского языка, иначе - false.
+     * @param isRemember true - если пользователь успешно повторил слово, иначе - false.
+     * @see StatisticRepository
+     * @see RepeatWordFromEnglishStatistic
      */
     public void appendWordFromEnglish(UUID userId, UUID wordId, boolean isRemember) {
         statisticRepository.append(
@@ -42,11 +49,13 @@ public class StatisticService {
     }
 
     /**
-     * Добавляет к общей статистике данные об одном конкретном повторении слова wordId из словаря пользователя
+     * Делегирует вызов методу {@link StatisticRepository#append(RepeatWordFromNativeStatistic)}.
      * userId. Данные относятся к повторению слова с родного на английский язык.
      * @param userId идентификатор пользователя, к словарю которого относится слово
      * @param wordId идентификатор слова
-     * @param isRemember true - если пользователь успешно повторил слово с родного языка, иначе - false.
+     * @param isRemember true - если пользователь успешно повторил слово, иначе - false.
+     * @see StatisticRepository
+     * @see RepeatWordFromNativeStatistic
      */
     public void appendWordFromNative(UUID userId, UUID wordId, boolean isRemember) {
         statisticRepository.append(
@@ -59,13 +68,12 @@ public class StatisticService {
     }
 
     /**
-     * Добавляет к общей статистике данные об одном конкретном повторении устойчивого выражения expressionId
-     * из словаря пользователя userId. Данные относятся к повторению устойчивого выражения с английского на
-     * родной язык пользователя.
+     * Делегирует вызов методу {@link StatisticRepository#append(RepeatExpressionFromEnglishStatistic)}.
      * @param userId идентификатор пользователя, к словарю которого относится слово
      * @param expressionId идентификатор устойчивого выражения
-     * @param isRemember true - если пользователь успешно повторил устойчивое выражение с английского языка,
-     *                   иначе - false.
+     * @param isRemember true - если пользователь успешно повторил устойчивое выражение, иначе - false.
+     * @see StatisticRepository
+     * @see RepeatExpressionFromEnglishStatistic
      */
     public void appendExpressionFromEnglish(UUID userId, UUID expressionId, boolean isRemember) {
         statisticRepository.append(
@@ -78,13 +86,12 @@ public class StatisticService {
     }
 
     /**
-     * Добавляет к общей статистике данные об одном конкретном повторении устойчивого выражения expressionId
-     * из словаря пользователя userId. Данные относятся к повторению устойчивого выражения с родного на
-     * английский язык.
+     * Делегирует вызов методу {@link StatisticRepository#append(RepeatExpressionFromNativeStatistic)}.
      * @param userId идентификатор пользователя, к словарю которого относится слово
      * @param expressionId идентификатор устойчивого выражения
-     * @param isRemember true - если пользователь успешно повторил устойчивое выражение с английского языка,
-     *                   иначе - false.
+     * @param isRemember true - если пользователь успешно повторил устойчивое выражение, иначе - false.
+     * @see StatisticRepository
+     * @see RepeatExpressionFromNativeStatistic
      */
     public void appendExpressionFromNative(UUID userId, UUID expressionId, boolean isRemember) {
         statisticRepository.append(
@@ -97,12 +104,7 @@ public class StatisticService {
     }
 
     /**
-     * Возвращает статистические данные о результатах повторения слова wordId за указанный период.
-     * @param userId идентификатор пользователя, к словарю которого относится слово
-     * @param wordId идентификатор слова
-     * @param start дата начала периода за который собирается статистика
-     * @param end дата конца периода за которые собирается статистика
-     * @return статистические данные о результатах повторения слова wordId за указанный период.
+     * Делегирует вызов методу {@link StatisticRepository#wordRepetitionByPeriod(UUID, UUID, LocalDate, LocalDate)}.
      * @see WordRepetitionByPeriodStatistic
      */
     public WordRepetitionByPeriodStatistic wordRepetitionByPeriod(
@@ -113,13 +115,7 @@ public class StatisticService {
     }
 
     /**
-     * Возвращает статистические данные о результатах повторения устойчивого выражения expressionId за указанный
-     * период.
-     * @param userId идентификатор пользователя, к словарю которого относится слово
-     * @param expressionId идентификатор устойчивого выражения
-     * @param start дата начала периода за который собирается статистика
-     * @param end дата конца периода за которые собирается статистика
-     * @return статистические данные о результатах повторения устойчивого выражения expressionId за указанный период.
+     * Делегирует вызов методу {@link StatisticRepository#wordRepetitionByPeriod(UUID, UUID, LocalDate, LocalDate)}.
      * @see ExpressionRepetitionByPeriodStatistic
      */
     public ExpressionRepetitionByPeriodStatistic expressionRepetitionByPeriod(
@@ -130,15 +126,7 @@ public class StatisticService {
     }
 
     /**
-     * Возвращает статистические данные о результатах повторения всех слов из словаря пользователя userId
-     * полученных за указанный период. Статистические данные для каждого отдельного слова собираются в виде
-     * одного объекта {@link WordRepetitionByPeriodStatistic}. Данные отсортированы в порядке возрастания
-     * значений слов. Если за указанный период пользователь не повторял слов - возвращает пустую страницу.
-     * @param userId идентификатор пользователя, из слов которого делается выборка
-     * @param start дата начала периода за который собирается статистика
-     * @param end дата конца периода за которые собирается статистика
-     * @param pageable параметры пагинации
-     * @return статистические данные о результатах повторения всех слов полученных за указанный период.
+     * Делегирует вызов методу {@link StatisticRepository#wordsRepetitionByPeriod(UUID, LocalDate, LocalDate, Pageable)}.
      * @see WordRepetitionByPeriodStatistic
      */
     public Page<WordRepetitionByPeriodStatistic> wordsRepetitionByPeriod(
@@ -149,17 +137,7 @@ public class StatisticService {
     }
 
     /**
-     * Возвращает статистические данные о результатах повторения всех устойчивых выражений из словаря
-     * пользователя userId полученных за указанный период. Статистические данные для каждого отдельного выражения
-     * собираются в виде одного объекта {@link ExpressionRepetitionByPeriodStatistic}. Данные отсортированы в
-     * порядке возрастания значений устойчивых выражений. Если за указанный период пользователь не повторял
-     * устойчивых выражений - возвращает пустую страницу.
-     * @param userId идентификатор пользователя, из устойчивых выражений которого делается выборка
-     * @param start дата начала периода за который собирается статистика
-     * @param end дата конца периода за которые собирается статистика
-     * @param pageable параметры пагинации
-     * @return статистические данные о результатах повторения всех устойчивых выражений полученных за указанный
-     *         период.
+     * Делегирует вызов методу {@link StatisticRepository#expressionsRepetitionByPeriod(UUID, LocalDate, LocalDate, Pageable)}.
      * @see ExpressionRepetitionByPeriodStatistic
      */
     public Page<ExpressionRepetitionByPeriodStatistic> expressionsRepetitionByPeriod(

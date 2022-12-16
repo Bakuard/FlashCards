@@ -3,6 +3,10 @@ package com.bakuard.flashcards.service.wordSupplementation;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Возвращает случайное значение для http заголовка User-Agent. Используется некоторыми реализациями
+ * {@link WordSupplementation} для веб-скрейпинга.
+ */
 public class RandomUserAgent {
 
     private static Map<String, String[]> userAgentsMap = new HashMap<>();
@@ -1646,6 +1650,9 @@ public class RandomUserAgent {
         });
     }
 
+    /**
+     * Возвращает случайное значение для http заголовка User-Agent.
+     */
     public static String getRandomUserAgent() {
 
         double rand = Math.random() * 100;

@@ -18,12 +18,7 @@ public class IntervalRepositoryImpl implements IntervalRepository {
 
     @Override
     public void add(UUID userId, int interval) {
-        if(interval <= 0) {
-            throw new InvalidParameter(
-                    "RepeatInterval.notNegative",
-                    "interval can't be less then 1. Actual: " + interval
-            );
-        }
+        assertIntervalNotNegative(interval);
 
         jdbcTemplate.update(
                 "insert into intervals(user_id, number_days) values (?, ?);",
@@ -37,11 +32,9 @@ public class IntervalRepositoryImpl implements IntervalRepository {
     @Override
     public void replace(UUID userId, int oldInterval, int newInterval) {
         ImmutableList<Integer> intervals = findAll(userId);
-        if(!intervals.contains(oldInterval)) {
-            throw new InvalidParameter(
-                    "Unknown oldInterval=" + oldInterval + " for user=" + userId,
-                    "RepeatInterval.oldIntervalNotExists");
-        }
+
+        assertIntervalNotNegative(newInterval);
+        assertUserHasInterval(oldInterval, userId, intervals);
 
         if(oldInterval != newInterval && !intervals.contains(newInterval)) {
             jdbcTemplate.update(
@@ -139,6 +132,24 @@ public class IntervalRepositoryImpl implements IntervalRepository {
                     ps.setObject(3, userId);
                 }
         );
+    }
+
+
+    private void assertIntervalNotNegative(int interval) {
+        if(interval < 0) {
+            throw new InvalidParameter(
+                    "RepeatInterval.notNegative",
+                    "interval can't be less then 1. Actual: " + interval
+            );
+        }
+    }
+
+    private void assertUserHasInterval(int interval, UUID userId, ImmutableList<Integer> intervals) {
+        if(!intervals.contains(interval)) {
+            throw new InvalidParameter(
+                    "User with id=" + userId + " hasn't interval=" + interval,
+                    "RepeatInterval.intervalNotExists");
+        }
     }
 
 }

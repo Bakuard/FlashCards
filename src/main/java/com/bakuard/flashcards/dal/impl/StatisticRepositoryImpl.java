@@ -305,7 +305,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 
 
     private void assertPeriodIsValid(LocalDate start, LocalDate end) {
-        if(start.compareTo(end) > 0) {
+        if(start.isAfter(end)) {
             throw new InvalidParameter("Invalid period border: " + start + ", " + end,
                     "StatisticRepository.invalidPeriodBorder");
         }

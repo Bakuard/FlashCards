@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.ConstraintViolationException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.UUID;
 
 /**
  * Набор операций над словами в словаре пользователя требующие обращения к внешнему хранилищу или другим
- * сервисам. Каждая операция выполняется в отдельной транзакции.
+ * сервисам. Каждый метод этого класса выполняется в отдельной транзакции.
  */
 @Transactional
 public class WordService {
@@ -33,6 +34,14 @@ public class WordService {
     private ConfigData configData;
     private ValidatorUtil validator;
 
+    /**
+     * Создает новый сервис для слов.
+     * @param wordRepository репозиторий слов
+     * @param intervalRepository репозиторий интервалов повторения
+     * @param clock часы используемые для получения текущей даты (параметр добавлен для удобства тестирования)
+     * @param configData общие данные конфигурации приложения
+     * @param validator объект отвечающий за валидация входных данных пользователя
+     */
     public WordService(WordRepository wordRepository,
                        IntervalRepository intervalRepository,
                        Clock clock,
@@ -46,7 +55,9 @@ public class WordService {
     }
 
     /**
-     * Делегирует вызов одноименному методу {@link WordRepository} оборачивая его в транзакцию.
+     * Делегирует вызов одноименному методу {@link WordRepository} добавляя предварительную валидацию
+     * данных слова.
+     * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Word}
      * @see <a href="https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/CrudRepository.html#save(S)">Документация к CrudRepository#save(entity)</a>
      */
     public Word save(Word word) {
@@ -55,36 +66,36 @@ public class WordService {
     }
 
     /**
-     * Делегирует вызов одноименному методу {@link WordRepository} оборачивая его в транзакцию.
+     * Делегирует вызов одноименному методу {@link WordRepository}.
      * Если оборачиваемый метод вернул false - выбрасывает исключение.
-     * @throws UnknownEntityException если оборачиваемый метод вернул false - выбрасывает исключение.
+     * @throws UnknownEntityException если оборачиваемый метод вернул false.
      */
     public void tryDeleteById(UUID userId, UUID wordId) {
-        if(!existsById(userId, wordId)) {
+        boolean wasDeleted = wordRepository.deleteById(userId, wordId);
+        if(!wasDeleted) {
             throw new UnknownEntityException(
-                    "Unknown word with id=" + wordId + " userId=" + userId,
+                    "User with id=" + userId + " not exists or hasn't word with id=" + wordId,
                     "Word.unknownId");
         }
-        wordRepository.deleteById(userId, wordId);
     }
 
     /**
-     * Делегирует вызов методу {@link WordRepository#existsById(UUID, UUID)} оборачивая его в транзакцию.
+     * Делегирует вызов методу {@link WordRepository#existsById(UUID, UUID)}.
      */
     public boolean existsById(UUID userId, UUID wordId) {
         return wordRepository.existsById(userId, wordId);
     }
 
     /**
-     * Делегирует вызов методу {@link WordRepository#findById(UUID, UUID)} оборачивая его в транзакцию.
+     * Делегирует вызов методу {@link WordRepository#findById(UUID, UUID)}.
      */
     public Optional<Word> findById(UUID userId, UUID wordId) {
         return wordRepository.findById(userId, wordId);
     }
 
     /**
-     * Делегирует вызов методу {@link WordRepository#findByValue(UUID, String, int, long, long)} оборачивая его
-     * в транзакцию, а также оборачивая возвращаемое значение в объект Page.
+     * Делегирует вызов методу {@link WordRepository#findByValue(UUID, String, int, long, long)}.
+     * Оборачивает возвращаемое значение в объект Page.
      */
     public Page<Word> findByValue(UUID userId, String value, int maxDistance, Pageable pageable) {
         maxDistance = Math.max(maxDistance, 1);
@@ -99,8 +110,8 @@ public class WordService {
     }
 
     /**
-     * Делегирует вызов методу {@link WordRepository#findByTranslate(UUID, String, long, long)} оборачивая его
-     * в транзакцию, а также оборачивая возвращаемое значение в объект Page.
+     * Делегирует вызов методу {@link WordRepository#findByTranslate(UUID, String, long, long)}.
+     * Оборачивает возвращаемое значение в объект Page.
      */
     public Page<Word> findByTranslate(UUID userId, String translate, Pageable pageable) {
         return PageableExecutionUtils.getPage(
@@ -142,30 +153,30 @@ public class WordService {
     }
 
     /**
-     * Делегирует вызов методу {@link WordRepository#findById(UUID, UUID)} оборачивая его в транзакцию. Если
-     * оборачиваемый метод возвращает пустой Optional - данный метод генерирует исключение.
+     * Делегирует вызов методу {@link WordRepository#findById(UUID, UUID)}. Если оборачиваемый метод возвращает
+     * пустой Optional - данный метод генерирует исключение.
      * @throws UnknownEntityException если оборачиваемый метод возвращает пустой Optional.
      */
     public Word tryFindById(UUID userId, UUID wordId) {
         return findById(userId, wordId).
                 orElseThrow(
                         () -> new UnknownEntityException(
-                                "Unknown word with id=" + wordId + " userId=" + userId,
+                                "User with id=" + userId + " not exists or hasn't word with id=" + wordId,
                                 "Word.unknownId"
                         )
                 );
     }
 
     /**
-     * Делегирует вызов методу {@link WordRepository#findByUserId(UUID, Pageable)} оборачивая его в транзакцию.
+     * Делегирует вызов методу {@link WordRepository#findByUserId(UUID, Pageable)}.
      */
     public Page<Word> findByUserId(UUID userId, Pageable pageable) {
         return wordRepository.findByUserId(userId, pageable);
     }
 
     /**
-     * Делегирует вызов методу {@link WordRepository#findAllForRepeatFromEnglish(UUID, LocalDate, long, long)}
-     * оборачивая его в транзакцию, а также оборачивая возвращаемое значение в объект Page.
+     * Делегирует вызов методу {@link WordRepository#findAllForRepeatFromEnglish(UUID, LocalDate, long, long)}.
+     * Оборачивает возвращаемое значение в объект Page.
      */
     public Page<Word> findAllForRepeatFromEnglish(UUID userId, Pageable pageable) {
         LocalDate date = LocalDate.now(clock);
@@ -178,8 +189,8 @@ public class WordService {
     }
 
     /**
-     * Делегирует вызов методу {@link WordRepository#findAllForRepeatFromNative(UUID, LocalDate, long, long)}
-     * оборачивая его в транзакцию, а также оборачивая возвращаемое значение в объект Page.
+     * Делегирует вызов методу {@link WordRepository#findAllForRepeatFromNative(UUID, LocalDate, long, long)}.
+     * Оборачивает возвращаемое значение в объект Page.
      */
     public Page<Word> findAllForRepeatFromNative(UUID userId, Pageable pageable) {
         LocalDate date = LocalDate.now(clock);
