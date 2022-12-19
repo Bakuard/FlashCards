@@ -66,7 +66,7 @@ public class ExceptionResolver {
                 body(response);
     }
 
-    @ExceptionHandler(value = InvalidParameter.class)
+    @ExceptionHandler(value = DataStoreConstraintViolationException.class)
     public ResponseEntity<ExceptionResponse> handle(DataStoreConstraintViolationException exception) {
         logger.error("Data store constraint violation", exception);
 

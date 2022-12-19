@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.Keys;
 
 import java.security.KeyPair;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -28,12 +29,13 @@ public class JwsService {
      * Создает новый сервис генерации и парсинг JWS токенов.
      * @param configData общие данные конфигурации приложения
      * @param clock часы используемые для получения текущей даты (параметр добавлен для удобства тестирования)
+     * @param objectMapper отвечает за сериализацию и десериализацию тела JWS токена
      */
-    public JwsService(ConfigData configData, Clock clock) {
+    public JwsService(ConfigData configData, Clock clock, ObjectMapper objectMapper) {
         this.configData = configData;
         this.clock = clock;
         this.keyPairs = new ConcurrentHashMap<>();
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -46,19 +48,20 @@ public class JwsService {
      * @return JWS токен
      * @throws NullPointerException если jwsBody или keyName имеют значение null.
      */
-    public String generateJws(Object jwsBody, String keyName) {
+    public String generateJws(Object jwsBody, String keyName, Duration duration) {
         Objects.requireNonNull(jwsBody, "jwsBody can't be null");
         Objects.requireNonNull(keyName, "keyName can't be null");
+        Objects.requireNonNull(duration, "duration can't be null");
 
-        LocalDateTime expiration = LocalDateTime.now(clock).plusDays(configData.jwsLifeTimeInDays());
+        LocalDateTime expiration = LocalDateTime.now(clock).plus(duration);
         String json = tryCatch(() -> objectMapper.writeValueAsString(jwsBody), RuntimeException::new);
         KeyPair keyPair = keyPairs.computeIfAbsent(keyName, key -> Keys.keyPairFor(SignatureAlgorithm.RS512));
 
         return Jwts.builder().
-                setExpiration(Date.from(expiration.atZone(ZoneId.systemDefault()).toInstant())).
+                setExpiration(Date.from(expiration.atZone(clock.getZone()).toInstant())).
+                setId(UUID.randomUUID().toString()).
                 claim("body", json).
                 claim("bodyType", jwsBody.getClass().getName()).
-                claim("keyName", keyName).
                 signWith(keyPair.getPrivate()).
                 compact();
     }
@@ -74,16 +77,14 @@ public class JwsService {
      *                      2. если срок действия токена истек. <br/>
      *                      3. если токен был изменен после его подписания. <br/>
      */
-    public <T> T parseJws(String jws) {
+    public <T> T parseJws(String jws, String keyName) {
         Objects.requireNonNull(jws, "jws can't be null");
+        Objects.requireNonNull(keyName, "keyName can't be null");
 
-        String keyPairName = parseKeyPairName(jws);
-        KeyPair keyPair = getKeyPairByName(keyPairName);
+        KeyPair keyPair = keyPairs.get(keyName);
 
         Claims claims = parseJws(jws, keyPair);
-        String json = claims.get("body", String.class);
-        Class<?> jwsBodyType = tryCatch(() -> Class.forName(claims.get("bodyType", String.class)), RuntimeException::new);
-        return tryCatch(() -> objectMapper.readValue(json, (Class<T>) jwsBodyType), RuntimeException::new);
+        return parseJwsBody(claims);
     }
 
 
@@ -97,26 +98,10 @@ public class JwsService {
                 getBody();
     }
 
-    private KeyPair getKeyPairByName(String keyPairName) {
-        KeyPair keyPair = keyPairs.get(keyPairName);
-        if(keyPair == null) throw new MalformedJwtException("Unknown key-pair with name '" + keyPairName + '\'');
-        return keyPair;
-    }
-
-    private String parseKeyPairName(String jws) {
-        final String preparedJws = jws.startsWith("Bearer ") ? jws.substring(7) : jws;
-
-        String keyPairName =  tryCatch(() -> objectMapper.readTree(decodeJwsBody(preparedJws)),
-                e -> new MalformedJwtException("Jws has incorrect format '" + jws + '\'')).
-                findPath("keyName").
-                textValue();
-        if(keyPairName == null) throw new MalformedJwtException("Missing key name");
-        return keyPairName;
-    }
-
-    private String decodeJwsBody(String jws) {
-        String[] data = jws.split("\\.");
-        return new String(Base64.getUrlDecoder().decode(data[1]));
+    private <T> T parseJwsBody(Claims claims) {
+        String json = claims.get("body", String.class);
+        Class<?> jwsBodyType = tryCatch(() -> Class.forName(claims.get("bodyType", String.class)), RuntimeException::new);
+        return tryCatch(() -> objectMapper.readValue(json, (Class<T>) jwsBodyType), RuntimeException::new);
     }
 
     private <T> T tryCatch(Callable<T> callable,

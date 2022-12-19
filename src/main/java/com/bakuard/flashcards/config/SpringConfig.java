@@ -64,6 +64,7 @@ import java.time.Clock;
 @SecurityScheme(name = "commonToken", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 @SecurityScheme(name = "registrationToken", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 @SecurityScheme(name = "restorePassToken", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
+@SecurityScheme(name = "deleteToken", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 public class SpringConfig implements WebMvcConfigurer {
 
         @Bean
@@ -157,8 +158,8 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public JwsService jwsService(ConfigData configData, Clock clock) {
-             return new JwsService(configData, clock);
+        public JwsService jwsService(ConfigData configData, Clock clock, ObjectMapper mapper) {
+             return new JwsService(configData, clock, mapper);
         }
 
         @Bean

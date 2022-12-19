@@ -28,7 +28,7 @@ import java.util.UUID;
 class JwsServiceTest {
 
     @Autowired
-    private ConfigData configData;
+    private ConfigData conf;
     @Autowired
     private ObjectMapper mapper;
     private Clock clock = Clock.fixed(Instant.parse("2100-01-01T00:00:00Z"), ZoneId.of("Asia/Kolkata"));
@@ -40,10 +40,10 @@ class JwsServiceTest {
              => throw exception
             """)
     public void generateJws1() {
-        JwsService jwsService = new JwsService(configData, clock);
+        JwsService jwsService = new JwsService(conf, clock, mapper);
 
         Assertions.assertThatNullPointerException().
-                isThrownBy(() -> jwsService.generateJws(null, "keyName"));
+                isThrownBy(() -> jwsService.generateJws(null, "key", conf.jws().commonTokenLifeTime()));
     }
 
     @Test
@@ -53,10 +53,10 @@ class JwsServiceTest {
              => throw exception
             """)
     public void generateJws2() {
-        JwsService jwsService = new JwsService(configData, clock);
+        JwsService jwsService = new JwsService(conf, clock, mapper);
 
         Assertions.assertThatNullPointerException().
-                isThrownBy(() -> jwsService.generateJws(new Object(), null));
+                isThrownBy(() -> jwsService.generateJws(new Object(), null, conf.jws().commonTokenLifeTime()));
     }
 
     @Test
@@ -66,10 +66,10 @@ class JwsServiceTest {
              => throw exception
             """)
     public void parseJws1() {
-        JwsService jwsService = new JwsService(configData, clock);
+        JwsService jwsService = new JwsService(conf, clock, mapper);
 
         Assertions.assertThatNullPointerException().
-                isThrownBy(() -> jwsService.parseJws(null));
+                isThrownBy(() -> jwsService.parseJws(null, "any key"));
     }
 
     @Test
@@ -80,10 +80,10 @@ class JwsServiceTest {
             """)
     public void generateAndParse1() {
         UUID expected = toUUID(1);
-        JwsService jwsService = new JwsService(configData, clock);
+        JwsService jwsService = new JwsService(conf, clock, mapper);
 
-        String jws = jwsService.generateJws(expected, "keyName");
-        UUID actual = jwsService.parseJws(jws);
+        String jws = jwsService.generateJws(expected, "key", conf.jws().commonTokenLifeTime());
+        UUID actual = jwsService.parseJws(jws, "key");
 
         Assertions.assertThat(actual).isEqualTo(expected);
     }
@@ -96,51 +96,20 @@ class JwsServiceTest {
              => parser must return correct JWS body for each JWS
             """)
     public void generateAndParse2() {
-        JwsService jwsService = new JwsService(configData, clock);
-        String jws1 = jwsService.generateJws(toUUID(1), "keyName1");
-        String jws2 = jwsService.generateJws(toUUID(2), "keyName2");
+        JwsService jwsService = new JwsService(conf, clock, mapper);
+        String jws1 = jwsService.generateJws(toUUID(1), "key1", conf.jws().commonTokenLifeTime());
+        String jws2 = jwsService.generateJws(toUUID(2), "key2", conf.jws().commonTokenLifeTime());
 
-        UUID actual1 = jwsService.parseJws(jws1);
-        UUID actual2 = jwsService.parseJws(jws2);
+        UUID actual1 = jwsService.parseJws(jws1, "key1");
+        UUID actual2 = jwsService.parseJws(jws2, "key2");
 
         Assertions.assertThat(actual1).isEqualTo(toUUID(1));
         Assertions.assertThat(actual2).isEqualTo(toUUID(2));
     }
 
-    @Test
-    @DisplayName("""
-            generate and parse token:
-             keyName in JWS was changed after signing
-             => throw exception
-            """)
-    public void generateAndParse3() throws JacksonException {
-        JwsService jwsService = new JwsService(configData, clock);
-        String jws = jwsService.generateJws(toUUID(1), "keyName1");
-
-        ObjectNode node = (ObjectNode) mapper.readTree(getRawJwsBody(jws));
-        node.put("keyName", "otherKeyName");
-        String changedJws = replaceJwsBody(jws, node.toPrettyString());
-
-        Assertions.assertThatIllegalStateException().
-                isThrownBy(() -> jwsService.parseJws(changedJws));
-    }
-
 
     private UUID toUUID(int number) {
         return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
-    }
-
-    private String getRawJwsBody(String jws) {
-        String jwsBodyInBase64 = jws.split("\\.")[1];
-        byte[] jwsBodyAsByteArray = Base64.getUrlDecoder().decode(jwsBodyInBase64);
-        return new String(jwsBodyAsByteArray);
-    }
-
-    private String replaceJwsBody(String jws, String newJwsBody) {
-        String[] jwsParts = jws.split("\\.");
-        byte[] jwsBodyAsByteArray = newJwsBody.getBytes(StandardCharsets.UTF_8);
-        String jwsBodyInBase64 = new String(Base64.getUrlEncoder().encode(jwsBodyAsByteArray));
-        return jwsParts[0] + '.' + jwsBodyInBase64 + '.' + jwsParts[2];
     }
 
 }

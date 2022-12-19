@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.ConstraintViolationException;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -25,7 +24,7 @@ public class AuthService {
     private IntervalRepository intervalRepository;
     private JwsService jwsService;
     private EmailService emailService;
-    private ConfigData configData;
+    private ConfigData conf;
     private ValidatorUtil validator;
 
     /**
@@ -34,20 +33,20 @@ public class AuthService {
      * @param intervalRepository репозиторий интервалов повторений
      * @param jwsService сервис jws токенов
      * @param emailService сервис рассылки на почту писем подтвердения
-     * @param configData общие данные конфигурации приложения
+     * @param conf общие данные конфигурации приложения
      * @param validator объект отвечающий за валидация входных данных пользователя
      */
     public AuthService(UserRepository userRepository,
                        IntervalRepository intervalRepository,
                        JwsService jwsService,
                        EmailService emailService,
-                       ConfigData configData,
+                       ConfigData conf,
                        ValidatorUtil validator) {
         this.userRepository = userRepository;
         this.intervalRepository = intervalRepository;
         this.jwsService = jwsService;
         this.emailService = emailService;
-        this.configData = configData;
+        this.conf = conf;
         this.validator = validator;
     }
 
@@ -57,16 +56,16 @@ public class AuthService {
      * Иначе, ничего не делает.
      */
     public void initialize() {
-        long countUserWithRole = userRepository.countForRole(configData.superAdmin().roleName());
+        long countUserWithRole = userRepository.countForRole(conf.superAdmin().roleName());
         if(countUserWithRole < 1) {
-            Credential credential = new Credential(configData.superAdmin().mail(), configData.superAdmin().password());
+            Credential credential = new Credential(conf.superAdmin().mail(), conf.superAdmin().password());
             save(
                     new User(validator.assertValid(credential)).
-                            addRole(configData.superAdmin().roleName())
+                            addRole(conf.superAdmin().roleName())
             );
-        } else if(configData.superAdmin().recreate()) {
-            User superAdmin = userRepository.findByRole(configData.superAdmin().roleName(), 1, 0).get(0);
-            Credential credential = new Credential(configData.superAdmin().mail(), configData.superAdmin().password());
+        } else if(conf.superAdmin().recreate()) {
+            User superAdmin = userRepository.findByRole(conf.superAdmin().roleName(), 1, 0).get(0);
+            Credential credential = new Credential(conf.superAdmin().mail(), conf.superAdmin().password());
             superAdmin.setCredential(validator.assertValid(credential));
             save(superAdmin);
         }
@@ -89,7 +88,7 @@ public class AuthService {
         validator.assertValid(credential);
         User user = tryFindByEmail(credential.email());
         user.assertCurrentPassword(credential.password());
-        String jws = jwsService.generateJws(user.getId(), "common");
+        String jws = jwsService.generateJws(user.getId(), "common", conf.jws().commonTokenLifeTime());
         return new JwsWithUser(user, jws);
     }
 
@@ -110,7 +109,7 @@ public class AuthService {
         if(userRepository.existsByEmail(credential.email())) {
             throw new DataStoreConstraintViolationException("User.email.unique");
         }
-        String jws = jwsService.generateJws(credential, "register");
+        String jws = jwsService.generateJws(credential, "register", conf.jws().registrationTokenLifeTime());
         emailService.confirmEmailForRegistration(jws, credential.email());
     }
 
@@ -132,7 +131,7 @@ public class AuthService {
         intervalRepository.add(user.getId(), 5);
         intervalRepository.add(user.getId(), 11);
 
-        String jws = jwsService.generateJws(user.getId(), "register");
+        String jws = jwsService.generateJws(user.getId(), "common", conf.jws().commonTokenLifeTime());
         return new JwsWithUser(user, jws);
     }
 
@@ -150,7 +149,10 @@ public class AuthService {
     @Transactional(readOnly = true)
     public void restorePasswordFirstStep(Credential credential) {
         validator.assertValid(credential);
-        String jws = jwsService.generateJws(credential, "restorePassword");
+        if(!userRepository.existsByEmail(credential.email())) {
+            throw new DataStoreConstraintViolationException("User.email.exists");
+        }
+        String jws = jwsService.generateJws(credential, "restorePassword", conf.jws().restorePassTokenLifeTime());
         emailService.confirmEmailForRestorePass(jws, credential.email());
     }
 
@@ -167,7 +169,7 @@ public class AuthService {
         User user = tryFindByEmail(jwsBody.email());
         user.setCredential(jwsBody);
         user = save(user);
-        String jws = jwsService.generateJws(user.getId(), "restorePassword");
+        String jws = jwsService.generateJws(user.getId(), "common", conf.jws().commonTokenLifeTime());
         return new JwsWithUser(user, jws);
     }
 
@@ -197,7 +199,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public void deletionFirstStep(UUID userId, String email) {
         assertExists(userId, email);
-        String jws = jwsService.generateJws(userId, "deleteUser");
+        String jws = jwsService.generateJws(userId, "delete", conf.jws().deleteUserTokenLifeTime());
         emailService.confirmEmailForDeletion(jws, email);
     }
 

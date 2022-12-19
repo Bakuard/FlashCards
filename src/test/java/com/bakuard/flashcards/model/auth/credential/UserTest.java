@@ -167,59 +167,59 @@ class UserTest {
 
     @Test
     @DisplayName("""
-            checkPassword(currentPassword):
+            assertCurrentPassword(currentPassword):
              currentPassword is null
              => exception
             """)
-    public void checkPassword1() {
+    public void assertCurrentPassword1() {
         User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
                 assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.assertCurrentPassword(null)).
                 extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
-                isEqualTo("User.password.format");
+                isEqualTo("User.password.notNull");
     }
 
     @Test
     @DisplayName("""
-            checkPassword(currentPassword):
+            assertCurrentPassword(currentPassword):
              currentPassword is blank
              => exception
             """)
-    public void checkPassword2() {
+    public void assertCurrentPassword2() {
         User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
                 assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.assertCurrentPassword("       ")).
                 extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
-                isEqualTo("User.password.format");
+                isEqualTo("User.password.incorrect");
     }
 
     @Test
     @DisplayName("""
-            checkPassword(currentPassword):
+            assertCurrentPassword(currentPassword):
              currentPassword less than 8
              => exception
             """)
-    public void checkPassword3() {
+    public void assertCurrentPassword3() {
         User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
                 assertThatExceptionOfType(IncorrectCredentials.class).
                 isThrownBy(() -> user.assertCurrentPassword("1234567")).
                 extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
-                isEqualTo("User.password.format");
+                isEqualTo("User.password.incorrect");
     }
 
     @Test
     @DisplayName("""
-            checkPassword(currentPassword):
+            assertCurrentPassword(currentPassword):
              currentPassword greater than 50
              => exception
             """)
-    public void checkPassword4() {
+    public void assertCurrentPassword4() {
         User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
@@ -227,16 +227,16 @@ class UserTest {
                 isThrownBy(() ->
                         user.assertCurrentPassword("012345678901234567890123456789012345678901234567891")).
                 extracting(IncorrectCredentials::getMessageKey, InstanceOfAssertFactories.type(String.class)).
-                isEqualTo("User.password.format");
+                isEqualTo("User.password.incorrect");
     }
 
     @Test
     @DisplayName("""
-            checkPassword(currentPassword):
+            assertCurrentPassword(currentPassword):
              currentPassword is correct
              => do nothing
             """)
-    public void checkPassword5() {
+    public void assertCurrentPassword5() {
         User user = new User(new Credential("me@gmail.com", "password"));
 
         Assertions.
