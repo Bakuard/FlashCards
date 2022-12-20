@@ -1,7 +1,6 @@
 package com.bakuard.flashcards.controller;
 
 import com.bakuard.flashcards.config.security.RequestContext;
-import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.statistic.ExpressionRepetitionByPeriodResponse;
@@ -15,6 +14,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -54,19 +54,19 @@ public class StatisticController {
         this.authorizer = authorizer;
     }
 
-    @Operation(summary = "Возвращает статистику о результатах повторения указанного слова за указанный период.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "403",
-                            description = """
+    @Operation(summary = "Возвращает статистику о результатах повторения указанного слова за указанный период.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
                             Если недостаточно прав для выполнения этой операции. Для выполнения этой
                              операции необходимо одно из следующих прав и привелегий:<br/>
                             <ol>
@@ -74,14 +74,13 @@ public class StatisticController {
                                 <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
                             </ol>
                             """,
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти слово или пользователя по указанным идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти слово или пользователя по указанным идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @GetMapping("/words/id")
     public ResponseEntity<WordRepetitionByPeriodResponse> findStatisticForWordRepetition(
             @RequestParam
@@ -108,26 +107,26 @@ public class StatisticController {
                 jwsUserId, userId, wordId, startDate, endDate);
         authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForWordRepetition");
 
-        WordRepetitionByPeriodStatistic statistic = statisticService.wordRepetitionByPeriod(
+        WordRepetitionByPeriodStatistic statistic = statisticService.tryGetWordRepetitionByPeriod(
                 userId, wordId, startDate, endDate
         );
 
         return ResponseEntity.ok(mapper.toWordRepetitionByPeriodResponse(statistic));
     }
 
-    @Operation(summary = "Возвращает статистику о результатах повторения всех слов за указанный период.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "403",
-                            description = """
+    @Operation(summary = "Возвращает статистику о результатах повторения всех слов за указанный период.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
                             Если недостаточно прав для выполнения этой операции. Для выполнения этой
                              операции необходимо одно из следующих прав и привелегий:<br/>
                             <ol>
@@ -135,14 +134,13 @@ public class StatisticController {
                                 <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
                             </ol>
                             """,
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти пользователя по указанному идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя по указанному идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @GetMapping("/words")
     public ResponseEntity<Page<WordRepetitionByPeriodResponse>> findStatisticForWordsRepetition(
             @RequestParam
@@ -197,26 +195,26 @@ public class StatisticController {
                 jwsUserId, userId, startDate, endDate, page, size, sort);
         authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForWordsRepetition");
 
-        Page<WordRepetitionByPeriodStatistic> statistic = statisticService.wordsRepetitionByPeriod(
+        Page<WordRepetitionByPeriodStatistic> statistic = statisticService.getWordsRepetitionByPeriod(
                 userId, startDate, endDate, mapper.toPageable(page, size, mapper.toWordStatisticSort(sort))
         );
 
         return ResponseEntity.ok(mapper.toWordsRepetitionByPeriodResponse(statistic));
     }
 
-    @Operation(summary = "Возвращает статистику о результатах повторения указанного выражения за указанный период.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "403",
-                            description = """
+    @Operation(summary = "Возвращает статистику о результатах повторения указанного выражения за указанный период.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
                             Если недостаточно прав для выполнения этой операции. Для выполнения этой
                              операции необходимо одно из следующих прав и привелегий:<br/>
                             <ol>
@@ -224,14 +222,13 @@ public class StatisticController {
                                 <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
                             </ol>
                             """,
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти выражение или пользователя по указанным идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @GetMapping("/expressions/id")
     public ResponseEntity<ExpressionRepetitionByPeriodResponse> findStatisticForExpressionRepetition(
             @RequestParam
@@ -258,26 +255,26 @@ public class StatisticController {
                 jwsUserId, userId, expressionId, startDate, endDate);
         authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForExpressionRepetition");
 
-        ExpressionRepetitionByPeriodStatistic statistic = statisticService.expressionRepetitionByPeriod(
+        ExpressionRepetitionByPeriodStatistic statistic = statisticService.tryGetExpressionRepetitionByPeriod(
                 userId, expressionId, startDate, endDate
         );
 
         return ResponseEntity.ok(mapper.toExpressionRepetitionByPeriodResponse(statistic));
     }
 
-    @Operation(summary = "Возвращает статистику о результатах повторения всех выражений за указанный период.",
-            responses = {
-                    @ApiResponse(responseCode = "200"),
-                    @ApiResponse(responseCode = "400",
-                            description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "401",
-                            description = "Если передан некорректный токен или токен не указан.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "403",
-                            description = """
+    @Operation(summary = "Возвращает статистику о результатах повторения всех выражений за указанный период.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200"),
+            @ApiResponse(responseCode = "400",
+                    description = "Если нарушен хотя бы один из инвариантов связаный с параметрами запроса.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "401",
+                    description = "Если передан некорректный токен или токен не указан.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "403",
+                    description = """
                             Если недостаточно прав для выполнения этой операции. Для выполнения этой
                              операции необходимо одно из следующих прав и привелегий:<br/>
                             <ol>
@@ -285,14 +282,13 @@ public class StatisticController {
                                 <li>Вы должны быть пользователем, над данными которого выполняется эта операция.</li>
                             </ol>
                             """,
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class))),
-                    @ApiResponse(responseCode = "404",
-                            description = "Если не удалось найти пользователя по указанному идентификаторам.",
-                            content = @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = ExceptionResponse.class)))
-            }
-    )
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "404",
+                    description = "Если не удалось найти пользователя по указанному идентификаторам.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ExceptionResponse.class)))
+    })
     @GetMapping("/expressions")
     public ResponseEntity<Page<ExpressionRepetitionByPeriodResponse>> findStatisticForExpressionsRepetition(
             @RequestParam
@@ -347,7 +343,7 @@ public class StatisticController {
                 jwsUserId, userId, startDate, endDate, page, size, sort);
         authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForExpressionsRepetition");
 
-        Page<ExpressionRepetitionByPeriodStatistic> statistic = statisticService.expressionsRepetitionByPeriod(
+        Page<ExpressionRepetitionByPeriodStatistic> statistic = statisticService.getExpressionsRepetitionByPeriod(
                 userId, startDate, endDate, mapper.toPageable(page, size, mapper.toExpressionStatisticSort(sort))
         );
 

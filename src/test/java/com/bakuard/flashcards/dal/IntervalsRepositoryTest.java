@@ -7,6 +7,8 @@ import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.validation.InvalidParameter;
+import com.bakuard.flashcards.validation.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.UnknownEntityException;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
 import org.assertj.core.api.Assertions;
@@ -35,7 +37,7 @@ import java.util.function.Supplier;
 @ExtendWith(SpringExtension.class)
 @TestPropertySource(locations = "classpath:test.properties")
 @Import({SpringConfig.class, TestConfig.class})
-class IntervalsResponseRepositoryTest {
+class IntervalsRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
@@ -97,8 +99,146 @@ class IntervalsResponseRepositoryTest {
         User user = userRepository.save(user(1));
         commit(() -> intervalRepository.add(user.getId(), 10));
 
-        Assertions.assertThatExceptionOfType(DuplicateKeyException.class).
+        Assertions.assertThatExceptionOfType(NotUniqueEntityException.class).
                 isThrownBy(() -> commit(() -> intervalRepository.add(user.getId(), 10)));
+    }
+
+    @Test
+    @DisplayName("""
+            add(userId, interval):
+             userId is null
+             => exception
+            """)
+    public void add3() {
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() -> commit(() -> intervalRepository.add(null, 10)));
+    }
+
+    @Test
+    @DisplayName("""
+            add(userId, interval):
+             interval < 0
+             => exception
+            """)
+    public void add4() {
+        User user = userRepository.save(user(1));
+
+        Assertions.assertThatExceptionOfType(InvalidParameter.class).
+                isThrownBy(() -> commit(() -> intervalRepository.add(user.getId(), -1)));
+    }
+
+    @Test
+    @DisplayName("""
+            add(userId, interval):
+             interval = 0
+             => exception
+            """)
+    public void add5() {
+        User user = userRepository.save(user(1));
+
+        Assertions.assertThatExceptionOfType(InvalidParameter.class).
+                isThrownBy(() -> commit(() -> intervalRepository.add(user.getId(), 0)));
+    }
+
+    @Test
+    @DisplayName("""
+            add(userId, interval):
+             user with userId not exists
+             => exception
+            """)
+    public void add6() {
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> intervalRepository.add(toUUID(1), 10)));
+    }
+
+    @Test
+    @DisplayName("""
+            addAll(userId, intervals):
+             there are not duplicates for intervals
+             => add all intervals
+            """)
+    public void addAll1() {
+        User user = userRepository.save(user(1));
+        commit(() -> intervalRepository.addAll(user.getId(), 1, 3, 5, 11));
+
+        ImmutableList<Integer> intervals = intervalRepository.findAll(user.getId());
+
+        Assertions.assertThat(intervals).containsExactly(1, 3, 5, 11);
+    }
+
+    @Test
+    @DisplayName("""
+            addAll(userId, intervals):
+             there are duplicates for intervals
+             => exception
+            """)
+    public void addAll2() {
+        User user = userRepository.save(user(1));
+        commit(() -> intervalRepository.addAll(user.getId(), 1, 3, 5, 11));
+
+        Assertions.assertThatExceptionOfType(NotUniqueEntityException.class).
+                isThrownBy(() -> commit(() -> intervalRepository.addAll(user.getId(), 2, 4, 6, 11)));
+    }
+
+    @Test
+    @DisplayName("""
+            addAll(userId, intervals):
+             userId is null
+             => exception
+            """)
+    public void addAll3() {
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() -> commit(() -> intervalRepository.addAll(null, 1)));
+    }
+
+    @Test
+    @DisplayName("""
+            addAll(userId, intervals):
+             intervals is null
+             => exception
+            """)
+    public void addAll4() {
+        User user = userRepository.save(user(1));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() -> commit(() -> intervalRepository.addAll(user.getId(), null)));
+    }
+
+    @Test
+    @DisplayName("""
+            addAll(userId, intervals):
+             there are intervals < 0
+             => exception
+            """)
+    public void addAll5() {
+        User user = userRepository.save(user(1));
+
+        Assertions.assertThatExceptionOfType(InvalidParameter.class).
+                isThrownBy(() -> commit(() -> intervalRepository.addAll(user.getId(), 1, 3, -1, 11)));
+    }
+
+    @Test
+    @DisplayName("""
+            addAll(userId, intervals):
+             there are intervals = 0
+             => exception
+            """)
+    public void addAll6() {
+        User user = userRepository.save(user(1));
+
+        Assertions.assertThatExceptionOfType(InvalidParameter.class).
+                isThrownBy(() -> commit(() -> intervalRepository.addAll(user.getId(), 1, 3, 0, 11)));
+    }
+
+    @Test
+    @DisplayName("""
+            addAll(userId, intervals):
+             user with userId not exists
+             => exception
+            """)
+    public void addAll7() {
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> intervalRepository.addAll(toUUID(1), 10)));
     }
 
     @Test
@@ -758,6 +898,10 @@ class IntervalsResponseRepositoryTest {
 
     private List<Expression> findAllExpressions() {
         return expressionRepository.findAll(PageRequest.of(0, 100, Sort.by("value"))).getContent();
+    }
+
+    private UUID toUUID(int number) {
+        return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
     }
 
     private void commit(Runnable command) {

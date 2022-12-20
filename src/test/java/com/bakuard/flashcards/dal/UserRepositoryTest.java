@@ -8,6 +8,7 @@ import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.model.filter.SortedEntity;
 import com.bakuard.flashcards.validation.InvalidParameter;
+import com.bakuard.flashcards.validation.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -131,6 +132,21 @@ class UserRepositoryTest {
                 isPresent().get().
                 usingRecursiveComparison().
                 isEqualTo(expected);
+    }
+
+    @Test
+    @DisplayName("""
+            save(user):
+             there is other user with such email in DB
+             => exception
+            """)
+    public void save4() {
+        User user = new User(new Credential(toEmail(1), "password1"));
+        commit(() -> userRepository.save(user));
+        User userWithDuplicateEmail = new User(new Credential(toEmail(1), "password1"));
+
+        Assertions.assertThatExceptionOfType(NotUniqueEntityException.class).
+                isThrownBy(() -> commit(() -> userRepository.save(userWithDuplicateEmail)));
     }
 
     @Test

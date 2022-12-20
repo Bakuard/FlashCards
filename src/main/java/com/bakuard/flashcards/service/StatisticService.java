@@ -2,6 +2,7 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.StatisticRepository;
 import com.bakuard.flashcards.model.statistic.*;
+import com.bakuard.flashcards.validation.UnknownEntityException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,29 +108,33 @@ public class StatisticService {
      * Делегирует вызов методу {@link StatisticRepository#wordRepetitionByPeriod(UUID, UUID, LocalDate, LocalDate)}.
      * @see WordRepetitionByPeriodStatistic
      */
-    public WordRepetitionByPeriodStatistic wordRepetitionByPeriod(
+    public WordRepetitionByPeriodStatistic tryGetWordRepetitionByPeriod(
             UUID userId, UUID wordId, String start, String end) {
         return statisticRepository.wordRepetitionByPeriod(
                 userId, wordId, LocalDate.parse(start), LocalDate.parse(end)
-        );
+        ).orElseThrow(() -> new UnknownEntityException(
+                "Unknown statistic for word with id=" + wordId + " and user with id=" + userId,
+                "Statistic.unknownUserIdOrWordId"));
     }
 
     /**
      * Делегирует вызов методу {@link StatisticRepository#wordRepetitionByPeriod(UUID, UUID, LocalDate, LocalDate)}.
      * @see ExpressionRepetitionByPeriodStatistic
      */
-    public ExpressionRepetitionByPeriodStatistic expressionRepetitionByPeriod(
+    public ExpressionRepetitionByPeriodStatistic tryGetExpressionRepetitionByPeriod(
             UUID userId, UUID expressionId, String start, String end) {
         return statisticRepository.expressionRepetitionByPeriod(
                 userId, expressionId, LocalDate.parse(start), LocalDate.parse(end)
-        );
+        ).orElseThrow(() -> new UnknownEntityException(
+                "Unknown statistic for expression with id=" + expressionId + " and user with id=" + userId,
+                "Statistic.unknownUserIdOrExpressionId"));
     }
 
     /**
      * Делегирует вызов методу {@link StatisticRepository#wordsRepetitionByPeriod(UUID, LocalDate, LocalDate, Pageable)}.
      * @see WordRepetitionByPeriodStatistic
      */
-    public Page<WordRepetitionByPeriodStatistic> wordsRepetitionByPeriod(
+    public Page<WordRepetitionByPeriodStatistic> getWordsRepetitionByPeriod(
             UUID userId, String start, String end, Pageable pageable) {
         return statisticRepository.wordsRepetitionByPeriod(
                 userId, LocalDate.parse(start), LocalDate.parse(end), pageable
@@ -140,7 +145,7 @@ public class StatisticService {
      * Делегирует вызов методу {@link StatisticRepository#expressionsRepetitionByPeriod(UUID, LocalDate, LocalDate, Pageable)}.
      * @see ExpressionRepetitionByPeriodStatistic
      */
-    public Page<ExpressionRepetitionByPeriodStatistic> expressionsRepetitionByPeriod(
+    public Page<ExpressionRepetitionByPeriodStatistic> getExpressionsRepetitionByPeriod(
             UUID userId, String start, String end, Pageable pageable) {
         return statisticRepository.expressionsRepetitionByPeriod(
                 userId, LocalDate.parse(start), LocalDate.parse(end), pageable

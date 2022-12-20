@@ -3,6 +3,7 @@ package com.bakuard.flashcards.service;
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.dal.UserRepository;
+import com.bakuard.flashcards.dal.fragment.UserSaver;
 import com.bakuard.flashcards.model.auth.JwsWithUser;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
@@ -10,6 +11,7 @@ import com.bakuard.flashcards.validation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.validation.ConstraintViolationException;
 import java.util.UUID;
@@ -18,6 +20,7 @@ import java.util.UUID;
  * Сервис отвечающий за управление учетными данными пользователей. Каждый метод этого класса выполняется
  * в отдельной транзакции.
  */
+@Transactional
 public class AuthService {
 
     private UserRepository userRepository;
@@ -26,13 +29,14 @@ public class AuthService {
     private EmailService emailService;
     private ConfigData conf;
     private ValidatorUtil validator;
+    private TransactionTemplate transactionTemplate;
 
     /**
      * Создает новый сервис управления учетными данными.
      * @param userRepository репозиторий учетных данных пользователей
      * @param intervalRepository репозиторий интервалов повторений
      * @param jwsService сервис jws токенов
-     * @param emailService сервис рассылки на почту писем подтвердения
+     * @param emailService сервис рассылки на почту писем подтверждения
      * @param conf общие данные конфигурации приложения
      * @param validator объект отвечающий за валидация входных данных пользователя
      */
@@ -41,13 +45,15 @@ public class AuthService {
                        JwsService jwsService,
                        EmailService emailService,
                        ConfigData conf,
-                       ValidatorUtil validator) {
+                       ValidatorUtil validator,
+                       TransactionTemplate transactionTemplate) {
         this.userRepository = userRepository;
         this.intervalRepository = intervalRepository;
         this.jwsService = jwsService;
         this.emailService = emailService;
         this.conf = conf;
         this.validator = validator;
+        this.transactionTemplate = transactionTemplate;
     }
 
     /**
@@ -59,15 +65,26 @@ public class AuthService {
         long countUserWithRole = userRepository.countForRole(conf.superAdmin().roleName());
         if(countUserWithRole < 1) {
             Credential credential = new Credential(conf.superAdmin().mail(), conf.superAdmin().password());
-            save(
-                    new User(validator.assertValid(credential)).
-                            addRole(conf.superAdmin().roleName())
-            );
+
+            transactionTemplate.execute(status -> {
+                User superAdmin = save(
+                        new User(validator.assertValid(credential)).
+                                addRole(conf.superAdmin().roleName())
+                );
+
+                //add default repeat intervals
+                intervalRepository.addAll(superAdmin.getId(), 1, 3, 5, 11);
+
+                return superAdmin;
+            });
         } else if(conf.superAdmin().recreate()) {
-            User superAdmin = userRepository.findByRole(conf.superAdmin().roleName(), 1, 0).get(0);
-            Credential credential = new Credential(conf.superAdmin().mail(), conf.superAdmin().password());
-            superAdmin.setCredential(validator.assertValid(credential));
-            save(superAdmin);
+            transactionTemplate.execute(status -> {
+                User superAdmin = userRepository.findByRole(conf.superAdmin().roleName(), 1, 0).get(0);
+                Credential credential = new Credential(conf.superAdmin().mail(), conf.superAdmin().password());
+                superAdmin.setCredential(validator.assertValid(credential));
+                save(superAdmin);
+                return superAdmin;
+            });
         }
     }
 
@@ -79,11 +96,10 @@ public class AuthService {
      * @return подробная информация об учетных данных пользователя и JWS токен общего доступ
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Credential}
      * @throws UnknownEntityException если пользователя с указанной почтой не существует
-     * @throws IncorrectCredentials если указан неверный пароль
+     * @throws IncorrectCredentials см. {@link User#assertCurrentPassword(String)}
      * @see Credential
      * @see JwsWithUser
      */
-    @Transactional
     public JwsWithUser enter(Credential credential) {
         validator.assertValid(credential);
         User user = tryFindByEmail(credential.email());
@@ -99,15 +115,16 @@ public class AuthService {
      * токен для подтверждения регистрации, который требуется для выполнения второго шага регистрации.
      * @param credential учетные данные пользователя
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Credential}
-     * @throws FailToSendMailException если не удалось отправить письмо с подтверждением на указанную почту
-     * @throws DataStoreConstraintViolationException если уже есть пользователь с такой почтой
+     * @throws FailToSendMailException см. {@link EmailService#confirmEmailForRegistration} вернет User.email.unique
+     * @throws NotUniqueEntityException если уже есть пользователь с такой почтой.
+     *                                  {@link NotUniqueEntityException#getMessageKey()} вернет User.email.unique
      * @see Credential
      */
-    @Transactional(readOnly = true)
     public void registerFirstStep(Credential credential) {
         validator.assertValid(credential);
         if(userRepository.existsByEmail(credential.email())) {
-            throw new DataStoreConstraintViolationException("User.email.unique");
+            throw new NotUniqueEntityException(
+                    "User.email.unique", "Use with email '" + credential.email() + "' already exists");
         }
         String jws = jwsService.generateJws(credential, "register", conf.jws().registrationTokenLifeTime());
         emailService.confirmEmailForRegistration(jws, credential.email());
@@ -121,15 +138,11 @@ public class AuthService {
      * @return данные нового пользователя вместе с JWS токеном общего доступа.
      * @see JwsWithUser
      */
-    @Transactional
     public JwsWithUser registerFinalStep(Credential jwsBody) {
         User user = save(new User(jwsBody));
 
         //add default repeat intervals
-        intervalRepository.add(user.getId(), 1);
-        intervalRepository.add(user.getId(), 3);
-        intervalRepository.add(user.getId(), 5);
-        intervalRepository.add(user.getId(), 11);
+        intervalRepository.addAll(user.getId(), 1, 3, 5, 11);
 
         String jws = jwsService.generateJws(user.getId(), "common", conf.jws().commonTokenLifeTime());
         return new JwsWithUser(user, jws);
@@ -143,14 +156,14 @@ public class AuthService {
      * для выполнения второго шага смены пароля.
      * @param credential учетные данные пользователя с новым паролем
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Credential}
-     * @throws FailToSendMailException если не удалось отправить письмо с подтверждением на указанную почту
+     * @throws FailToSendMailException см. {@link EmailService#confirmEmailForRestorePass}
      * @see Credential
      */
-    @Transactional(readOnly = true)
     public void restorePasswordFirstStep(Credential credential) {
         validator.assertValid(credential);
         if(!userRepository.existsByEmail(credential.email())) {
-            throw new DataStoreConstraintViolationException("User.email.exists");
+            throw new UnknownEntityException(
+                    "User.email.exists", "Unknown user with email ='" + credential.email() + '\'');
         }
         String jws = jwsService.generateJws(credential, "restorePassword", conf.jws().restorePassTokenLifeTime());
         emailService.confirmEmailForRestorePass(jws, credential.email());
@@ -164,7 +177,6 @@ public class AuthService {
      * @return данные пользователя вместе с JWS токеном общего доступа.
      * @see JwsWithUser
      */
-    @Transactional
     public JwsWithUser restorePasswordFinalStep(Credential jwsBody) {
         User user = tryFindByEmail(jwsBody.email());
         user.setCredential(jwsBody);
@@ -176,10 +188,10 @@ public class AuthService {
     /**
      * Делегирует вызов методу {@link com.bakuard.flashcards.dal.fragment.UserSaver#save(Object)} добавляя
      * предварительную валидацию данных пользователя.
+     * @throws NotUniqueEntityException см. {@link UserSaver#save(Object)}
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link User}
      * @see com.bakuard.flashcards.dal.fragment.UserSaver
      */
-    @Transactional
     public User save(User user) {
         validator.assertValid(user);
         return userRepository.save(user);
@@ -194,9 +206,8 @@ public class AuthService {
      * @param userId идентификатор пользователя
      * @param email почта пользователя
      * @throws UnknownEntityException если пользователя с идентификатором userId и почтой email не существует.
-     * @throws FailToSendMailException если не удалось отправить письмо с подтверждением на указанную почту
+     * @throws FailToSendMailException см. {@link EmailService#confirmEmailForDeletion}
      */
-    @Transactional(readOnly = true)
     public void deletionFirstStep(UUID userId, String email) {
         assertExists(userId, email);
         String jws = jwsService.generateJws(userId, "delete", conf.jws().deleteUserTokenLifeTime());
@@ -209,7 +220,6 @@ public class AuthService {
      * userId уже был удален - метод ничего не делает.
      * @param userId идентификатор удаляемого пользователя
      */
-    @Transactional
     public void deletionFinalStep(UUID userId) {
         userRepository.deleteById(userId);
     }
@@ -220,7 +230,6 @@ public class AuthService {
      * @param userId идентификатор искомого пользователя
      * @throws UnknownEntityException если пользователя с указанным идентификатором не существует.
      */
-    @Transactional(readOnly = true)
     public void assertExists(UUID userId) {
         if(!userRepository.existsById(userId)) {
             throw new UnknownEntityException(
@@ -237,7 +246,6 @@ public class AuthService {
      * @param email почта искомого пользователя
      * @throws UnknownEntityException если пользователя с указанным идентификатором и почтой не существует.
      */
-    @Transactional(readOnly = true)
     public void assertExists(UUID userId, String email) {
         if(userRepository.findById(userId).
                 map(user -> !user.getEmail().equals(email)).
@@ -255,7 +263,6 @@ public class AuthService {
      * @return пользователя по его идентификатору
      * @throws UnknownEntityException если пользователя с таким идентификатором не существует.
      */
-    @Transactional(readOnly = true)
     public User tryFindById(UUID userId) {
         return userRepository.findById(userId).orElseThrow(
                 () -> new UnknownEntityException(
@@ -271,7 +278,6 @@ public class AuthService {
      * @return пользователя по его почте
      * @throws UnknownEntityException если пользователя с такой почтой не существует.
      */
-    @Transactional(readOnly = true)
     public User tryFindByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(
                 () -> new UnknownEntityException(
@@ -286,7 +292,6 @@ public class AuthService {
      * @param pageable параметры пагинации и сортировки
      * @return указанную часть всех пользователей.
      */
-    @Transactional(readOnly = true)
     public Page<User> findAll(Pageable pageable) {
         return userRepository.findAll(pageable);
     }

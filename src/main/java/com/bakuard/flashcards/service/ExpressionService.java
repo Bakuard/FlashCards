@@ -5,11 +5,14 @@ import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.validation.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.UnknownEntityException;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.relational.core.conversion.DbActionExecutionException;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,12 +59,24 @@ public class ExpressionService {
     /**
      * Делегирует вызов одноименному методу {@link ExpressionRepository} добавляя предварительную валидацию
      * данных устойчивого выражения.
+     * @throws NotUniqueEntityException если среди устойчивых выражений пользователя уже есть выражение
+     *                                  с таким значением. {@link NotUniqueEntityException#getMessageKey()}
+     *                                  вернет Expression.value.unique
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Expression}
      * @see <a href="https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/CrudRepository.html#save(S)">Документация к CrudRepository#save(entity)</a>
      */
     public Expression save(Expression expression) {
-        validator.assertValid(expression);
-        return expressionRepository.save(expression);
+        try {
+            validator.assertValid(expression);
+            return expressionRepository.save(expression);
+        } catch (DbActionExecutionException e) {
+            if(e.getCause() instanceof DuplicateKeyException) {
+                throw new NotUniqueEntityException(
+                        "Expression.value.unique",
+                        "Expression with value '" + expression.getValue() + "' already exists");
+            }
+            throw e;
+        }
     }
 
     /**
@@ -74,7 +89,7 @@ public class ExpressionService {
         if(!wasDeleted) {
             throw new UnknownEntityException(
                     "User with id=" + userId + " not exists or hasn't expression with id=" + expressionId,
-                    "Expression.unknownId");
+                    "Expression.unknownIdOrUserId");
         }
     }
 
@@ -130,7 +145,7 @@ public class ExpressionService {
                 orElseThrow(
                         () -> new UnknownEntityException(
                                 "Unknown expression with id=" + expressionId + " userId=" + userId,
-                                "Expression.unknownId"
+                                "Expression.unknownIdOrUserId"
                         )
                 );
     }

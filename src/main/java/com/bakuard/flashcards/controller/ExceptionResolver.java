@@ -31,13 +31,17 @@ public class ExceptionResolver {
     public ResponseEntity<ExceptionResponse> handle(UnknownEntityException exception) {
         logger.error("Unknown entity", exception);
 
-        ExceptionResponse response = mapper.toExceptionResponse(
-                HttpStatus.NOT_FOUND,
-                exception.getMessageKey());
+        if(exception.isInternalServerException()) {
+            return handle((RuntimeException) exception);
+        } else {
+            ExceptionResponse response = mapper.toExceptionResponse(
+                    HttpStatus.NOT_FOUND,
+                    exception.getMessageKey());
 
-        return ResponseEntity.
-                status(HttpStatus.NOT_FOUND).
-                body(response);
+            return ResponseEntity.
+                    status(HttpStatus.NOT_FOUND).
+                    body(response);
+        }
     }
 
     @ExceptionHandler(value = IncorrectCredentials.class)
@@ -66,17 +70,21 @@ public class ExceptionResolver {
                 body(response);
     }
 
-    @ExceptionHandler(value = DataStoreConstraintViolationException.class)
-    public ResponseEntity<ExceptionResponse> handle(DataStoreConstraintViolationException exception) {
+    @ExceptionHandler(value = NotUniqueEntityException.class)
+    public ResponseEntity<ExceptionResponse> handle(NotUniqueEntityException exception) {
         logger.error("Data store constraint violation", exception);
 
-        ExceptionResponse response = mapper.toExceptionResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessageKey());
+        if(exception.isInternalServerException()) {
+            return handle((RuntimeException) exception);
+        } else {
+            ExceptionResponse response = mapper.toExceptionResponse(
+                    HttpStatus.BAD_REQUEST,
+                    exception.getMessageKey());
 
-        return ResponseEntity.
-                status(HttpStatus.BAD_REQUEST).
-                body(response);
+            return ResponseEntity.
+                    status(HttpStatus.BAD_REQUEST).
+                    body(response);
+        }
     }
 
     @ExceptionHandler(value = FailToSendMailException.class)

@@ -5,9 +5,11 @@ import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.dal.WordRepository;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.validation.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.UnknownEntityException;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -57,12 +59,23 @@ public class WordService {
     /**
      * Делегирует вызов одноименному методу {@link WordRepository} добавляя предварительную валидацию
      * данных слова.
+     * @throws NotUniqueEntityException если среди слов пользователя уже есть слово с таким значением
+     *                                  {@link NotUniqueEntityException#getMessageKey()} вернет Word.value.unique
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Word}
      * @see <a href="https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/CrudRepository.html#save(S)">Документация к CrudRepository#save(entity)</a>
      */
     public Word save(Word word) {
-        validator.assertValid(word);
-        return wordRepository.save(word);
+        try {
+            validator.assertValid(word);
+            return wordRepository.save(word);
+        } catch (Exception e) {
+            if(e.getCause() instanceof DuplicateKeyException) {
+                throw new NotUniqueEntityException(
+                        "Word.value.unique",
+                        "Word with value '" + word.getValue() + "' already exists");
+            }
+            throw e;
+        }
     }
 
     /**
@@ -75,7 +88,7 @@ public class WordService {
         if(!wasDeleted) {
             throw new UnknownEntityException(
                     "User with id=" + userId + " not exists or hasn't word with id=" + wordId,
-                    "Word.unknownId");
+                    "Word.unknownIdOrWordId");
         }
     }
 
@@ -162,7 +175,7 @@ public class WordService {
                 orElseThrow(
                         () -> new UnknownEntityException(
                                 "User with id=" + userId + " not exists or hasn't word with id=" + wordId,
-                                "Word.unknownId"
+                                "Word.unknownIdOrWordId"
                         )
                 );
     }

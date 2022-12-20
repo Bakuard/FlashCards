@@ -150,6 +150,8 @@ public class User implements Entity {
      * @throws IncorrectCredentials Выбрасывается, если выполняется хотя бы одно из следующих условий:<br/>
      *                              1. если указан неверный текущий пароль. <br/>
      *                              2. если текущий пароль равен null. <br/>
+     *                              {@link IncorrectCredentials#getMessageKey()} вернет User.password.notNull
+     *                              или User.password.incorrect
      */
     public void assertCurrentPassword(String currentPassword) {
         if(currentPassword == null) {
@@ -173,6 +175,8 @@ public class User implements Entity {
      *                              3. если новый пароль равен null. <br/>
      *                              4. если новый пароль не содержит отображаемых символов. <br/>
      *                              5. если длина нового пароля не принадлежит промежутку [8; 50]. <br/>
+     *                              {@link IncorrectCredentials#getMessageKey()} вернет User.password.notNull,
+     *                              User.password.incorrect или User.newPassword.format
      */
     public User changePassword(String currentPassword, String newPassword) {
         if(!new PasswordConstraintValidator().isValid(newPassword, null)) {

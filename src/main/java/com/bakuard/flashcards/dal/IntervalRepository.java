@@ -1,6 +1,8 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.validation.InvalidParameter;
+import com.bakuard.flashcards.validation.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.UnknownEntityException;
 import com.google.common.collect.ImmutableList;
 
 import java.time.LocalDate;
@@ -29,9 +31,27 @@ public interface IntervalRepository {
      * Добавляет новый интервал повторения для пользователя userId.
      * @param userId идентификатор пользователя
      * @param interval интервал повторения
-     * @throws InvalidParameter если interval < 0
+     * @throws InvalidParameter если interval < 1.
+     *                          {@link InvalidParameter#getMessageKey()} вернет RepeatInterval.notNegative
+     * @throws NullPointerException если userId равен null
+     * @throws NotUniqueEntityException если у пользователя уже есть интервал повторения с таким значением.
+     *                                  {@link NotUniqueEntityException#getMessageKey()} вернет RepeatInterval.unique
+     * @throws UnknownEntityException если пользователя с таким userId не существует
      */
     public void add(UUID userId, int interval);
+
+    /**
+     * Добавляет новые интервалы повторения для пользователя userId.
+     * @param userId идентификатор пользователя
+     * @param intervals добавляемые интервалы
+     * @throws InvalidParameter если хотя бы один из интервалов < 1.
+     *                          {@link InvalidParameter#getMessageKey()} вернет RepeatInterval.notNegative
+     * @throws NullPointerException если userId или intervals равны null
+     * @throws NotUniqueEntityException если у пользователя уже есть интервалы повторения с такими значениями
+     *                                  {@link NotUniqueEntityException#getMessageKey()} вернет RepeatInterval.unique
+     * @throws UnknownEntityException если пользователя с таким userId не существует
+     */
+    public void addAll(UUID userId, int... intervals);
 
     /**
      * Заменяет интервал повторения равный oldInterval на интервал повторения равный newInterval. У всех
@@ -43,7 +63,8 @@ public interface IntervalRepository {
      * @param oldInterval заменяемый интервал повторения
      * @param newInterval новый интервал повторения
      * @throws InvalidParameter если среди интервалов повторения пользователя userId нет интервала со значением
-     *                          oldInterval.
+     *                          oldInterval. {@link InvalidParameter#getMessageKey()} вернет RepeatInterval.notNegative
+     *                          или RepeatInterval.intervalNotExists
      */
     public void replace(UUID userId, int oldInterval, int newInterval);
 
