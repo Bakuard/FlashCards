@@ -82,13 +82,14 @@ public class WordService {
      * Делегирует вызов одноименному методу {@link WordRepository}.
      * Если оборачиваемый метод вернул false - выбрасывает исключение.
      * @throws UnknownEntityException если оборачиваемый метод вернул false.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Word.unknownIdOrUserId
      */
     public void tryDeleteById(UUID userId, UUID wordId) {
         boolean wasDeleted = wordRepository.deleteById(userId, wordId);
         if(!wasDeleted) {
             throw new UnknownEntityException(
                     "User with id=" + userId + " not exists or hasn't word with id=" + wordId,
-                    "Word.unknownIdOrWordId");
+                    "Word.unknownIdOrUserId");
         }
     }
 
@@ -169,13 +170,14 @@ public class WordService {
      * Делегирует вызов методу {@link WordRepository#findById(UUID, UUID)}. Если оборачиваемый метод возвращает
      * пустой Optional - данный метод генерирует исключение.
      * @throws UnknownEntityException если оборачиваемый метод возвращает пустой Optional.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Word.unknownIdOrUserId
      */
     public Word tryFindById(UUID userId, UUID wordId) {
         return findById(userId, wordId).
                 orElseThrow(
                         () -> new UnknownEntityException(
                                 "User with id=" + userId + " not exists or hasn't word with id=" + wordId,
-                                "Word.unknownIdOrWordId"
+                                "Word.unknownIdOrUserId"
                         )
                 );
     }

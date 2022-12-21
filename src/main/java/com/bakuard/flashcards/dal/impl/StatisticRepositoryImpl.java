@@ -119,7 +119,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         } catch(DataIntegrityViolationException e) {
             throw new UnknownEntityException(
                     "Unknown user with id=" + statistic.userId() + " or expression with id=" + statistic.expressionId(),
-                    "Statistic.unknownUserIdAndWordId",
+                    "Statistic.unknownUserIdOrExpressionId",
                     true);
         }
     }
@@ -152,7 +152,7 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         } catch(DataIntegrityViolationException e) {
             throw new UnknownEntityException(
                     "Unknown user with id=" + statistic.userId() + " or expression with id=" + statistic.expressionId(),
-                    "Statistic.unknownUserIdAndWordId",
+                    "Statistic.unknownUserIdOrExpressionId",
                     true);
         }
     }

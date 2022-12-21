@@ -36,7 +36,8 @@ public interface IntervalRepository {
      * @throws NullPointerException если userId равен null
      * @throws NotUniqueEntityException если у пользователя уже есть интервал повторения с таким значением.
      *                                  {@link NotUniqueEntityException#getMessageKey()} вернет RepeatInterval.unique
-     * @throws UnknownEntityException если пользователя с таким userId не существует
+     * @throws UnknownEntityException если пользователя с таким userId не существует.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет User.unknownId
      */
     public void add(UUID userId, int interval);
 
@@ -49,7 +50,8 @@ public interface IntervalRepository {
      * @throws NullPointerException если userId или intervals равны null
      * @throws NotUniqueEntityException если у пользователя уже есть интервалы повторения с такими значениями
      *                                  {@link NotUniqueEntityException#getMessageKey()} вернет RepeatInterval.unique
-     * @throws UnknownEntityException если пользователя с таким userId не существует
+     * @throws UnknownEntityException если пользователя с таким userId не существует.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет User.unknownId
      */
     public void addAll(UUID userId, int... intervals);
 

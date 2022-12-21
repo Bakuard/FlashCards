@@ -83,6 +83,7 @@ public class ExpressionService {
      * Делегирует вызов одноименному методу {@link ExpressionRepository}.
      * Если оборачиваемый метод вернул false - выбрасывает исключение.
      * @throws UnknownEntityException если оборачиваемый метод вернул false.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Expression.unknownIdOrUserId
      */
     public void tryDeleteById(UUID userId, UUID expressionId) {
         boolean wasDeleted = expressionRepository.deleteById(userId, expressionId);
@@ -139,6 +140,7 @@ public class ExpressionService {
      * Делегирует вызов методу {@link ExpressionRepository#findById(UUID, UUID)}. Если оборачиваемый метод
      * возвращает пустой Optional - данный метод генерирует исключение.
      * @throws UnknownEntityException если оборачиваемый метод возвращает пустой Optional.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Expression.unknownIdOrUserId
      */
     public Expression tryFindById(UUID userId, UUID expressionId) {
         return findById(userId, expressionId).

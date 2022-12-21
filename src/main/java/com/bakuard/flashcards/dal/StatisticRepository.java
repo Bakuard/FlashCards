@@ -23,7 +23,8 @@ public interface StatisticRepository {
      * @param statistic данные о результате одного конкретного повторения слова.
      * @throws NullPointerException если statistic равен null
      * @throws UnknownEntityException если не существует пользователя с идентификатором {@link RepeatWordFromEnglishStatistic#userId()},
-     *                                или слова с идентификатором {@link RepeatWordFromEnglishStatistic#wordId()}
+     *                                или слова с идентификатором {@link RepeatWordFromEnglishStatistic#wordId()}.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Statistic.unknownUserIdAndWordId
      * @throws NotUniqueEntityException если результат повторения указанного слова указанным пользователем в указанную
      *                                  дату уже сохранен. {@link NotUniqueEntityException#getMessageKey()} вернет Statistic.unique
      * @see RepeatWordFromEnglishStatistic
@@ -36,7 +37,8 @@ public interface StatisticRepository {
      * @param statistic данные о результате одного конкретного повторения слова.
      * @throws NullPointerException если statistic равен null
      * @throws UnknownEntityException если не существует пользователя с идентификатором {@link RepeatWordFromEnglishStatistic#userId()},
-     *                                или слова с идентификатором {@link RepeatWordFromEnglishStatistic#wordId()}
+     *                                или слова с идентификатором {@link RepeatWordFromEnglishStatistic#wordId()}.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Statistic.unknownUserIdAndWordId
      * @throws NotUniqueEntityException если результат повторения указанного слова указанным пользователем в указанную
      *                                  дату уже сохранен. {@link NotUniqueEntityException#getMessageKey()} вернет Statistic.unique
      * @see RepeatWordFromNativeStatistic
@@ -50,7 +52,8 @@ public interface StatisticRepository {
      * @param statistic данные о результате одного конкретного повторения устойчивого выражения.
      * @throws NullPointerException если statistic равен null
      * @throws UnknownEntityException если не существует пользователя с идентификатором {@link RepeatExpressionFromEnglishStatistic#userId()},
-     *                                или выражения с идентификатором {@link RepeatExpressionFromEnglishStatistic#expressionId()}
+     *                                или выражения с идентификатором {@link RepeatExpressionFromEnglishStatistic#expressionId()}.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Statistic.unknownUserIdOrExpressionId
      * @throws NotUniqueEntityException если результат повторения указанного выражения указанным пользователем в указанную
      *                                  дату уже сохранен. {@link NotUniqueEntityException#getMessageKey()} вернет Statistic.unique
      * @see RepeatExpressionFromEnglishStatistic
@@ -64,7 +67,8 @@ public interface StatisticRepository {
      * @param statistic данные о результате одного конкретного повторения устойчивого выражения.
      * @throws NullPointerException если statistic равен null
      * @throws UnknownEntityException если не существует пользователя с идентификатором {@link RepeatExpressionFromEnglishStatistic#userId()},
-     *                                или выражения с идентификатором {@link RepeatExpressionFromEnglishStatistic#expressionId()}
+     *                                или выражения с идентификатором {@link RepeatExpressionFromEnglishStatistic#expressionId()}.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Statistic.unknownUserIdOrExpressionId
      * @throws NotUniqueEntityException если результат повторения указанного выражения указанным пользователем в указанную
      *                                  дату уже сохранен. {@link NotUniqueEntityException#getMessageKey()} вернет Statistic.unique
      * @see RepeatExpressionFromNativeStatistic

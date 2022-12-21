@@ -106,6 +106,9 @@ public class StatisticService {
 
     /**
      * Делегирует вызов методу {@link StatisticRepository#wordRepetitionByPeriod(UUID, UUID, LocalDate, LocalDate)}.
+     * Если указанный метод возвращает пустой Optional - выбрасывает исключение.
+     * @throws UnknownEntityException если метод, которому делегируется вызов, возвращает пустой Optional.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Statistic.unknownUserIdOrWordId
      * @see WordRepetitionByPeriodStatistic
      */
     public WordRepetitionByPeriodStatistic tryGetWordRepetitionByPeriod(
@@ -119,6 +122,9 @@ public class StatisticService {
 
     /**
      * Делегирует вызов методу {@link StatisticRepository#wordRepetitionByPeriod(UUID, UUID, LocalDate, LocalDate)}.
+     * Если указанный метод возвращает пустой Optional - выбрасывает исключение.
+     * @throws UnknownEntityException если метод, которому делегируется вызов, возвращает пустой Optional.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Statistic.unknownUserIdOrExpressionId
      * @see ExpressionRepetitionByPeriodStatistic
      */
     public ExpressionRepetitionByPeriodStatistic tryGetExpressionRepetitionByPeriod(

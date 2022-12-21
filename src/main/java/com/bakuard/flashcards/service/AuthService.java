@@ -157,6 +157,8 @@ public class AuthService {
      * @param credential учетные данные пользователя с новым паролем
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Credential}
      * @throws FailToSendMailException см. {@link EmailService#confirmEmailForRestorePass}
+     * @throws UnknownEntityException если пользователя с указанной почтой не существует.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет User.email.exists
      * @see Credential
      */
     public void restorePasswordFirstStep(Credential credential) {
@@ -229,6 +231,7 @@ public class AuthService {
      * иначе - ничего не делает.
      * @param userId идентификатор искомого пользователя
      * @throws UnknownEntityException если пользователя с указанным идентификатором не существует.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет User.unknownId
      */
     public void assertExists(UUID userId) {
         if(!userRepository.existsById(userId)) {
@@ -245,6 +248,7 @@ public class AuthService {
      * @param userId идентификатор искомого пользователя
      * @param email почта искомого пользователя
      * @throws UnknownEntityException если пользователя с указанным идентификатором и почтой не существует.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет User.unknownIdAndEmail
      */
     public void assertExists(UUID userId, String email) {
         if(userRepository.findById(userId).
@@ -262,6 +266,7 @@ public class AuthService {
      * @param userId идентификатор искомого пользователя
      * @return пользователя по его идентификатору
      * @throws UnknownEntityException если пользователя с таким идентификатором не существует.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет User.unknownId
      */
     public User tryFindById(UUID userId) {
         return userRepository.findById(userId).orElseThrow(
@@ -277,6 +282,7 @@ public class AuthService {
      * @param email почта искомого пользователя
      * @return пользователя по его почте
      * @throws UnknownEntityException если пользователя с такой почтой не существует.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет User.unknownEmail
      */
     public User tryFindByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(
