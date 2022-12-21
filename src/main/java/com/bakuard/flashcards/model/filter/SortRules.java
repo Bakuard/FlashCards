@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.filter;
 
-import com.bakuard.flashcards.validation.InvalidParameter;
+import com.bakuard.flashcards.validation.exception.InvalidParameter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 

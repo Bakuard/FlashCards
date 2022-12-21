@@ -5,8 +5,8 @@ import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
-import com.bakuard.flashcards.validation.NotUniqueEntityException;
-import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
 import org.springframework.dao.DuplicateKeyException;
@@ -72,8 +72,8 @@ public class ExpressionService {
         } catch (DbActionExecutionException e) {
             if(e.getCause() instanceof DuplicateKeyException) {
                 throw new NotUniqueEntityException(
-                        "Expression.value.unique",
-                        "Expression with value '" + expression.getValue() + "' already exists");
+                        "Expression with value '" + expression.getValue() + "' already exists",
+                        "Expression.value.unique");
             }
             throw e;
         }

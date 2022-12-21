@@ -1,9 +1,9 @@
 package com.bakuard.flashcards.dal;
 
 import com.bakuard.flashcards.model.statistic.*;
-import com.bakuard.flashcards.validation.InvalidParameter;
-import com.bakuard.flashcards.validation.UnknownEntityException;
-import com.bakuard.flashcards.validation.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.InvalidParameter;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

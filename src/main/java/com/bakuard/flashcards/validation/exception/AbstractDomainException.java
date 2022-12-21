@@ -1,24 +1,25 @@
-package com.bakuard.flashcards.validation;
+package com.bakuard.flashcards.validation.exception;
 
-public class NotUniqueEntityException extends RuntimeException {
+public abstract class AbstractDomainException extends RuntimeException {
 
     private String messageKey;
     private boolean internalServerException;
 
-    public NotUniqueEntityException(String message, String messageKey) {
+    public AbstractDomainException(String message, String messageKey) {
         super(message);
         this.messageKey = messageKey;
     }
 
-    public NotUniqueEntityException(String message, String messageKey, boolean internalServerException) {
+    public AbstractDomainException(String message, String messageKey, boolean internalServerException) {
         super(message);
         this.messageKey = messageKey;
         this.internalServerException = internalServerException;
     }
 
-    public NotUniqueEntityException(Throwable cause, String messageKey) {
-        super(cause);
+    public AbstractDomainException(String message, Throwable cause, String messageKey, boolean internalServerException) {
+        super(message, cause);
         this.messageKey = messageKey;
+        this.internalServerException = internalServerException;
     }
 
     public String getMessageKey() {

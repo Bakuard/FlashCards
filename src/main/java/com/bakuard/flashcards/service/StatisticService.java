@@ -2,7 +2,7 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.StatisticRepository;
 import com.bakuard.flashcards.model.statistic.*;
-import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;

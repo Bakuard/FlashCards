@@ -1,11 +1,10 @@
 package com.bakuard.flashcards.dal.impl;
 
 import com.bakuard.flashcards.dal.IntervalRepository;
-import com.bakuard.flashcards.validation.InvalidParameter;
-import com.bakuard.flashcards.validation.NotUniqueEntityException;
-import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.exception.InvalidParameter;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import com.google.common.collect.ImmutableList;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -49,9 +48,12 @@ public class IntervalRepositoryImpl implements IntervalRepository {
         } catch(DuplicateKeyException e) {
             throw new NotUniqueEntityException(
                     "Intervals with values " + Arrays.toString(intervals) + " already exists",
-                    "RepeatInterval.unique");
+                    e,
+                    "RepeatInterval.unique",
+                    false);
         } catch(DataIntegrityViolationException e) {
-            throw new UnknownEntityException("Unknown user with id=" + userId, "User.unknownId");
+            throw new UnknownEntityException(
+                    "Unknown user with id=" + userId, e, "User.unknownId", false);
         }
     }
 
@@ -71,9 +73,12 @@ public class IntervalRepositoryImpl implements IntervalRepository {
         } catch(DuplicateKeyException e) {
             throw new NotUniqueEntityException(
                     "Interval with value " + interval + " already exists",
-                    "RepeatInterval.unique");
+                    e,
+                    "RepeatInterval.unique",
+                    false);
         } catch(DataIntegrityViolationException e) {
-            throw new UnknownEntityException("Unknown user with id=" + userId, "User.unknownId");
+            throw new UnknownEntityException(
+                    "Unknown user with id=" + userId, e, "User.unknownId", false);
         }
     }
 
@@ -190,8 +195,8 @@ public class IntervalRepositoryImpl implements IntervalRepository {
     private void assertIntervalNotNegative(int interval) {
         if(interval < 1) {
             throw new InvalidParameter(
-                    "RepeatInterval.notNegative",
-                    "interval can't be less then 1. Actual: " + interval
+                    "interval can't be less then 1. Actual: " + interval,
+                    "RepeatInterval.notNegative"
             );
         }
     }

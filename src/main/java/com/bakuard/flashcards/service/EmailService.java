@@ -1,7 +1,7 @@
 package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.config.configData.ConfigData;
-import com.bakuard.flashcards.validation.FailToSendMailException;
+import com.bakuard.flashcards.validation.exception.FailToSendMailException;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
@@ -43,7 +43,10 @@ public class EmailService {
                     email
             );
         } catch(MessagingException e) {
-            throw new FailToSendMailException(e, "FailToSendMailException.registration");
+            throw new FailToSendMailException("Fail to send mail for registration",
+                    e,
+                    "FailToSendMailException.registration",
+                    false);
         }
     }
 
@@ -63,7 +66,10 @@ public class EmailService {
                     email
             );
         } catch(MessagingException e) {
-            throw new FailToSendMailException(e, "FailToSendMailException.restorePass");
+            throw new FailToSendMailException("Fail to send mail for restore password",
+                    e,
+                    "FailToSendMailException.restorePass",
+                    false);
         }
     }
 
@@ -83,7 +89,10 @@ public class EmailService {
                     email
             );
         } catch(MessagingException e) {
-            throw new FailToSendMailException(e, "FailToSendMailException.accountDeletion");
+            throw new FailToSendMailException("Fail to send mail for deletion",
+                    e,
+                    "FailToSendMailException.accountDeletion",
+                    false);
         }
     }
 

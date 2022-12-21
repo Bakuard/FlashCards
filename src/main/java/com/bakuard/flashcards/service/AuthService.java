@@ -8,6 +8,10 @@ import com.bakuard.flashcards.model.auth.JwsWithUser;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.validation.*;
+import com.bakuard.flashcards.validation.exception.FailToSendMailException;
+import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -124,7 +128,8 @@ public class AuthService {
         validator.assertValid(credential);
         if(userRepository.existsByEmail(credential.email())) {
             throw new NotUniqueEntityException(
-                    "User.email.unique", "Use with email '" + credential.email() + "' already exists");
+                    "Use with email '" + credential.email() + "' already exists",
+                    "User.email.unique");
         }
         String jws = jwsService.generateJws(credential, "register", conf.jws().registrationTokenLifeTime());
         emailService.confirmEmailForRegistration(jws, credential.email());
@@ -165,7 +170,7 @@ public class AuthService {
         validator.assertValid(credential);
         if(!userRepository.existsByEmail(credential.email())) {
             throw new UnknownEntityException(
-                    "User.email.exists", "Unknown user with email ='" + credential.email() + '\'');
+                    "Unknown user with email ='" + credential.email() + '\'', "User.email.exists");
         }
         String jws = jwsService.generateJws(credential, "restorePassword", conf.jws().restorePassTokenLifeTime());
         emailService.confirmEmailForRestorePass(jws, credential.email());

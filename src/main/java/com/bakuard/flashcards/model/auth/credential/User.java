@@ -1,10 +1,10 @@
 package com.bakuard.flashcards.model.auth.credential;
 
 import com.bakuard.flashcards.model.Entity;
-import com.bakuard.flashcards.validation.AllUnique;
-import com.bakuard.flashcards.validation.IncorrectCredentials;
-import com.bakuard.flashcards.validation.NotContainsNull;
-import com.bakuard.flashcards.validation.PasswordConstraintValidator;
+import com.bakuard.flashcards.validation.annotation.AllUnique;
+import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
+import com.bakuard.flashcards.validation.annotation.NotContainsNull;
+import com.bakuard.flashcards.validation.annotation.PasswordConstraintValidator;
 import com.google.common.hash.Hashing;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
@@ -155,11 +155,13 @@ public class User implements Entity {
      */
     public void assertCurrentPassword(String currentPassword) {
         if(currentPassword == null) {
-            throw new IncorrectCredentials("User.password.notNull");
+            throw new IncorrectCredentials(
+                    "currentPassword can't be null", "User.password.notNull");
         }
 
         if(!calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
-            throw new IncorrectCredentials("User.password.incorrect");
+            throw new IncorrectCredentials(
+                    "Incorrect current password", "User.password.incorrect");
         }
     }
 
@@ -180,15 +182,18 @@ public class User implements Entity {
      */
     public User changePassword(String currentPassword, String newPassword) {
         if(!new PasswordConstraintValidator().isValid(newPassword, null)) {
-            throw new IncorrectCredentials("User.newPassword.format");
+            throw new IncorrectCredentials(
+                    "Incorrect password format", "User.newPassword.format");
         }
 
         if(currentPassword == null) {
-            throw new IncorrectCredentials("User.password.notNull");
+            throw new IncorrectCredentials(
+                    "currentPassword can't be null", "User.password.notNull");
         }
 
         if(!calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
-            throw new IncorrectCredentials("User.password.incorrect");
+            throw new IncorrectCredentials(
+                    "Incorrect current password", "User.password.incorrect");
         }
 
         this.passwordHash = calculatePasswordHash(newPassword, salt);

@@ -3,7 +3,7 @@ package com.bakuard.flashcards.controller;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.model.auth.policy.PermissionDeniedException;
-import com.bakuard.flashcards.validation.*;
+import com.bakuard.flashcards.validation.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,22 +57,9 @@ public class ExceptionResolver {
                 body(response);
     }
 
-    @ExceptionHandler(value = InvalidParameter.class)
-    public ResponseEntity<ExceptionResponse> handle(InvalidParameter exception) {
-        logger.error("Invalid parameter", exception);
-
-        ExceptionResponse response = mapper.toExceptionResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessageKey());
-
-        return ResponseEntity.
-                status(HttpStatus.BAD_REQUEST).
-                body(response);
-    }
-
-    @ExceptionHandler(value = NotUniqueEntityException.class)
-    public ResponseEntity<ExceptionResponse> handle(NotUniqueEntityException exception) {
-        logger.error("Data store constraint violation", exception);
+    @ExceptionHandler(value = AbstractDomainException.class)
+    public ResponseEntity<ExceptionResponse> handle(AbstractDomainException exception) {
+        logger.error("Bad request", exception);
 
         if(exception.isInternalServerException()) {
             return handle((RuntimeException) exception);
@@ -85,19 +72,6 @@ public class ExceptionResolver {
                     status(HttpStatus.BAD_REQUEST).
                     body(response);
         }
-    }
-
-    @ExceptionHandler(value = FailToSendMailException.class)
-    public ResponseEntity<ExceptionResponse> handle(FailToSendMailException exception) {
-        logger.error("Fail to send mail exception", exception);
-
-        ExceptionResponse response = mapper.toExceptionResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessageKey());
-
-        return ResponseEntity.
-                status(HttpStatus.BAD_REQUEST).
-                body(response);
     }
 
     @ExceptionHandler(value = PermissionDeniedException.class)

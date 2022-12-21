@@ -5,8 +5,8 @@ import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.dal.WordRepository;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.word.Word;
-import com.bakuard.flashcards.validation.NotUniqueEntityException;
-import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
 import org.springframework.dao.DuplicateKeyException;
@@ -71,8 +71,8 @@ public class WordService {
         } catch (Exception e) {
             if(e.getCause() instanceof DuplicateKeyException) {
                 throw new NotUniqueEntityException(
-                        "Word.value.unique",
-                        "Word with value '" + word.getValue() + "' already exists");
+                        "Word with value '" + word.getValue() + "' already exists",
+                        "Word.value.unique");
             }
             throw e;
         }

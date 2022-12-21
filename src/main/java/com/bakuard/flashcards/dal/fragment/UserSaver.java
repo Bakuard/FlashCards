@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.dal.fragment;
 
-import com.bakuard.flashcards.validation.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 
 /**
  * Добавляет дополнительное поведение к операции сохранения учетных данных пользователя.

@@ -7,8 +7,7 @@ import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.model.filter.SortedEntity;
-import com.bakuard.flashcards.validation.InvalidParameter;
-import com.bakuard.flashcards.validation.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -22,7 +21,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.TestPropertySource;
@@ -85,11 +83,9 @@ class UserRepositoryTest {
         commit(() -> userRepository.save(user(1).addRole(configData.superAdmin().roleName())));
         User user = user(2).addRole(configData.superAdmin().roleName());
 
-        Assertions.assertThatExceptionOfType(RuntimeException.class).
+        Assertions.assertThatExceptionOfType(NotUniqueEntityException.class).
                 isThrownBy(() -> commit(() -> userRepository.save(user))).
-                withCauseInstanceOf(InvalidParameter.class).
-                extracting(RuntimeException::getCause, InstanceOfAssertFactories.type(InvalidParameter.class)).
-                extracting(InvalidParameter::getMessageKey, InstanceOfAssertFactories.type(String.class)).
+                extracting(NotUniqueEntityException::getMessageKey, InstanceOfAssertFactories.type(String.class)).
                 isEqualTo("User.superAdmin.unique");
     }
 
@@ -393,6 +389,9 @@ class UserRepositoryTest {
         try {
             executable.execute();
             transactionManager.commit(status);
+        } catch(RuntimeException e) {
+            transactionManager.rollback(status);
+            throw e;
         } catch(Throwable e) {
             transactionManager.rollback(status);
             throw new RuntimeException(e);

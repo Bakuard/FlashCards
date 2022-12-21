@@ -2,9 +2,9 @@ package com.bakuard.flashcards.dal.impl;
 
 import com.bakuard.flashcards.dal.StatisticRepository;
 import com.bakuard.flashcards.model.statistic.*;
-import com.bakuard.flashcards.validation.InvalidParameter;
-import com.bakuard.flashcards.validation.NotUniqueEntityException;
-import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.exception.InvalidParameter;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
@@ -48,11 +48,13 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         } catch(DuplicateKeyException e) {
             throw new NotUniqueEntityException(
                     "Statistic " + statistic + " already exists",
+                    e,
                     "Statistic.unique",
                     true);
         } catch(DataIntegrityViolationException e) {
             throw new UnknownEntityException(
                     "Unknown user with id=" + statistic.userId() + " or word with id=" + statistic.wordId(),
+                    e,
                     "Statistic.unknownUserIdAndWordId",
                     true);
         }
@@ -81,11 +83,13 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         } catch(DuplicateKeyException e) {
             throw new NotUniqueEntityException(
                     "Statistic " + statistic + " already exists",
+                    e,
                     "Statistic.unique",
                     true);
         } catch(DataIntegrityViolationException e) {
             throw new UnknownEntityException(
                     "Unknown user with id=" + statistic.userId() + " or word with id=" + statistic.wordId(),
+                    e,
                     "Statistic.unknownUserIdAndWordId",
                     true);
         }
@@ -114,11 +118,13 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         } catch(DuplicateKeyException e) {
             throw new NotUniqueEntityException(
                     "Statistic " + statistic + " already exists",
+                    e,
                     "Statistic.unique",
                     true);
         } catch(DataIntegrityViolationException e) {
             throw new UnknownEntityException(
                     "Unknown user with id=" + statistic.userId() + " or expression with id=" + statistic.expressionId(),
+                    e,
                     "Statistic.unknownUserIdOrExpressionId",
                     true);
         }
@@ -147,11 +153,13 @@ public class StatisticRepositoryImpl implements StatisticRepository {
         } catch(DuplicateKeyException e) {
             throw new NotUniqueEntityException(
                     "Statistic " + statistic + " already exists",
+                    e,
                     "Statistic.unique",
                     true);
         } catch(DataIntegrityViolationException e) {
             throw new UnknownEntityException(
                     "Unknown user with id=" + statistic.userId() + " or expression with id=" + statistic.expressionId(),
+                    e,
                     "Statistic.unknownUserIdOrExpressionId",
                     true);
         }
