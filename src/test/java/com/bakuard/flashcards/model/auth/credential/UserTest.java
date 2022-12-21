@@ -2,7 +2,7 @@ package com.bakuard.flashcards.model.auth.credential;
 
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.validation.IncorrectCredentials;
+import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactories;

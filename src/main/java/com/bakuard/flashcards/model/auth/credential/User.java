@@ -1,10 +1,10 @@
 package com.bakuard.flashcards.model.auth.credential;
 
 import com.bakuard.flashcards.model.Entity;
-import com.bakuard.flashcards.validation.AllUnique;
-import com.bakuard.flashcards.validation.IncorrectCredentials;
-import com.bakuard.flashcards.validation.NotContainsNull;
-import com.bakuard.flashcards.validation.PasswordConstraintValidator;
+import com.bakuard.flashcards.validation.annotation.AllUnique;
+import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
+import com.bakuard.flashcards.validation.annotation.NotContainsNull;
+import com.bakuard.flashcards.validation.annotation.PasswordConstraintValidator;
 import com.google.common.hash.Hashing;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
@@ -150,14 +150,18 @@ public class User implements Entity {
      * @throws IncorrectCredentials Выбрасывается, если выполняется хотя бы одно из следующих условий:<br/>
      *                              1. если указан неверный текущий пароль. <br/>
      *                              2. если текущий пароль равен null. <br/>
+     *                              {@link IncorrectCredentials#getMessageKey()} вернет User.password.notNull
+     *                              или User.password.incorrect
      */
     public void assertCurrentPassword(String currentPassword) {
         if(currentPassword == null) {
-            throw new IncorrectCredentials("User.password.notNull");
+            throw new IncorrectCredentials(
+                    "currentPassword can't be null", "User.password.notNull");
         }
 
         if(!calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
-            throw new IncorrectCredentials("User.password.incorrect");
+            throw new IncorrectCredentials(
+                    "Incorrect current password", "User.password.incorrect");
         }
     }
 
@@ -173,18 +177,23 @@ public class User implements Entity {
      *                              3. если новый пароль равен null. <br/>
      *                              4. если новый пароль не содержит отображаемых символов. <br/>
      *                              5. если длина нового пароля не принадлежит промежутку [8; 50]. <br/>
+     *                              {@link IncorrectCredentials#getMessageKey()} вернет User.password.notNull,
+     *                              User.password.incorrect или User.newPassword.format
      */
     public User changePassword(String currentPassword, String newPassword) {
         if(!new PasswordConstraintValidator().isValid(newPassword, null)) {
-            throw new IncorrectCredentials("User.newPassword.format");
+            throw new IncorrectCredentials(
+                    "Incorrect password format", "User.newPassword.format");
         }
 
         if(currentPassword == null) {
-            throw new IncorrectCredentials("User.password.notNull");
+            throw new IncorrectCredentials(
+                    "currentPassword can't be null", "User.password.notNull");
         }
 
         if(!calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
-            throw new IncorrectCredentials("User.password.incorrect");
+            throw new IncorrectCredentials(
+                    "Incorrect current password", "User.password.incorrect");
         }
 
         this.passwordHash = calculatePasswordHash(newPassword, salt);

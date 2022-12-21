@@ -2,8 +2,10 @@ package com.bakuard.flashcards.dal.fragment;
 
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.model.auth.credential.User;
-import com.bakuard.flashcards.validation.InvalidParameter;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.jdbc.core.JdbcAggregateOperations;
+import org.springframework.data.relational.core.conversion.DbActionExecutionException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.UUID;
@@ -43,11 +45,24 @@ public class UserSaverImpl implements UserSaver<User> {
             );
 
             if(superAdminId != null && !superAdminId.equals(user.getId())) {
-                throw new InvalidParameter("User.superAdmin.unique");
+                throw new NotUniqueEntityException(
+                        "User with role Super Admin already exists",
+                        "User.superAdmin.unique");
             }
         }
 
-        return jdbcAggregateOperations.save(user);
+        try {
+            return jdbcAggregateOperations.save(user);
+        } catch (DbActionExecutionException e) {
+            if(e.getCause() instanceof DuplicateKeyException) {
+                throw new NotUniqueEntityException(
+                        "Use with email '" + user.getEmail() + "' already exists",
+                        e,
+                        "User.email.unique",
+                        false);
+            }
+            throw e;
+        }
     }
 
 }

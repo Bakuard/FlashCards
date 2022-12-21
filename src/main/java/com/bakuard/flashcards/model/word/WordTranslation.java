@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.word;
 
-import com.bakuard.flashcards.validation.NotBlankOrNull;
+import com.bakuard.flashcards.validation.annotation.NotBlankOrNull;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;

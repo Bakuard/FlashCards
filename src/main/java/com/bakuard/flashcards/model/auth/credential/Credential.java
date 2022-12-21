@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.auth.credential;
 
-import com.bakuard.flashcards.validation.Password;
+import com.bakuard.flashcards.validation.annotation.Password;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;

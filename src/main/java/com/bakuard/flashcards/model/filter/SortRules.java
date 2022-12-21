@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.filter;
 
-import com.bakuard.flashcards.validation.InvalidParameter;
+import com.bakuard.flashcards.validation.exception.InvalidParameter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 
@@ -53,7 +53,8 @@ public class SortRules {
      * @return правила сортировки в виде объекта Sort.
      * @throws NullPointerException - если sortedEntity является null.
      * @throws InvalidParameter - если указанный параметр сортировки для заданной сущности не поддерживается или
-     *                            указан не действительное направление сортировки.
+     *                            указан не действительное направление сортировки. {@link InvalidParameter#getMessageKey()}
+     *                            вернет SortRules.unknownSortDirection или SortRules.invalidParameter
      */
     public Sort toSort(String sortRules, SortedEntity sortedEntity) {
         Objects.requireNonNull(sortedEntity, "sortedEntity can't be null");
@@ -101,8 +102,7 @@ public class SortRules {
                     "remember_from_native",
                     "not_remember_from_english",
                     "not_remember_from_native");
-            default -> throw new InvalidParameter("Unsupported sorted entity '" + sortedEntity + '\'',
-                    "SortRules.unknownSortEntity");
+            default -> throw new IllegalArgumentException("Unsupported sorted entity '" + sortedEntity + '\'');
         }
         return processedParameter;
     }

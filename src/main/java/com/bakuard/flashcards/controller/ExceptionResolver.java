@@ -3,7 +3,7 @@ package com.bakuard.flashcards.controller;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.model.auth.policy.PermissionDeniedException;
-import com.bakuard.flashcards.validation.*;
+import com.bakuard.flashcards.validation.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +31,17 @@ public class ExceptionResolver {
     public ResponseEntity<ExceptionResponse> handle(UnknownEntityException exception) {
         logger.error("Unknown entity", exception);
 
-        ExceptionResponse response = mapper.toExceptionResponse(
-                HttpStatus.NOT_FOUND,
-                exception.getMessageKey());
+        if(exception.isInternalServerException()) {
+            return handle((RuntimeException) exception);
+        } else {
+            ExceptionResponse response = mapper.toExceptionResponse(
+                    HttpStatus.NOT_FOUND,
+                    exception.getMessageKey());
 
-        return ResponseEntity.
-                status(HttpStatus.NOT_FOUND).
-                body(response);
+            return ResponseEntity.
+                    status(HttpStatus.NOT_FOUND).
+                    body(response);
+        }
     }
 
     @ExceptionHandler(value = IncorrectCredentials.class)
@@ -53,43 +57,21 @@ public class ExceptionResolver {
                 body(response);
     }
 
-    @ExceptionHandler(value = InvalidParameter.class)
-    public ResponseEntity<ExceptionResponse> handle(InvalidParameter exception) {
-        logger.error("Invalid parameter", exception);
+    @ExceptionHandler(value = AbstractDomainException.class)
+    public ResponseEntity<ExceptionResponse> handle(AbstractDomainException exception) {
+        logger.error("Bad request", exception);
 
-        ExceptionResponse response = mapper.toExceptionResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessageKey());
+        if(exception.isInternalServerException()) {
+            return handle((RuntimeException) exception);
+        } else {
+            ExceptionResponse response = mapper.toExceptionResponse(
+                    HttpStatus.BAD_REQUEST,
+                    exception.getMessageKey());
 
-        return ResponseEntity.
-                status(HttpStatus.BAD_REQUEST).
-                body(response);
-    }
-
-    @ExceptionHandler(value = DataStoreConstraintViolationException.class)
-    public ResponseEntity<ExceptionResponse> handle(DataStoreConstraintViolationException exception) {
-        logger.error("Data store constraint violation", exception);
-
-        ExceptionResponse response = mapper.toExceptionResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessageKey());
-
-        return ResponseEntity.
-                status(HttpStatus.BAD_REQUEST).
-                body(response);
-    }
-
-    @ExceptionHandler(value = FailToSendMailException.class)
-    public ResponseEntity<ExceptionResponse> handle(FailToSendMailException exception) {
-        logger.error("Fail to send mail exception", exception);
-
-        ExceptionResponse response = mapper.toExceptionResponse(
-                HttpStatus.BAD_REQUEST,
-                exception.getMessageKey());
-
-        return ResponseEntity.
-                status(HttpStatus.BAD_REQUEST).
-                body(response);
+            return ResponseEntity.
+                    status(HttpStatus.BAD_REQUEST).
+                    body(response);
+        }
     }
 
     @ExceptionHandler(value = PermissionDeniedException.class)

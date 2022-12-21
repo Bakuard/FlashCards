@@ -1,7 +1,7 @@
 package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.config.configData.ConfigData;
-import com.bakuard.flashcards.validation.FailToSendMailException;
+import com.bakuard.flashcards.validation.exception.FailToSendMailException;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
@@ -32,6 +32,8 @@ public class EmailService {
      * с обратным адресом, в которую включен указанный jws токен.
      * @param jws токен подтверждения регистрации
      * @param email адрес почты на которую отправляется письмо
+     * @throws FailToSendMailException если не удалось отправить письмо. {@link FailToSendMailException#getMessageKey()}
+     *                                 будет возвращать FailToSendMailException.registration
      */
     public void confirmEmailForRegistration(String jws, String email) {
         try {
@@ -41,7 +43,10 @@ public class EmailService {
                     email
             );
         } catch(MessagingException e) {
-            throw new FailToSendMailException(e, "FailToSendMailException.registration");
+            throw new FailToSendMailException("Fail to send mail for registration",
+                    e,
+                    "FailToSendMailException.registration",
+                    false);
         }
     }
 
@@ -50,6 +55,8 @@ public class EmailService {
      * с обратным адресом, в которую включен указанный jws токен.
      * @param jws токен восстановления пароля
      * @param email адрес почты на которую отправляется письмо
+     * @throws FailToSendMailException если не удалось отправить письмо. {@link FailToSendMailException#getMessageKey()}
+     *                                 будет возвращать FailToSendMailException.restorePass
      */
     public void confirmEmailForRestorePass(String jws, String email) {
         try {
@@ -59,7 +66,10 @@ public class EmailService {
                     email
             );
         } catch(MessagingException e) {
-            throw new FailToSendMailException(e, "FailToSendMailException.restorePass");
+            throw new FailToSendMailException("Fail to send mail for restore password",
+                    e,
+                    "FailToSendMailException.restorePass",
+                    false);
         }
     }
 
@@ -68,6 +78,8 @@ public class EmailService {
      * с обратным адресом, в которую включен указанный jws токен.
      * @param jws токен удаления аккаунта
      * @param email адрес почты на которую отправляется письмо
+     * @throws FailToSendMailException если не удалось отправить письмо. {@link FailToSendMailException#getMessageKey()}
+     *                                 будет возвращать FailToSendMailException.accountDeletion
      */
     public void confirmEmailForDeletion(String jws, String email) {
         try {
@@ -77,7 +89,10 @@ public class EmailService {
                     email
             );
         } catch(MessagingException e) {
-            throw new FailToSendMailException(e, "FailToSendMailException.accountDeletion");
+            throw new FailToSendMailException("Fail to send mail for deletion",
+                    e,
+                    "FailToSendMailException.accountDeletion",
+                    false);
         }
     }
 

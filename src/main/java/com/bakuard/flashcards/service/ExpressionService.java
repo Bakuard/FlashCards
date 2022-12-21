@@ -5,11 +5,14 @@ import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
-import com.bakuard.flashcards.validation.UnknownEntityException;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.relational.core.conversion.DbActionExecutionException;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,25 +59,38 @@ public class ExpressionService {
     /**
      * Делегирует вызов одноименному методу {@link ExpressionRepository} добавляя предварительную валидацию
      * данных устойчивого выражения.
+     * @throws NotUniqueEntityException если среди устойчивых выражений пользователя уже есть выражение
+     *                                  с таким значением. {@link NotUniqueEntityException#getMessageKey()}
+     *                                  вернет Expression.value.unique
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Expression}
      * @see <a href="https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/CrudRepository.html#save(S)">Документация к CrudRepository#save(entity)</a>
      */
     public Expression save(Expression expression) {
-        validator.assertValid(expression);
-        return expressionRepository.save(expression);
+        try {
+            validator.assertValid(expression);
+            return expressionRepository.save(expression);
+        } catch (DbActionExecutionException e) {
+            if(e.getCause() instanceof DuplicateKeyException) {
+                throw new NotUniqueEntityException(
+                        "Expression with value '" + expression.getValue() + "' already exists",
+                        "Expression.value.unique");
+            }
+            throw e;
+        }
     }
 
     /**
      * Делегирует вызов одноименному методу {@link ExpressionRepository}.
      * Если оборачиваемый метод вернул false - выбрасывает исключение.
      * @throws UnknownEntityException если оборачиваемый метод вернул false.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Expression.unknownIdOrUserId
      */
     public void tryDeleteById(UUID userId, UUID expressionId) {
         boolean wasDeleted = expressionRepository.deleteById(userId, expressionId);
         if(!wasDeleted) {
             throw new UnknownEntityException(
                     "User with id=" + userId + " not exists or hasn't expression with id=" + expressionId,
-                    "Expression.unknownId");
+                    "Expression.unknownIdOrUserId");
         }
     }
 
@@ -124,13 +140,14 @@ public class ExpressionService {
      * Делегирует вызов методу {@link ExpressionRepository#findById(UUID, UUID)}. Если оборачиваемый метод
      * возвращает пустой Optional - данный метод генерирует исключение.
      * @throws UnknownEntityException если оборачиваемый метод возвращает пустой Optional.
+     *                                {@link UnknownEntityException#getMessageKey()} вернет Expression.unknownIdOrUserId
      */
     public Expression tryFindById(UUID userId, UUID expressionId) {
         return findById(userId, expressionId).
                 orElseThrow(
                         () -> new UnknownEntityException(
                                 "Unknown expression with id=" + expressionId + " userId=" + userId,
-                                "Expression.unknownId"
+                                "Expression.unknownIdOrUserId"
                         )
                 );
     }

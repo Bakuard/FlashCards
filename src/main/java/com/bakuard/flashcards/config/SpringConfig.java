@@ -6,11 +6,11 @@ import com.bakuard.flashcards.config.security.RequestContextImpl;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.controller.message.MessagesImpl;
 import com.bakuard.flashcards.dal.*;
+import com.bakuard.flashcards.dal.fragment.UserSaver;
+import com.bakuard.flashcards.dal.fragment.UserSaverImpl;
 import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.StatisticRepositoryImpl;
 import com.bakuard.flashcards.dal.impl.WordOuterSourceBufferImpl;
-import com.bakuard.flashcards.dal.fragment.UserSaver;
-import com.bakuard.flashcards.dal.fragment.UserSaverImpl;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.auth.credential.User;
@@ -43,6 +43,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
@@ -79,17 +80,22 @@ public class SpringConfig implements WebMvcConfigurer {
                 return new HikariDataSource(hikariConfig);
         }
 
+        @Bean("transactionManager")
+        public PlatformTransactionManager transactionManager(DataSource dataSource) {
+                return new DataSourceTransactionManager(dataSource);
+        }
+
+        @Bean
+        public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
+                return new TransactionTemplate(transactionManager);
+        }
+
         @Bean(initMethod = "migrate")
         public Flyway flyway(DataSource dataSource) {
                 return Flyway.configure().
                         locations("classpath:db").
                         dataSource(dataSource).
                         load();
-        }
-
-        @Bean("transactionManager")
-        public PlatformTransactionManager transactionManager(DataSource dataSource) {
-                return new DataSourceTransactionManager(dataSource);
         }
 
         @Bean
@@ -148,13 +154,15 @@ public class SpringConfig implements WebMvcConfigurer {
                                        JwsService jwsService,
                                        EmailService emailService,
                                        ConfigData configData,
-                                       ValidatorUtil validator) {
+                                       ValidatorUtil validator,
+                                       TransactionTemplate transactionTemplate) {
              return new AuthService(userRepository,
                      intervalRepository,
                      jwsService,
                      emailService,
                      configData,
-                     validator);
+                     validator,
+                     transactionTemplate);
         }
 
         @Bean
