@@ -59,7 +59,7 @@ public class WordService {
     /**
      * Делегирует вызов одноименному методу {@link WordRepository} добавляя предварительную валидацию
      * данных слова.
-     * @throws NotUniqueEntityException если среди слов пользователя уже есть слово с таким значением
+     * @throws NotUniqueEntityException если среди слов пользователя уже есть другое слово с таким значением
      *                                  {@link NotUniqueEntityException#getMessageKey()} вернет Word.value.unique
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Word}
      * @see <a href="https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/CrudRepository.html#save(S)">Документация к CrudRepository#save(entity)</a>

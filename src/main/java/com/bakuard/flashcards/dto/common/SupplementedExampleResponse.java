@@ -2,12 +2,11 @@ package com.bakuard.flashcards.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@Schema(description = "Пример использования слова или устойчивого выражения.")
-public class ExampleResponse {
+@Schema(description = "Пример использования слова полученного из внешнего сервиса.")
+public class SupplementedExampleResponse {
 
     @Schema(description = "Пример на английском языке.")
     private String origin;
@@ -15,8 +14,10 @@ public class ExampleResponse {
     private String translate;
     @Schema(description = "Примечание к примеру.")
     private String note;
+    @Schema(description = "Данные всех внешних источников из которых получены переводы для данного примера.")
+    private List<ExampleOuterSourceResponse> outerSource;
 
-    public ExampleResponse() {
+    public SupplementedExampleResponse() {
 
     }
 
@@ -24,7 +25,7 @@ public class ExampleResponse {
         return origin;
     }
 
-    public ExampleResponse setOrigin(String origin) {
+    public SupplementedExampleResponse setOrigin(String origin) {
         this.origin = origin;
         return this;
     }
@@ -33,7 +34,7 @@ public class ExampleResponse {
         return translate;
     }
 
-    public ExampleResponse setTranslate(String translate) {
+    public SupplementedExampleResponse setTranslate(String translate) {
         this.translate = translate;
         return this;
     }
@@ -42,8 +43,17 @@ public class ExampleResponse {
         return note;
     }
 
-    public ExampleResponse setNote(String note) {
+    public SupplementedExampleResponse setNote(String note) {
         this.note = note;
+        return this;
+    }
+
+    public List<ExampleOuterSourceResponse> getOuterSource() {
+        return outerSource;
+    }
+
+    public SupplementedExampleResponse setOuterSource(List<ExampleOuterSourceResponse> outerSource) {
+        this.outerSource = outerSource;
         return this;
     }
 
@@ -51,23 +61,25 @@ public class ExampleResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExampleResponse that = (ExampleResponse) o;
+        SupplementedExampleResponse that = (SupplementedExampleResponse) o;
         return Objects.equals(origin, that.origin) &&
                 Objects.equals(translate, that.translate) &&
-                Objects.equals(note, that.note);
+                Objects.equals(note, that.note) &&
+                Objects.equals(outerSource, that.outerSource);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(origin, translate, note);
+        return Objects.hash(origin, translate, note, outerSource);
     }
 
     @Override
     public String toString() {
-        return "ExampleResponse{" +
+        return "SupplementedExampleResponse{" +
                 "origin='" + origin + '\'' +
                 ", translate='" + translate + '\'' +
                 ", note='" + note + '\'' +
+                ", outerSource=" + outerSource +
                 '}';
     }
 

@@ -1,12 +1,17 @@
 package com.bakuard.flashcards.service.wordSupplementation;
 
+import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
 import com.bakuard.flashcards.model.word.*;
+import com.bakuard.flashcards.model.word.supplementation.SupplementedWord;
+import com.bakuard.flashcards.model.word.supplementation.SupplementedWordExample;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -15,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -32,46 +36,71 @@ public class YandexTranslateScrapper implements WordSupplementation {
     private final ObjectMapper mapper;
     private final Clock clock;
     private final String outerSourceName = "Yandex";
+    private final WordOuterSourceBuffer wordOuterSourceBuffer;
+    private final TransactionTemplate transaction;
 
     public YandexTranslateScrapper(ObjectMapper mapper,
-                                   Clock clock) {
+                                   Clock clock,
+                                   WordOuterSourceBuffer wordOuterSourceBuffer,
+                                   TransactionTemplate transaction) {
         this.mapper = mapper;
         this.clock = clock;
+        this.wordOuterSourceBuffer = wordOuterSourceBuffer;
+        this.transaction = transaction;
     }
 
     /**
      * см. {@link WordSupplementation#supplement(Word)}
      */
     @Override
-    public Word supplement(Word word) {
-        if(word.getTranslationsRecentUpdateDate(outerSourceName).
-                map(date -> durationGreaterThan(date, 90)).
-                orElse(true)) {
+    public SupplementedWord supplement(Word word) {
+        SupplementedWord result = transaction.execute(status ->
+                wordOuterSourceBuffer.findByWordValueAndOuterSource(
+                                outerSourceName, word.getValue(), word.getUserId()).
+                        orElseGet(() -> new SupplementedWord(
+                                word.getUserId(),
+                                word.getValue(),
+                                outerSourceName,
+                                LocalDate.now(clock),
+                                toUri(toUrlForYandexUi(word.getValue()))
+                        ))
+        );
+
+        if(result.getTranslations().isEmpty() || result.getDaysAfterRecentUpdateDate(clock) > 90) {
             try {
-                logger.info("translate word '{}' from {}", word.getValue(), outerSourceName);
-                translateWord(word.getValue()).forEach(word::mergeTranslation);
+                logger.info("get translations for word '{}' from {}", word, outerSourceName);
+
+                result.addTranslations(translateWord(word.getValue()));
             } catch (Exception e) {
-                logger.warn("Fail to get translates for word '{}' from {}. Reason: {}",
-                        word.getValue(), outerSourceName, e);
+                logger.warn("Fail to get translations for word '{}' from {}. Reason: {}",
+                        word, outerSourceName, e);
             }
         }
 
-        List<WordExample> examples = word.getExamples().stream().
-                filter(example -> example.getRecentUpdateDate(outerSourceName).
-                        map(date -> durationGreaterThan(date, 90)).
-                        orElse(true)).
-                toList();
+        result.removeRedundantExamples(word.getExamples());
         try {
-            for(WordExample example : examples) {
-                logger.info("translate example '{}' from {}", example.getOrigin(), outerSourceName);
-                translateExample(example);
+            if(result.getDaysAfterRecentUpdateDate(clock) > 90) {
+                for(SupplementedWordExample example : result.getExamples()) {
+                    logger.info("replace example '{}' for word '{}' from {} of user {}",
+                            example.getOrigin(), word.getValue(), outerSourceName, word.getUserId());
+                    result.replaceExample(
+                            example.getOrigin(),
+                            translateExample(example.getOrigin())
+                    );
+                }
             }
-        } catch (Exception e) {
-            logger.warn("Fail to translate examples for word '{}' from {}. Reason: {}",
-                    word.getValue(), outerSourceName, e);
+
+            for(WordExample example : result.getMissingExamples(word.getExamples())) {
+                logger.info("add example '{}' for word '{}' from {} of user {}",
+                        example.getOrigin(), word.getValue(), outerSourceName, word.getUserId());
+                result.addExample(translateExample(example.getOrigin()));
+            }
+        } catch(Exception e) {
+            logger.warn("Fail to get examples for word '{}' from {}. Reason: {}",
+                    word, outerSourceName, e);
         }
 
-        return word;
+        return result;
     }
 
 
@@ -110,34 +139,20 @@ public class YandexTranslateScrapper implements WordSupplementation {
             while(trIterator.hasNext()) {
                 JsonNode translate = trIterator.next();
                 String translateValue = translate.findPath("text").textValue();
-                result.add(
-                        new WordTranslation(translateValue, null).
-                                addSourceInfo(
-                                        new OuterSource(toUrlForYandexUi(word),
-                                                outerSourceName,
-                                                LocalDate.now(clock))
-                                )
-                );
+                result.add(new WordTranslation(translateValue, null));
 
                 Iterator<JsonNode> synonyms = translate.findPath("syn").iterator();
                 while(synonyms.hasNext()) {
                     JsonNode synonym = synonyms.next();
                     translateValue = synonym.findPath("text").textValue();
-                    result.add(
-                            new WordTranslation(translateValue, null).
-                                    addSourceInfo(
-                                            new OuterSource(toUrlForYandexUi(word),
-                                                    outerSourceName,
-                                                    LocalDate.now(clock))
-                                    )
-                    );
+                    result.add(new WordTranslation(translateValue, null));
                 }
             }
         }
         return result;
     }
 
-    private void translateExample(WordExample example) throws Exception {
+    private SupplementedWordExample translateExample(String example) throws Exception {
         HttpRequest request = HttpRequest.newBuilder().
                 uri(new URI("https://translate.yandex.net/api/v1/tr.json/translate?" +
                         "id=" + UUID.randomUUID() + "-0-0" +
@@ -152,13 +167,13 @@ public class YandexTranslateScrapper implements WordSupplementation {
                 header("User-Agent", RandomUserAgent.getRandomUserAgent()).
                 header("authority", "translate.yandex.net").
                 header("origin", "https://translate.yandex.ru").
-                header("referer", toUrlForYandexUi(example.getOrigin())).
+                header("referer", toUrlForYandexUi(example)).
                 header("accept", "*/*").
                 header("accept-language", "ru,en;q=0.9,en-GB;q=0.8,en-US;q=0.7").
                 header("content-type", "application/x-www-form-urlencoded").
                 header("x-retpath-y", "https://translate.yandex.ru").
                 POST(HttpRequest.BodyPublishers.ofString(
-                        "text=" + URLEncoder.encode(example.getOrigin(), StandardCharsets.UTF_8) + "&options=4"
+                        "text=" + URLEncoder.encode(example, StandardCharsets.UTF_8) + "&options=4"
                 )).
                 timeout(Duration.ofSeconds(5)).
                 build();
@@ -172,20 +187,16 @@ public class YandexTranslateScrapper implements WordSupplementation {
                 iterator();
         if(iterator.hasNext()) {
             String exampleTranslate = iterator.next().textValue();
-            if(example.getTranslate() == null) example.setTranslate(exampleTranslate);
-            example.addSourceInfo(
-                    new ExampleOuterSource(
-                            toUrlForYandexUi(example.getOrigin()),
-                            outerSourceName,
-                            LocalDate.now(clock),
-                            exampleTranslate
-                    )
+            return new SupplementedWordExample(
+                    example,
+                    exampleTranslate,
+                    null,
+                    toUri(toUrlForYandexUi(example))
             );
+        } else {
+            throw new IllegalStateException("Fail to load example '" + example +
+                    "'. Raw body is -> " + rawResponse.body());
         }
-    }
-
-    private boolean durationGreaterThan(LocalDate recentUpdateDate, int days) {
-        return ChronoUnit.DAYS.between(recentUpdateDate, LocalDate.now(clock)) > days;
     }
 
     private String toUrlForYandexUi(String text) {
@@ -194,6 +205,14 @@ public class YandexTranslateScrapper implements WordSupplementation {
                 "&source_lang=en" +
                 "&target_lang=ru" +
                 "&text=" + URLEncoder.encode(text, StandardCharsets.UTF_8);
+    }
+
+    private URI toUri(String url) {
+        try {
+            return new URI(url);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

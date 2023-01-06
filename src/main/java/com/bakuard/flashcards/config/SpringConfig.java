@@ -189,8 +189,9 @@ public class SpringConfig implements WebMvcConfigurer {
         public WordSupplementationService wordSupplementationService(WordOuterSourceBuffer wordOuterSourceBuffer,
                                                                      Clock clock,
                                                                      ObjectMapper mapper,
-                                                                     ValidatorUtil validator) {
-             return new WordSupplementationService(wordOuterSourceBuffer, clock, mapper, validator);
+                                                                     ValidatorUtil validator,
+                                                                     TransactionTemplate transaction) {
+             return new WordSupplementationService(wordOuterSourceBuffer, clock, mapper, validator, transaction);
         }
 
         @Bean

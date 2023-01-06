@@ -20,7 +20,9 @@ public interface Entity extends Persistable<UUID> {
      * Проверяет - является ли данная сущность новой. Сущность считается новой до первого сохранения в БД.
      * @return true - если сущность новая, иначе - false.
      */
-    public boolean isNew();
+    public default boolean isNew() {
+        return getId() == null;
+    }
 
     /**
      * Данный метод используется слоем доступа к данным для генерации идентификатор сущности перед её первым

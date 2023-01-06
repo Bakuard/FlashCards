@@ -24,6 +24,9 @@ import com.bakuard.flashcards.model.filter.SortedEntity;
 import com.bakuard.flashcards.model.statistic.ExpressionRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.model.statistic.WordRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.model.word.*;
+import com.bakuard.flashcards.model.word.supplementation.AggregateSupplementedWord;
+import com.bakuard.flashcards.model.word.supplementation.ExampleOuterSource;
+import com.bakuard.flashcards.model.word.supplementation.OuterSource;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.IntervalService;
@@ -88,6 +91,26 @@ public class DtoMapper {
                         toList()).
                 setExamples(word.getExamples().stream().
                         map(this::toExampleResponse).
+                        toList());
+    }
+
+    public SupplementedWordResponse toSupplementedWordResponse(AggregateSupplementedWord aggregateWord) {
+        return new SupplementedWordResponse().
+                setWordId(aggregateWord.getWord().getId()).
+                setUserId(aggregateWord.getWord().getUserId()).
+                setValue(aggregateWord.getWord().getValue()).
+                setNote(aggregateWord.getWord().getNote()).
+                setInterpretations(aggregateWord.getInterpretations().stream().
+                        map(i -> toSupplementedInterpretationResponse(i, aggregateWord)).
+                        toList()).
+                setTranscriptions(aggregateWord.getTranscriptions().stream().
+                        map(i -> toSupplementedTranscriptionResponse(i, aggregateWord)).
+                        toList()).
+                setTranslates(aggregateWord.getTranslations().stream().
+                        map(i -> toSupplementedTranslateResponse(i, aggregateWord)).
+                        toList()).
+                setExamples(aggregateWord.getExamples().stream().
+                        map(i -> toSupplementedExampleResponse(i, aggregateWord)).
                         toList());
     }
 
@@ -402,48 +425,77 @@ public class DtoMapper {
         return new ExampleResponse().
                 setOrigin(wordExample.getOrigin()).
                 setTranslate(wordExample.getTranslate()).
-                setNote(wordExample.getNote()).
-                setOuterSource(wordExample.getOuterSource().stream().
-                        map(this::toExampleOuterSourceResponse).
-                        toList());
+                setNote(wordExample.getNote());
     }
 
     private InterpretationResponse toInterpretationResponse(WordInterpretation wordInterpretation) {
         return new InterpretationResponse().
-                setValue(wordInterpretation.getValue()).
-                setOuterSource(wordInterpretation.getOuterSource().stream().
-                        map(this::toOuterSourceResponse).
-                        toList());
+                setValue(wordInterpretation.getValue());
     }
 
     private TranscriptionResponse toTranscriptionResponse(WordTranscription wordTranscription) {
         return new TranscriptionResponse().
                 setValue(wordTranscription.getValue()).
-                setNote(wordTranscription.getNote()).
-                setOuterSource(wordTranscription.getOuterSource().stream().
-                        map(this::toOuterSourceResponse).
-                        toList());
+                setNote(wordTranscription.getNote());
     }
 
     private TranslateResponse toTranslateResponse(WordTranslation wordTranslation) {
         return new TranslateResponse().
                 setValue(wordTranslation.getValue()).
-                setNote(wordTranslation.getNote()).
-                setOuterSource(wordTranslation.getOuterSource().stream().
+                setNote(wordTranslation.getNote());
+    }
+
+
+    private SupplementedExampleResponse toSupplementedExampleResponse(WordExample example,
+                                                                      AggregateSupplementedWord word) {
+        return new SupplementedExampleResponse().
+                setOrigin(example.getOrigin()).
+                setNote(example.getNote()).
+                setTranslate(example.getTranslate()).
+                setOuterSource(word.getOuterSource(example).stream().
+                        map(this::toExampleOuterSourceResponse).
+                        toList());
+    }
+
+    private SupplementedInterpretationResponse toSupplementedInterpretationResponse(WordInterpretation interpretation,
+                                                                                    AggregateSupplementedWord word) {
+        return new SupplementedInterpretationResponse().
+                setValue(interpretation.getValue()).
+                setOuterSource(word.getOuterSource(interpretation).stream().
+                        map(this::toOuterSourceResponse).
+                        toList());
+    }
+
+    private SupplementedTranscriptionResponse toSupplementedTranscriptionResponse(WordTranscription transcription,
+                                                                                  AggregateSupplementedWord word) {
+        return new SupplementedTranscriptionResponse().
+                setValue(transcription.getValue()).
+                setNote(transcription.getNote()).
+                setOuterSource(word.getOuterSource(transcription).stream().
+                        map(this::toOuterSourceResponse).
+                        toList());
+    }
+
+    private SupplementedTranslateResponse toSupplementedTranslateResponse(WordTranslation translation,
+                                                                          AggregateSupplementedWord word) {
+        return new SupplementedTranslateResponse().
+                setValue(translation.getValue()).
+                setNote(translation.getNote()).
+                setOuterSource(word.getOuterSource(translation).stream().
                         map(this::toOuterSourceResponse).
                         toList());
     }
 
     private OuterSourceResponse toOuterSourceResponse(OuterSource outerSource) {
         return new OuterSourceResponse().
-                setOuterSourceName(outerSource.sourceName()).
-                setOuterSourceUrl(outerSource.url());
+                setOuterSourceName(outerSource.name()).
+                setOuterSourceUrl(outerSource.uri().toString());
     }
 
     private ExampleOuterSourceResponse toExampleOuterSourceResponse(ExampleOuterSource exampleOuterSource) {
         return new ExampleOuterSourceResponse().
                 setOuterSourceName(exampleOuterSource.sourceName()).
-                setOuterSourceUrl(exampleOuterSource.url()).
+                setOuterSourceUrl(exampleOuterSource.uri().toString()).
                 setExampleTranslate(exampleOuterSource.translate());
     }
 

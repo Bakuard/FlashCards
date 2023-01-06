@@ -152,14 +152,6 @@ public class Word implements Entity {
     }
 
     /**
-     * см. {@link Entity#isNew()}
-     */
-    @Override
-    public boolean isNew() {
-        return id == null;
-    }
-
-    /**
      * Возвращает уникальный идентификатор пользователя к словарю которого относится слово.
      * @return уникальный идентификатор пользователя к словарю которого относится слово.
      */
@@ -192,20 +184,6 @@ public class Word implements Entity {
     }
 
     /**
-     * Возвращает дату последнего обновления интерпретаций к слову из внешнего сервиса с указанным именем. Если
-     * среди интерпретаций слова нет интерпретаций полученных из указанного внешнего источника, то метод возвращает
-     * пустой Optional.
-     * @param outerSourceName имя внешнего сервиса используемого для получения интерпретаций к слову.
-     * @return дата последнего обновления интерпретаций к слову.
-     */
-    public Optional<LocalDate> getInterpretationsRecentUpdateDate(String outerSourceName) {
-        return interpretations.stream().
-                filter(interpretation -> interpretation.hasOuterSource(outerSourceName)).
-                findFirst().
-                flatMap(interpretation -> interpretation.getRecentUpdateDate(outerSourceName));
-    }
-
-    /**
      * Возвращает список всех транскрипций слова.
      * @return список всех транскрипций слова.
      */
@@ -214,49 +192,11 @@ public class Word implements Entity {
     }
 
     /**
-     * Возвращает дату последнего обновления транскрипций к слову из внешнего сервиса с указанным именем. Если
-     * среди транскрипций слова нет транскрипций полученных из указанного внешнего источника, то метод возвращает
-     * пустой Optional.
-     * @param outerSourceName имя внешнего сервиса используемого для получения транскрипций к слову.
-     * @return дата последнего обновления транскрипций к слову.
-     */
-    public Optional<LocalDate> getTranscriptionsRecentUpdateDate(String outerSourceName) {
-        return transcriptions.stream().
-                filter(transcription -> transcription.hasOuterSource(outerSourceName)).
-                findFirst().
-                flatMap(transcription -> transcription.getRecentUpdateDate(outerSourceName));
-    }
-
-    /**
-     * Проверяет - имеет ли слово транскрипции полученные из внешнего сервиса с указанным именем.
-     * @param outerSourceName имя внешнего сервиса.
-     * @return true - если слово имеет транскрипции полученные из указанного внешнего сервиса, иначе - false.
-     */
-    public boolean hasTranscriptionsOfOuterSource(String outerSourceName) {
-        return transcriptions.stream().
-                anyMatch(transcription -> transcription.hasOuterSource(outerSourceName));
-    }
-
-    /**
      * Возвращает все переводы данного слова.
      * @return все переводы данного слова.
      */
     public List<WordTranslation> getTranslations() {
         return Collections.unmodifiableList(translations);
-    }
-
-    /**
-     * Возвращает дату последнего обновления переводов слова из внешнего сервиса с указанным именем. Если
-     * среди переводов слова нет переводов полученных из указанного внешнего источника, то метод возвращает
-     * пустой Optional.
-     * @param outerSourceName имя внешнего сервиса используемого для получения переводов к слову.
-     * @return дата последнего обновления переводов к слову.
-     */
-    public Optional<LocalDate> getTranslationsRecentUpdateDate(String outerSourceName) {
-        return translations.stream().
-                filter(translation -> translation.hasOuterSource(outerSourceName)).
-                findFirst().
-                flatMap(translation -> translation.getRecentUpdateDate(outerSourceName));
     }
 
     /**
@@ -356,73 +296,6 @@ public class Word implements Entity {
     }
 
     /**
-     * Ищет среди интерпретаций слова такую, значение ({@link WordInterpretation#getValue()}) которой
-     * равняется значению указанной интерпретации. Если такая интерпретация есть, то для неё будет вызван
-     * метод {@link WordInterpretation#merge(WordInterpretation)}. Если такой интерпретации нет, то заданная
-     * интерпретация будет добавлена в список интерпретаций этого слова.
-     * @param interpretation интерпретация, данные которой копируются в список интерпретаций этого слова.
-     * @return ссылку на этот же объект.
-     */
-    public Word mergeInterpretation(WordInterpretation interpretation) {
-        boolean isMerged = false;
-        for(int i = 0; i < interpretations.size() && !isMerged; i++) {
-            isMerged = interpretations.get(i).merge(interpretation);
-        }
-        if(!isMerged) interpretations.add(interpretation);
-        return this;
-    }
-
-    /**
-     * Ищет среди транскрипций слова такую, значение ({@link WordTranscription#getValue()}) которой
-     * равняется значению указанной транскрипции. Если такая транскрипция есть, то для неё будет вызван
-     * метод {@link WordTranscription#merge(WordTranscription)}. Если такой транскрипции нет, то заданная
-     * транскрипция будет добавлена в список транскрипций этого слова.
-     * @param transcription транскрипция, данные которой копируются в список транскрипций этого слова.
-     * @return ссылку на этот же объект.
-     */
-    public Word mergeTranscription(WordTranscription transcription) {
-        boolean isMerged = false;
-        for(int i = 0; i < transcriptions.size() && !isMerged; i++) {
-            isMerged = transcriptions.get(i).merge(transcription);
-        }
-        if(!isMerged) transcriptions.add(transcription);
-        return this;
-    }
-
-    /**
-     * Ищет среди переводов слова такое, значение ({@link WordTranslation#getValue()}) которого
-     * равняется значению указанного перевода. Если такой перевод есть, то для него будет вызван
-     * метод {@link WordTranslation#merge(WordTranslation)}. Если такого перевода нет, то заданный
-     * перевод будет добавлен в список переводов этого слова.
-     * @param translation перевод, данные которого копируются в список переводов этого слова.
-     * @return ссылку на этот же объект.
-     */
-    public Word mergeTranslation(WordTranslation translation) {
-        boolean isMerged = false;
-        for(int i = 0; i < translations.size() && !isMerged; i++) {
-            isMerged = translations.get(i).merge(translation);
-        }
-        if(!isMerged) translations.add(translation);
-        return this;
-    }
-
-    /**
-     * Ищет среди примеров слова такое, значение ({@link WordTranslation#getValue()}) которого
-     * равняется значению указанного примера. Если такой пример есть, то для него будет вызван
-     * метод {@link WordTranslation#merge(WordTranslation)}. Если такого перевода нет, то метод
-     * ничего не делает.
-     * @param example пример, данные которого копируются в список примеров этого слова.
-     * @return ссылку на этот же объект.
-     */
-    public Word mergeExampleIfPresent(WordExample example) {
-        boolean isMerged = false;
-        for(int i = 0; i < examples.size() && !isMerged; i++) {
-            isMerged = examples.get(i).mergeIfHasSameValue(example);
-        }
-        return this;
-    }
-
-    /**
      * Добавляет указанную интерпретацию к данному слову.
      * @param interpretation добавляемая интерпретация
      * @return ссылку на этот же объект
@@ -459,6 +332,46 @@ public class Word implements Entity {
      */
     public Word addExample(WordExample example) {
         examples.add(example);
+        return this;
+    }
+
+    /**
+     * Удаляет интерпретацию по её значению. Если такой интерпретации нет - ничего не делает.
+     * @param interpretationValue значение удаляемой интерпретации
+     * @return ссылку на этот же объект
+     */
+    public Word removeInterpretationBy(String interpretationValue) {
+        interpretations.removeIf(interpretation -> interpretation.getValue().equalsIgnoreCase(interpretationValue));
+        return this;
+    }
+
+    /**
+     * Удаляет транскрипцию по её значению. Если такой транскрипции нет - ничего не делает.
+     * @param transcriptionValue значение удаляемой транскрипции
+     * @return ссылку на этот же объект
+     */
+    public Word removeTranscriptionBy(String transcriptionValue) {
+        transcriptions.removeIf(transcription -> transcription.getValue().equalsIgnoreCase(transcriptionValue));
+        return this;
+    }
+
+    /**
+     * Удаляет перевод по его значению. Если такого перевода нет - ничего не делает.
+     * @param translateValue значение удаляемого перевода
+     * @return ссылку на этот же объект
+     */
+    public Word removeTranslateBy(String translateValue) {
+        translations.removeIf(translation -> translation.getValue().equalsIgnoreCase(translateValue));
+        return this;
+    }
+
+    /**
+     * Удаляет пример по его значению на английском языке. Если такого примера нет - ничего не делает.
+     * @param exampleOrigin значение удаляемого примера
+     * @return ссылку на этот же объект
+     */
+    public Word removeExampleBy(String exampleOrigin) {
+        examples.removeIf(example -> example.getOrigin().equalsIgnoreCase(exampleOrigin));
         return this;
     }
 

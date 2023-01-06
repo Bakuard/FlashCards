@@ -66,9 +66,7 @@ class IntervalsRepositoryTest {
                 "repeat_words_from_native_statistic",
                 "repeat_expressions_from_english_statistic",
                 "repeat_expressions_from_native_statistic",
-                "words_interpretations_outer_source",
-                "words_transcriptions_outer_source",
-                "words_translations_outer_source",
+                "word_outer_source",
                 "words_examples_outer_source"
         ));
     }

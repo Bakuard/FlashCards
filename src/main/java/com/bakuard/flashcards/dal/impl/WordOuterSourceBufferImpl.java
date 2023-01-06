@@ -1,26 +1,29 @@
 package com.bakuard.flashcards.dal.impl;
 
 import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
-import com.bakuard.flashcards.model.word.*;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.bakuard.flashcards.model.word.WordInterpretation;
+import com.bakuard.flashcards.model.word.WordTranscription;
+import com.bakuard.flashcards.model.word.WordTranslation;
+import com.bakuard.flashcards.model.word.supplementation.SupplementedWord;
+import com.bakuard.flashcards.model.word.supplementation.SupplementedWordExample;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Array;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
-@Transactional
 public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
-
-    private static final Logger logger = LoggerFactory.getLogger(WordOuterSourceBufferImpl.class.getName());
-
 
     private JdbcTemplate jdbcTemplate;
 
@@ -28,322 +31,338 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @Transactional
     @Override
-    public void saveDataFromOuterSource(Word word) {
-        saveInterpretationsToBuffer(word.getValue(), word.getInterpretations());
-        saveTranscriptionsToBuffer(word.getValue(), word.getTranscriptions());
-        saveTranslationsToBuffer(word.getValue(), word.getTranslations());
-        saveExamplesToBuffer(word.getExamples());
+    public void save(SupplementedWord word) {
+        Objects.requireNonNull(word, "word can't be null");
+
+        saveRoot(word);
+        saveInterpretations(word);
+        saveTranscriptions(word);
+        saveTranslations(word);
+        saveExamples(word);
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public void mergeFromOuterSource(Word word) {
-        getTranscriptionsFromOuterSourceFor(word.getValue()).forEach(word::mergeTranscription);
-        getInterpretationsFromOuterSourceFor(word.getValue()).forEach(word::mergeInterpretation);
-        getTranslationsFromOuterSourceFor(word.getValue()).forEach(word::mergeTranslation);
-        getExamplesFromOuterSourceFor(word.getExamples().stream().map(WordExample::getOrigin).toList()).
-                forEach(word::mergeExampleIfPresent);
+    public Optional<SupplementedWord> findByWordValueAndOuterSource(String outerSourceName,
+                                                                    String wordValue,
+                                                                    UUID examplesOwnerId) {
+        Objects.requireNonNull(outerSourceName, "outerSourceName can't be null");
+        Objects.requireNonNull(wordValue, "wordValue can't be null");
+        Objects.requireNonNull(examplesOwnerId, "userId can't be null");
+
+        return Optional.ofNullable(loadRoot(outerSourceName, wordValue, examplesOwnerId)).
+                map(this::loadInterpretations).
+                map(this::loadTranscriptions).
+                map(this::loadTranslations).
+                map(this::loadExamples);
     }
 
-    @Transactional
     @Override
-    public void deleteUnusedOuterSourceExamples() {
-        int deletedRowsNumber = jdbcTemplate.update("""
-                delete from words_examples_outer_source
-                    where words_examples_outer_source.example not in (
-                        select words_examples.origin from words_examples
+    public int deleteUnusedExamples() {
+        return jdbcTemplate.update("""
+                delete from words_examples_outer_source w
+                    where not exists (
+                        select * from words_examples_outer_source
+                        inner join used_words_examples_outer_source
+                            on w.user_id = used_words_examples_outer_source.user_id
+                                 and w.word_outer_source_id = used_words_examples_outer_source.word_outer_source_id
+                                 and w.example = used_words_examples_outer_source.example
                     );
                 """);
-
-        logger.info("Delete unused examples from outer source. {} rows was deleted.", deletedRowsNumber);
     }
 
 
-    private List<WordTranscription> getTranscriptionsFromOuterSourceFor(String wordValue) {
-        return jdbcTemplate.query("""
-                select *
-                    from words_transcriptions_outer_source
-                    where words_transcriptions_outer_source.word_value = ?
-                    order by words_transcriptions_outer_source.transcription,
-                             words_transcriptions_outer_source.outer_source_name;
-                """,
-                ps -> ps.setString(1, wordValue),
-                rs -> {
-                    List<WordTranscription> transcriptions = new ArrayList<>();
-                    WordTranscription transcription = null;
-                    while(rs.next()) {
-                        String transcriptionValue = rs.getString("transcription");
-                        if(transcription == null || !transcription.getValue().equals(transcriptionValue)) {
-                            transcription = new WordTranscription(transcriptionValue, null);
-                            transcriptions.add(transcription);
-                        }
+    private void saveRoot(SupplementedWord word) {
+        if(word.isNew()) {
+            word.generateIdIfAbsent();
+            try {
+                jdbcTemplate.update("""
+                                insert into word_outer_source(word_outer_source_id,
+                                                              word_value,
+                                                              outer_source_name,
+                                                              recent_update_date,
+                                                              outer_source_uri)
+                                    values(?, ?, ?, ?, ?);
+                                """,
+                        ps -> {
+                            ps.setObject(1, word.getId());
+                            ps.setString(2, word.getValue());
+                            ps.setString(3, word.getOuterSourceName());
+                            ps.setDate(4, Date.valueOf(word.getRecentUpdateDate()));
+                            ps.setString(5, word.getOuterSourceUri().toString());
+                        });
+            } catch(DuplicateKeyException e) {
+                throw new NotUniqueEntityException(
+                        "SupplementedWord " + word + " already exists",
+                        e,
+                        "SupplementedWord.unique",
+                        true);
+            }
+        } else {
+            try {
+                jdbcTemplate.update("""
+                        update word_outer_source set
+                                word_value=?,
+                                outer_source_name=?,
+                                recent_update_date=?,
+                                outer_source_uri=?
+                            where word_outer_source_id = ?;
+                        """,
+                        ps -> {
+                            ps.setString(1, word.getValue());
+                            ps.setString(2, word.getOuterSourceName());
+                            ps.setDate(3, Date.valueOf(word.getRecentUpdateDate()));
+                            ps.setString(4, word.getOuterSourceUri().toString());
+                            ps.setObject(5, word.getId());
+                        });
+            } catch (DataIntegrityViolationException e) {
+                throw new UnknownEntityException(
+                        "Unknown SupplementedWord: value=" + word.getValue() + ", outerSourceName=" + word.getOuterSourceName(),
+                        e,
+                        "SupplementedWord.unknownValueOrOuterSource",
+                        true);
+            }
+        }
+    }
 
-                        transcription.addSourceInfo(
-                                new OuterSource(
-                                        rs.getString("outer_source_url"),
-                                        rs.getString("outer_source_name"),
-                                        rs.getDate("recent_update_date").toLocalDate()
-                                )
-                        );
+    private void saveInterpretations(SupplementedWord word) {
+        jdbcTemplate.update(
+                "delete from words_interpretations_outer_source where word_outer_source_id = ?;",
+                ps -> ps.setObject(1, word.getId()));
+
+        jdbcTemplate.batchUpdate("""
+                        insert into words_interpretations_outer_source(word_outer_source_id,
+                                                                       interpretation,
+                                                                       index)
+                            values (?, ?, ?);
+                        """,
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        WordInterpretation interpretation = word.getInterpretations().get(i);
+                        ps.setObject(1, word.getId());
+                        ps.setString(2, interpretation.getValue());
+                        ps.setInt(3, i);
                     }
-                    return transcriptions;
+
+                    @Override
+                    public int getBatchSize() {
+                        return word.getInterpretations().size();
+                    }
                 });
     }
 
-    private List<WordInterpretation> getInterpretationsFromOuterSourceFor(String wordValue) {
-        return jdbcTemplate.query("""
-                select *
-                    from words_interpretations_outer_source
-                    where words_interpretations_outer_source.word_value = ?
-                    order by words_interpretations_outer_source.interpretation,
-                             words_interpretations_outer_source.outer_source_name;
-                """,
-                ps -> ps.setString(1, wordValue),
-                rs -> {
-                    List<WordInterpretation> interpretations = new ArrayList<>();
-                    WordInterpretation interpretation = null;
-                    while(rs.next()) {
-                        String interpretationValue = rs.getString("interpretation");
-                        if(interpretation == null || !interpretation.getValue().equals(interpretationValue)) {
-                            interpretation = new WordInterpretation(interpretationValue);
-                            interpretations.add(interpretation);
-                        }
+    private void saveTranscriptions(SupplementedWord word) {
+        jdbcTemplate.update(
+                "delete from words_transcriptions_outer_source where word_outer_source_id = ?;",
+                ps -> ps.setObject(1, word.getId()));
 
-                        interpretation.addSourceInfo(
-                                new OuterSource(
-                                        rs.getString("outer_source_url"),
-                                        rs.getString("outer_source_name"),
-                                        rs.getDate("recent_update_date").toLocalDate()
-                                )
-                        );
+        jdbcTemplate.batchUpdate("""
+                        insert into words_transcriptions_outer_source(word_outer_source_id,
+                                                                      transcription,
+                                                                      index)
+                            values (?, ?, ?);
+                        """,
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        WordTranscription transcription = word.getTranscriptions().get(i);
+                        ps.setObject(1, word.getId());
+                        ps.setString(2, transcription.getValue());
+                        ps.setInt(3, i);
                     }
-                    return interpretations;
+
+                    @Override
+                    public int getBatchSize() {
+                        return word.getTranscriptions().size();
+                    }
                 });
     }
 
-    private List<WordTranslation> getTranslationsFromOuterSourceFor(String wordValue) {
-        return jdbcTemplate.query("""
-                select *
-                    from words_translations_outer_source
-                    where words_translations_outer_source.word_value = ?
-                    order by words_translations_outer_source.translation,
-                             words_translations_outer_source.outer_source_name;
-                """,
-                ps -> ps.setString(1, wordValue),
-                rs -> {
-                    List<WordTranslation> translations = new ArrayList<>();
-                    WordTranslation translation = null;
-                    while(rs.next()) {
-                        String translationValue = rs.getString("translation");
-                        if(translation == null || !translation.getValue().equals(translationValue)) {
-                            translation = new WordTranslation(translationValue, null);
-                            translations.add(translation);
-                        }
+    private void saveTranslations(SupplementedWord word) {
+        jdbcTemplate.update(
+                "delete from words_translations_outer_source where word_outer_source_id = ?;",
+                ps -> ps.setObject(1, word.getId()));
 
-                        translation.addSourceInfo(
-                                new OuterSource(
-                                        rs.getString("outer_source_url"),
-                                        rs.getString("outer_source_name"),
-                                        rs.getDate("recent_update_date").toLocalDate()
-                                )
-                        );
+        jdbcTemplate.batchUpdate("""
+                        insert into words_translations_outer_source(word_outer_source_id,
+                                                                    translation,
+                                                                    index)
+                            values (?, ?, ?);
+                        """,
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        WordTranslation translation = word.getTranslations().get(i);
+                        ps.setObject(1, word.getId());
+                        ps.setString(2, translation.getValue());
+                        ps.setInt(3, i);
                     }
-                    return translations;
+
+                    @Override
+                    public int getBatchSize() {
+                        return word.getTranslations().size();
+                    }
                 });
     }
 
-    private List<WordExample> getExamplesFromOuterSourceFor(List<String> examples) {
-        return jdbcTemplate.query(connection -> {
-                    PreparedStatement ps = connection.prepareStatement("""
-                                        select *
-                                            from words_examples_outer_source
-                                            where words_examples_outer_source.example = any(?)
-                                            order by words_examples_outer_source.example,
-                                                     words_examples_outer_source.outer_source_name;
-                                        """);
-                    Array array = connection.createArrayOf("VARCHAR", examples.toArray());
-                    ps.setArray(1, array);
-                    return ps;
+    private void saveExamples(SupplementedWord word) {
+        jdbcTemplate.update(
+                "delete from words_examples_outer_source where word_outer_source_id = ? and user_id = ?;",
+                ps -> {
+                    ps.setObject(1, word.getId());
+                    ps.setObject(2, word.getExamplesOwnerId());
+                });
+
+        jdbcTemplate.batchUpdate("""
+                        insert into words_examples_outer_source(user_id,
+                                                                word_outer_source_id,
+                                                                example,
+                                                                exampleTranslate,
+                                                                outer_source_uri_to_example,
+                                                                index)
+                            values (?, ?, ?, ?, ?, ?);
+                        """,
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        SupplementedWordExample example = word.getExamples().get(i);
+                        ps.setObject(1, word.getExamplesOwnerId());
+                        ps.setObject(2, word.getId());
+                        ps.setString(3, example.getOrigin());
+                        ps.setString(4, example.getTranslate());
+                        ps.setString(5, example.getOuterSourceUri().toString());
+                        ps.setInt(6, i);
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return word.getExamples().size();
+                    }
+                });
+    }
+
+
+    private SupplementedWord loadRoot(String outerSourceName, String wordValue, UUID examplesOwnerId) {
+        return jdbcTemplate.query("""
+                        select * from word_outer_source
+                            where outer_source_name = ? and word_value = ?;
+                        """,
+                ps -> {
+                    ps.setString(1, outerSourceName);
+                    ps.setString(2, wordValue);
                 },
                 rs -> {
-                    ArrayList<WordExample> result = new ArrayList<>();
-                    WordExample example = null;
-                    while(rs.next()) {
-                        String exampleOrigin = rs.getString("example");
-                        if(example == null || !example.getOrigin().equals(exampleOrigin)) {
-                            example = new WordExample(
-                                    exampleOrigin,
-                                    rs.getString("exampleTranslate"),
-                                    null
-                            );
-                            result.add(example);
+                    SupplementedWord result = null;
+                    if(rs.next()) {
+                        URI uri = null;
+                        try {
+                            uri = new URI(rs.getString("outer_source_uri"));
+                        } catch (URISyntaxException e) {
+                            throw new RuntimeException(e);
                         }
 
-                        example.addSourceInfo(
-                                new ExampleOuterSource(
-                                        rs.getString("outer_source_url"),
-                                        rs.getString("outer_source_name"),
-                                        rs.getDate("recent_update_date").toLocalDate(),
-                                        rs.getString("exampleTranslate")
-                                )
+                        result = new SupplementedWord(
+                                (UUID) rs.getObject("word_outer_source_id"),
+                                examplesOwnerId,
+                                rs.getString("word_value"),
+                                rs.getString("outer_source_name"),
+                                LocalDate.parse(rs.getString("recent_update_date")),
+                                uri
                         );
                     }
                     return result;
+                }
+        );
+    }
+
+    private SupplementedWord loadInterpretations(SupplementedWord word) {
+        jdbcTemplate.query("""
+                select *
+                    from words_interpretations_outer_source
+                    where words_interpretations_outer_source.word_outer_source_id = ?
+                    order by words_interpretations_outer_source.index;
+                """,
+                ps -> ps.setObject(1, word.getId()),
+                rs -> {
+                    word.addInterpretation(
+                            new WordInterpretation(rs.getString("interpretation"))
+                    );
                 });
+
+        return word;
     }
 
-    private void saveTranscriptionsToBuffer(String wordValue, List<WordTranscription> transcriptions) {
-        jdbcTemplate.update("""
-                delete from words_transcriptions_outer_source
-                    where words_transcriptions_outer_source.word_value = ?;
+    private SupplementedWord loadTranscriptions(SupplementedWord word) {
+         jdbcTemplate.query("""
+                select *
+                    from words_transcriptions_outer_source
+                    where words_transcriptions_outer_source.word_outer_source_id = ?
+                    order by words_transcriptions_outer_source.index;
                 """,
-                ps -> ps.setString(1, wordValue));
+                ps -> ps.setObject(1, word.getId()),
+                rs -> {
+                    word.addTranscription(
+                            new WordTranscription(
+                                    rs.getString("transcription"),
+                                    null
+                            )
+                    );
+                });
 
-        List<Pair<WordTranscription, OuterSource>> pairs = transcriptions.stream().
-                flatMap(transcription -> transcription.getOuterSource().stream().
-                        map(s -> Pair.of(transcription, s))).
-                toList();
-
-        jdbcTemplate.batchUpdate("""
-                        insert into words_transcriptions_outer_source(word_value,
-                                                                      transcription,
-                                                                      outer_source_name,
-                                                                      outer_source_url,
-                                                                      recent_update_date)
-                            values(?, ?, ?, ?, ?);
-                        """,
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        Pair<WordTranscription, OuterSource> pair = pairs.get(i);
-
-                        ps.setString(1, wordValue);
-                        ps.setString(2, pair.getKey().getValue());
-                        ps.setString(3, pair.getValue().sourceName());
-                        ps.setString(4, pair.getValue().url());
-                        ps.setDate(5, Date.valueOf(pair.getValue().recentUpdateDate()));
-                    }
-
-                    @Override
-                    public int getBatchSize() {
-                        return pairs.size();
-                    }
-                }
-        );
+        return word;
     }
 
-    private void saveInterpretationsToBuffer(String wordValue, List<WordInterpretation> interpretations) {
-        jdbcTemplate.update("""
-                delete from words_interpretations_outer_source
-                    where words_interpretations_outer_source.word_value = ?;
+    private SupplementedWord loadTranslations(SupplementedWord word) {
+        jdbcTemplate.query("""
+                select *
+                    from words_translations_outer_source
+                    where words_translations_outer_source.word_outer_source_id = ?
+                    order by words_translations_outer_source.index;
                 """,
-                ps -> ps.setString(1, wordValue));
+                ps -> ps.setObject(1, word.getId()),
+                rs -> {
+                    word.addTranslation(
+                            new WordTranslation(
+                                    rs.getString("translation"),
+                                    null
+                            )
+                    );
+                });
 
-        List<Pair<WordInterpretation, OuterSource>> pairs = interpretations.stream().
-                flatMap(interpretation -> interpretation.getOuterSource().stream().
-                        map(s -> Pair.of(interpretation, s))).
-                toList();
-
-        jdbcTemplate.batchUpdate("""
-                        insert into words_interpretations_outer_source(word_value,
-                                                                       interpretation,
-                                                                       outer_source_name,
-                                                                       outer_source_url,
-                                                                       recent_update_date)
-                            values(?, ?, ?, ?, ?);
-                        """,
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        Pair<WordInterpretation, OuterSource> pair = pairs.get(i);
-
-                        ps.setString(1, wordValue);
-                        ps.setString(2, pair.getKey().getValue());
-                        ps.setString(3, pair.getValue().sourceName());
-                        ps.setString(4, pair.getValue().url());
-                        ps.setDate(5, Date.valueOf(pair.getValue().recentUpdateDate()));
-                    }
-
-                    @Override
-                    public int getBatchSize() {
-                        return pairs.size();
-                    }
-                }
-        );
+        return word;
     }
 
-    private void saveTranslationsToBuffer(String wordValue, List<WordTranslation> translations) {
-        jdbcTemplate.update("""
-                delete from words_translations_outer_source
-                    where words_translations_outer_source.word_value = ?;
+    private SupplementedWord loadExamples(SupplementedWord word) {
+        jdbcTemplate.query("""
+                select *
+                    from words_examples_outer_source
+                    where words_examples_outer_source.word_outer_source_id = ? and user_id = ?
+                    order by words_examples_outer_source.index;
                 """,
-                ps -> ps.setString(1, wordValue));
-
-        List<Pair<WordTranslation, OuterSource>> pairs = translations.stream().
-                flatMap(translation -> translation.getOuterSource().stream().
-                        map(s -> Pair.of(translation, s))).
-                toList();
-
-        jdbcTemplate.batchUpdate("""
-                        insert into words_translations_outer_source(word_value,
-                                                                    translation,
-                                                                    outer_source_name,
-                                                                    outer_source_url,
-                                                                    recent_update_date)
-                            values(?, ?, ?, ?, ?);
-                        """,
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        Pair<WordTranslation, OuterSource> pair = pairs.get(i);
-
-                        ps.setString(1, wordValue);
-                        ps.setString(2, pair.getKey().getValue());
-                        ps.setString(3, pair.getValue().sourceName());
-                        ps.setString(4, pair.getValue().url());
-                        ps.setDate(5, Date.valueOf(pair.getValue().recentUpdateDate()));
+                ps -> {
+                    ps.setObject(1, word.getId());
+                    ps.setObject(2, word.getExamplesOwnerId());
+                },
+                rs -> {
+                    URI uri = null;
+                    try {
+                        uri = new URI(rs.getString("outer_source_uri_to_example"));
+                    } catch (URISyntaxException e) {
+                        throw new RuntimeException("Fail to load SupplementedWordExample - wrong URL format.", e);
                     }
 
-                    @Override
-                    public int getBatchSize() {
-                        return pairs.size();
-                    }
-                }
-        );
-    }
+                    word.addExample(
+                            new SupplementedWordExample(
+                                    rs.getString("example"),
+                                    rs.getString("exampleTranslate"),
+                                    null,
+                                    uri
+                            )
+                    );
+                });
 
-    private void saveExamplesToBuffer(List<WordExample> examples) {
-        examples.forEach(example ->
-                jdbcTemplate.batchUpdate("""
-                            merge into words_examples_outer_source(example,
-                                                                   exampleTranslate,
-                                                                   outer_source_name,
-                                                                   outer_source_url,
-                                                                   recent_update_date)
-                                key(example, outer_source_name)
-                                values(?, ?, ?, ?, ?);
-                            """,
-                        new BatchPreparedStatementSetter() {
-                            @Override
-                            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                                ExampleOuterSource outerSource = example.getOuterSource().get(i);
-
-                                ps.setString(1, example.getOrigin());
-                                ps.setString(2, outerSource.translate());
-                                ps.setString(3, outerSource.sourceName());
-                                ps.setString(4, outerSource.url());
-                                ps.setDate(5, Date.valueOf(outerSource.recentUpdateDate()));
-                            }
-
-                            @Override
-                            public int getBatchSize() {
-                                return example.getOuterSource().size();
-                            }
-                        }
-                )
-        );
+        return word;
     }
 
 }

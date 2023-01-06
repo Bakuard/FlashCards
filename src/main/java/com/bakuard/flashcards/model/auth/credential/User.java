@@ -77,14 +77,6 @@ public class User implements Entity {
     }
 
     /**
-     * см. {@link  Entity#isNew()} ()}
-     */
-    @Override
-    public boolean isNew() {
-        return id == null;
-    }
-
-    /**
      * Возвращает хеш пароля пользователя.
      * @return хеш пароля пользователя.
      */

@@ -59,7 +59,7 @@ public class ExpressionService {
     /**
      * Делегирует вызов одноименному методу {@link ExpressionRepository} добавляя предварительную валидацию
      * данных устойчивого выражения.
-     * @throws NotUniqueEntityException если среди устойчивых выражений пользователя уже есть выражение
+     * @throws NotUniqueEntityException если среди устойчивых выражений пользователя уже есть другое выражение
      *                                  с таким значением. {@link NotUniqueEntityException#getMessageKey()}
      *                                  вернет Expression.value.unique
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Expression}
