@@ -384,7 +384,7 @@ public class AuthController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
-    @SecurityRequirement(name = "commonToken")
+    @SecurityRequirement(name = "deleteToken")
     @DeleteMapping("/deletion/finalStep")
     public ResponseEntity<String> deleteFinalStep() {
         UUID jwsUserId = requestContext.getCurrentJwsBodyAs(UUID.class);

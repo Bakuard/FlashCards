@@ -1,29 +1,24 @@
 package com.bakuard.flashcards.config.security;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-
-import java.util.Collection;
 
 public class JwsAuthentication extends AbstractAuthenticationToken {
 
     private final String jws;
     private Object jwsBody;
+    private String path;
 
-    public JwsAuthentication(Collection<? extends GrantedAuthority> authorities, String jws) {
-        super(authorities);
-        this.jws = jws;
-    }
-
-    public JwsAuthentication(String jws) {
+    public JwsAuthentication(String jws, String path) {
         super(null);
         this.jws = jws;
+        this.path = path;
     }
 
-    public JwsAuthentication(String jws, Object jwsBody) {
+    public JwsAuthentication(String jws, Object jwsBody, String path) {
         super(null);
         this.jws = jws;
         this.jwsBody = jwsBody;
+        this.path = path;
     }
 
     @Override
@@ -42,6 +37,19 @@ public class JwsAuthentication extends AbstractAuthenticationToken {
 
     public Object getJwsBody() {
         return jwsBody;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    @Override
+    public String toString() {
+        return "JwsAuthentication{" +
+                "jws='" + jws + '\'' +
+                ", jwsBody=" + jwsBody +
+                ", path='" + path + '\'' +
+                '}';
     }
 
 }

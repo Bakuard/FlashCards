@@ -2,23 +2,22 @@ package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 
 import java.security.KeyPair;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Base64;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+/**
+ * Отвечает за генерацию и парсинг JWS токенов.
+ */
 public class JwsService {
 
     private ConfigData configData;
@@ -26,42 +25,66 @@ public class JwsService {
     private Map<String, KeyPair> keyPairs;
     private ObjectMapper objectMapper;
 
-    public JwsService(ConfigData configData, Clock clock) {
+    /**
+     * Создает новый сервис генерации и парсинг JWS токенов.
+     * @param configData общие данные конфигурации приложения
+     * @param clock часы используемые для получения текущей даты (параметр добавлен для удобства тестирования)
+     * @param objectMapper отвечает за сериализацию и десериализацию тела JWS токена
+     */
+    public JwsService(ConfigData configData, Clock clock, ObjectMapper objectMapper) {
         this.configData = configData;
         this.clock = clock;
         this.keyPairs = new ConcurrentHashMap<>();
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = objectMapper;
     }
 
+    /**
+     * Генерирует и возвращает JWS токен для которого в качестве body будет взят объект jwsBody
+     * сериализованный в JSON формат. Токен подписывается с применением ассиметричного шифрования, где
+     * используется пара ключей с именем keyName. Если пары ключей с таким именем нет - она будет автоматически
+     * сгенерирована.
+     * @param jwsBody тело JWS токена
+     * @param keyName имя пары ключей используемых для подписи токена
+     * @return JWS токен
+     * @throws NullPointerException если jwsBody или keyName имеют значение null.
+     */
+    public String generateJws(Object jwsBody, String keyName, Duration duration) {
+        Objects.requireNonNull(jwsBody, "jwsBody can't be null");
+        Objects.requireNonNull(keyName, "keyName can't be null");
+        Objects.requireNonNull(duration, "duration can't be null");
 
-    public String generateJws(Object jwsBody, String keyName) {
-        LocalDateTime expiration = LocalDateTime.now(clock).plusDays(configData.jwsLifeTimeInDays());
-        String json = tryCatch(() -> objectMapper.writeValueAsString(jwsBody));
+        LocalDateTime expiration = LocalDateTime.now(clock).plus(duration);
+        String json = tryCatch(() -> objectMapper.writeValueAsString(jwsBody), RuntimeException::new);
         KeyPair keyPair = keyPairs.computeIfAbsent(keyName, key -> Keys.keyPairFor(SignatureAlgorithm.RS512));
 
         return Jwts.builder().
-                setExpiration(Date.from(expiration.atZone(ZoneId.systemDefault()).toInstant())).
+                setExpiration(Date.from(expiration.atZone(clock.getZone()).toInstant())).
+                setId(UUID.randomUUID().toString()).
                 claim("body", json).
                 claim("bodyType", jwsBody.getClass().getName()).
-                claim("keyName", keyName).
                 signWith(keyPair.getPrivate()).
                 compact();
     }
 
-    public <T> T parseJws(String jws, Class<T> jwsBodyType) {
-        KeyPair keyPair = keyPairs.get(parseKeyPairName(jws));
-        Claims claims = parseJws(jws, keyPair);
-        String json = claims.get("body", String.class);
-        return tryCatch(() -> objectMapper.readValue(json, jwsBodyType));
-    }
+    /**
+     * Парсит переданный JWS токен и десериализует его тело в виде отдельного объекта с типом T.
+     * @param jws токен
+     * @param <T> тип объекта представляющего десериализованное тело токена
+     * @return тело токена в виде отдельного объекта с типом T.
+     * @throws NullPointerException если jws равен null.
+     * @throws JwtException если выполняется хотя бы одна из следующих причин: <br/>
+     *                      1. если указанный токен не соответствует формату JWT. <br/>
+     *                      2. если срок действия токена истек. <br/>
+     *                      3. если токен был изменен после его подписания. <br/>
+     */
+    public <T> T parseJws(String jws, String keyName) {
+        Objects.requireNonNull(jws, "jws can't be null");
+        Objects.requireNonNull(keyName, "keyName can't be null");
 
-    public <T> Optional<T> parseJws(String jws, Function<String, Class<T>> jwsBodyTypeMapper) {
-        KeyPair keyPair = keyPairs.get(parseKeyPairName(jws));
+        KeyPair keyPair = keyPairs.get(keyName);
+
         Claims claims = parseJws(jws, keyPair);
-        String json = claims.get("body", String.class);
-        Class<T> bodyType = jwsBodyTypeMapper.apply(claims.get("bodyType", String.class));
-        T body = bodyType == null ? null : tryCatch(() -> objectMapper.readValue(json, bodyType));
-        return Optional.ofNullable(body);
+        return parseJwsBody(claims);
     }
 
 
@@ -75,24 +98,18 @@ public class JwsService {
                 getBody();
     }
 
-    private String parseKeyPairName(String jws) {
-        final String preparedJws = jws.startsWith("Bearer ") ? jws.substring(7) : jws;
-
-        return tryCatch(() -> objectMapper.readTree(decodeJwsBody(preparedJws))).
-                findPath("keyName").
-                textValue();
+    private <T> T parseJwsBody(Claims claims) {
+        String json = claims.get("body", String.class);
+        Class<?> jwsBodyType = tryCatch(() -> Class.forName(claims.get("bodyType", String.class)), RuntimeException::new);
+        return tryCatch(() -> objectMapper.readValue(json, (Class<T>) jwsBodyType), RuntimeException::new);
     }
 
-    private String decodeJwsBody(String jws) {
-        String[] data = jws.split("\\.");
-        return new String(Base64.getUrlDecoder().decode(data[1]));
-    }
-
-    private <T> T tryCatch(Callable<T> callable) {
+    private <T> T tryCatch(Callable<T> callable,
+                           Function<Exception, ? extends RuntimeException> exceptionFabric) {
         try {
             return callable.call();
         } catch(Exception e) {
-            throw new RuntimeException(e);
+            throw exceptionFabric.apply(e);
         }
     }
 

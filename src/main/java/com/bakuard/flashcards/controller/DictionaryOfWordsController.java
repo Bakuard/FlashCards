@@ -6,6 +6,7 @@ import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.dto.word.*;
 import com.bakuard.flashcards.model.auth.policy.Authorizer;
+import com.bakuard.flashcards.model.word.supplementation.AggregateSupplementedWord;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.WordService;
@@ -157,14 +158,14 @@ public class DictionaryOfWordsController {
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
     @PutMapping("/supplement/newWord")
-    public ResponseEntity<WordResponse> supplementNewWord(@RequestBody WordAddRequest dto) {
+    public ResponseEntity<SupplementedWordResponse> supplementNewWord(@RequestBody WordAddRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} supplement word '{}' for user {}", userId, dto.getValue(), dto.getUserId());
         authorizer.assertToHasAccess(userId, "dictionary", dto.getUserId(), "supplementNewWord");
 
-        Word word = wordSupplementationService.supplement(mapper.toWord(dto));
+        AggregateSupplementedWord word = wordSupplementationService.supplement(mapper.toWord(dto));
 
-        return ResponseEntity.ok(mapper.toWordResponse(word));
+        return ResponseEntity.ok(mapper.toSupplementedWordResponse(word));
     }
 
     @Operation(summary = """
@@ -193,19 +194,19 @@ public class DictionaryOfWordsController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class))),
             @ApiResponse(responseCode = "404",
-                    description = "Если не удалось найти пользователя по указанному id.",
+                    description = "Если не удалось найти пользователя или слово по соответствующему id.",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ExceptionResponse.class)))
     })
     @PutMapping("/supplement/existedWord")
-    public ResponseEntity<WordResponse> supplementExistedWord(@RequestBody WordUpdateRequest dto) {
+    public ResponseEntity<SupplementedWordResponse> supplementExistedWord(@RequestBody WordUpdateRequest dto) {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("user {} supplement word '{}' for user {}", userId, dto.getValue(), dto.getUserId());
         authorizer.assertToHasAccess(userId, "dictionary", dto.getUserId(), "supplementExistedWord");
 
-        Word word = wordSupplementationService.supplement(mapper.toWord(dto));
+        AggregateSupplementedWord word = wordSupplementationService.supplement(mapper.toWord(dto));
 
-        return ResponseEntity.ok(mapper.toWordResponse(word));
+        return ResponseEntity.ok(mapper.toSupplementedWordResponse(word));
     }
 
     @Operation(summary = "Возвращает часть выборки слов из словаря пользователя")

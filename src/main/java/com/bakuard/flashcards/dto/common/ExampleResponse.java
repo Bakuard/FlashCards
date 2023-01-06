@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@Schema(description = "Пример использования слова или устойчевого выражения.")
+@Schema(description = "Пример использования слова или устойчивого выражения.")
 public class ExampleResponse {
 
     @Schema(description = "Пример на английском языке.")
@@ -15,11 +15,9 @@ public class ExampleResponse {
     private String translate;
     @Schema(description = "Примечание к примеру.")
     private String note;
-    @Schema(description = "Данные всех внешних источников из которых получены переводы для данного примера.")
-    private List<ExampleOuterSourceResponse> outerSource;
 
     public ExampleResponse() {
-        outerSource = new ArrayList<>();
+
     }
 
     public String getOrigin() {
@@ -49,15 +47,6 @@ public class ExampleResponse {
         return this;
     }
 
-    public List<ExampleOuterSourceResponse> getOuterSource() {
-        return outerSource;
-    }
-
-    public ExampleResponse setOuterSource(List<ExampleOuterSourceResponse> outerSource) {
-        this.outerSource = outerSource;
-        return this;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -65,13 +54,12 @@ public class ExampleResponse {
         ExampleResponse that = (ExampleResponse) o;
         return Objects.equals(origin, that.origin) &&
                 Objects.equals(translate, that.translate) &&
-                Objects.equals(note, that.note) &&
-                Objects.equals(outerSource, that.outerSource);
+                Objects.equals(note, that.note);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(origin, translate, note, outerSource);
+        return Objects.hash(origin, translate, note);
     }
 
     @Override
@@ -80,7 +68,6 @@ public class ExampleResponse {
                 "origin='" + origin + '\'' +
                 ", translate='" + translate + '\'' +
                 ", note='" + note + '\'' +
-                ", outerSource=" + outerSource +
                 '}';
     }
 

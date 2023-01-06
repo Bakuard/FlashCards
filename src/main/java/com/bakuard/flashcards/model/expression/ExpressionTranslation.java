@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.expression;
 
-import com.bakuard.flashcards.validation.NotBlankOrNull;
+import com.bakuard.flashcards.validation.annotation.NotBlankOrNull;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -8,6 +8,9 @@ import org.springframework.data.relational.core.mapping.Table;
 import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
+/**
+ * Перевод устойчивого выражения.
+ */
 @Table("expressions_translations")
 public class ExpressionTranslation {
 
@@ -18,16 +21,29 @@ public class ExpressionTranslation {
     @NotBlankOrNull(message = "ExpressionTranslation.note.notBlankOrNull")
     private final String note;
 
+    /**
+     * Создает устойчивое выражение.
+     * @param value перевод устойчивого выражения.
+     * @param note примечание к переводу устойчивого выражения.
+     */
     @PersistenceCreator
     public ExpressionTranslation(String value, String note) {
         this.value = value;
         this.note = note;
     }
 
+    /**
+     * Возвращает перевод устойчивого выражения.
+     * @return перевод устойчивого выражения.
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * Возвращает примечание к переводу устойчивого выражения.
+     * @return примечание к переводу устойчивого выражения.
+     */
     public String getNote() {
         return note;
     }

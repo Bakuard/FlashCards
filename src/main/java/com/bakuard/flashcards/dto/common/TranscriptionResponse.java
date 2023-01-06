@@ -2,24 +2,15 @@ package com.bakuard.flashcards.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.List;
 import java.util.Objects;
 
 @Schema(description = "Транскрипция слова.")
 public class TranscriptionResponse {
 
-    @Schema(description = """
-            Значение транскрипции слова. <br/>
-            Должна представлять собой не пустую строку.
-            """)
+    @Schema(description = "Значение транскрипции слова.")
     private String value;
-    @Schema(description = """
-            Примечание к транскрипции. <br/>
-            Должно представлять собой не пустую строку или иметь значение null.
-            """)
+    @Schema(description = "Примечание к транскрипции.")
     private String note;
-    @Schema(description = "Данные всех внешних источников из которых получена данная транскрипция.")
-    private List<OuterSourceResponse> outerSource;
 
     public TranscriptionResponse() {
 
@@ -43,28 +34,18 @@ public class TranscriptionResponse {
         return this;
     }
 
-    public List<OuterSourceResponse> getOuterSource() {
-        return outerSource;
-    }
-
-    public TranscriptionResponse setOuterSource(List<OuterSourceResponse> outerSource) {
-        this.outerSource = outerSource;
-        return this;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TranscriptionResponse that = (TranscriptionResponse) o;
         return Objects.equals(value, that.value) &&
-                Objects.equals(note, that.note) &&
-                Objects.equals(outerSource, that.outerSource);
+                Objects.equals(note, that.note);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, note, outerSource);
+        return Objects.hash(value, note);
     }
 
     @Override
@@ -72,7 +53,6 @@ public class TranscriptionResponse {
         return "TranscriptionResponse{" +
                 "value='" + value + '\'' +
                 ", note='" + note + '\'' +
-                ", outerSource=" + outerSource +
                 '}';
     }
 

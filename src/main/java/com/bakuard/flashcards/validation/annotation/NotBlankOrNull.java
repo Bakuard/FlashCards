@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.validation;
+package com.bakuard.flashcards.validation.annotation;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -6,10 +6,11 @@ import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE, ElementType.CONSTRUCTOR, ElementType.PARAMETER, ElementType.TYPE_USE})
-@Constraint(validatedBy = PasswordConstraintValidator.class)
-public @interface Password {
+@Constraint(validatedBy = NotBlankOrNullConstraintValidator.class)
+@Documented
+public @interface NotBlankOrNull {
 
-    String message() default "{password.incorrectFormat}";
+    String message() default "{NotBlankOrNull}";
 
     Class<?>[] groups() default {};
 

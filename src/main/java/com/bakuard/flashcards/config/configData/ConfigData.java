@@ -11,4 +11,5 @@ public record ConfigData(long jwsLifeTimeInDays,
                          Pagination pagination,
                          Smtp smtp,
                          SuperAdmin superAdmin,
-                         ConfirmationMail confirmationMail) {}
+                         ConfirmationMail confirmationMail,
+                         Jws jws) {}

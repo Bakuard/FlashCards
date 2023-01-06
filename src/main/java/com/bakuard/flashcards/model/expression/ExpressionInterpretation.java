@@ -7,6 +7,9 @@ import org.springframework.data.relational.core.mapping.Table;
 import javax.validation.constraints.NotBlank;
 import java.util.Objects;
 
+/**
+ * Интерпретация устойчивому выражению.
+ */
 @Table("expressions_interpretations")
 public class ExpressionInterpretation {
 
@@ -14,11 +17,19 @@ public class ExpressionInterpretation {
     @NotBlank(message = "ExpressionInterpretation.value.notBlank")
     private final String value;
 
+    /**
+     * Создает интерпретацию к устойчивому выражению.
+     * @param value Интерпретация к устойчивому выражению.
+     */
     @PersistenceCreator
     public ExpressionInterpretation(String value) {
         this.value = value;
     }
 
+    /**
+     * Возвращает интерпретацию к устойчивому выражению.
+     * @return интерпретацию к устойчивому выражению.
+     */
     public String getValue() {
         return value;
     }

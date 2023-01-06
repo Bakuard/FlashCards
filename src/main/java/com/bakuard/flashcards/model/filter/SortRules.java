@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.filter;
 
-import com.bakuard.flashcards.validation.InvalidParameter;
+import com.bakuard.flashcards.validation.exception.InvalidParameter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 
@@ -8,12 +8,23 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+/**
+ * Преобразует правила сортировки заданные в виде строки в объект Sort. Строка задающая правила сортировки
+ * имеет вид: fieldA.direction, fieldB.direction, где fieldA и fieldB поля по которым сортируется сущность,
+ * а direction - направление сортировки. При этом кол-во полей может быть больше.
+ */
 public class SortRules {
 
     public SortRules() {
 
     }
 
+    /**
+     * Возвращает параметры сортировки по умолчанию для заданной сущности.
+     * @param sortedEntity перечисление указывающее тип сортируемой сущности.
+     * @return параметры сортировки по умолчанию для заданной сущности.
+     * @throws NullPointerException если sortedEntity является null.
+     */
     public Sort getDefaultSort(SortedEntity sortedEntity) {
         Sort result = null;
         switch(Objects.requireNonNull(sortedEntity, "sortedEntity can't be null")) {
@@ -28,6 +39,23 @@ public class SortRules {
         return result;
     }
 
+    /**
+     * Преобразует правила сортировки заданные в виде строки в объект Sort и возвращает его. Правила сортировки
+     * проверяются для указанного типа сортируемой сущности. Особые случаи: <br/>
+     * 1. Если sortRules является null - возвращает правила сортировки по умолчанию. <br/>
+     * 2. Если sortRules не содержит ни одного отображаемого символа - возвращает правила сортировки по умолчанию. <br/>
+     * 3. Если среди сортируемых полей заданных в sortRules нет ни одного поля, значение которого
+     *    является уникальным для указанного типа сущностей <b>И</b> сущность поддерживает сортировку по одному из таких
+     *    полей - то такое поле будет добавлено в конец правила с возрастающим порядком сортировки. <br/>
+     * 4. Если sortRules содержит пробельные символы, они будут проигнорированы. <br/>
+     * @param sortRules правила сортировки заданные в виде строки.
+     * @param sortedEntity тип сортируемой сущности.
+     * @return правила сортировки в виде объекта Sort.
+     * @throws NullPointerException - если sortedEntity является null.
+     * @throws InvalidParameter - если указанный параметр сортировки для заданной сущности не поддерживается или
+     *                            указан не действительное направление сортировки. {@link InvalidParameter#getMessageKey()}
+     *                            вернет SortRules.unknownSortDirection или SortRules.invalidParameter
+     */
     public Sort toSort(String sortRules, SortedEntity sortedEntity) {
         Objects.requireNonNull(sortedEntity, "sortedEntity can't be null");
         return toSortRuleStream(sortRules).
@@ -74,8 +102,7 @@ public class SortRules {
                     "remember_from_native",
                     "not_remember_from_english",
                     "not_remember_from_native");
-            default -> throw new InvalidParameter("Unsupported sorted entity '" + sortedEntity + '\'',
-                    "SortRules.unknownSortEntity");
+            default -> throw new IllegalArgumentException("Unsupported sorted entity '" + sortedEntity + '\'');
         }
         return processedParameter;
     }

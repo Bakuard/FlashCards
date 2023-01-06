@@ -293,6 +293,7 @@ public class RepetitionOfWordsController {
         authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "markForRepetitionFromEnglish");
 
         Word word = wordService.markForRepetitionFromEnglish(dto.getUserId(), dto.getWordId());
+        statisticService.appendWordFromEnglish(dto.getUserId(), dto.getWordId(), false);
 
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }
@@ -337,6 +338,7 @@ public class RepetitionOfWordsController {
         authorizer.assertToHasAccess(userId, "repetition", dto.getUserId(), "markForRepetitionFromNative");
 
         Word word = wordService.markForRepetitionFromNative(dto.getUserId(), dto.getWordId());
+        statisticService.appendWordFromNative(dto.getUserId(), dto.getWordId(), false);
 
         return ResponseEntity.ok(mapper.toWordResponse(word));
     }

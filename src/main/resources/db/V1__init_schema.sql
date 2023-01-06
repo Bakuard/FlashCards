@@ -81,41 +81,67 @@ CREATE TABLE words_examples (
 
 -----------------------------------WORD-OUTER-SOURCE-BUFFER-----------------------------------
 
+CREATE TABLE word_outer_source (
+     word_outer_source_id UUID NOT NULL,
+     word_value VARCHAR(64) NOT NULL,
+     outer_source_name VARCHAR(64) NOT NULL,
+     recent_update_date DATE NOT NULL,
+     outer_source_uri VARCHAR(512) NOT NULL,
+     PRIMARY KEY(word_outer_source_id),
+     UNIQUE(outer_source_name, word_value)
+);
+
 CREATE TABLE words_interpretations_outer_source (
-    word_value VARCHAR(64) NOT NULL,
+    word_outer_source_id UUID NOT NULL,
     interpretation VARCHAR(512) NOT NULL,
-    outer_source_name VARCHAR(64) NOT NULL,
-    outer_source_url VARCHAR(512) NOT NULL,
-    recent_update_date DATE NOT NULL,
-    UNIQUE(word_value, interpretation, outer_source_name)
+    index INT NOT NULL,
+    FOREIGN KEY(word_outer_source_id) REFERENCES word_outer_source(word_outer_source_id) ON DELETE CASCADE,
+    UNIQUE(word_outer_source_id, interpretation)
 );
 
 CREATE TABLE words_transcriptions_outer_source (
-    word_value VARCHAR(64) NOT NULL,
+    word_outer_source_id UUID NOT NULL,
     transcription VARCHAR(128) NOT NULL,
-    outer_source_name VARCHAR(64) NOT NULL,
-    outer_source_url VARCHAR(512) NOT NULL,
-    recent_update_date DATE NOT NULL,
-    UNIQUE(word_value, transcription, outer_source_name)
+    index INT NOT NULL,
+    FOREIGN KEY(word_outer_source_id) REFERENCES word_outer_source(word_outer_source_id) ON DELETE CASCADE,
+    UNIQUE(word_outer_source_id, transcription)
 );
 
 CREATE TABLE words_translations_outer_source (
-    word_value VARCHAR(64) NOT NULL,
+    word_outer_source_id UUID NOT NULL,
     translation VARCHAR(64) NOT NULL,
-    outer_source_name VARCHAR(64) NOT NULL,
-    outer_source_url VARCHAR(512) NOT NULL,
-    recent_update_date DATE NOT NULL,
-    UNIQUE(word_value, translation, outer_source_name)
+    index INT NOT NULL,
+    FOREIGN KEY(word_outer_source_id) REFERENCES word_outer_source(word_outer_source_id) ON DELETE CASCADE,
+    UNIQUE(word_outer_source_id, translation)
 );
 
 CREATE TABLE words_examples_outer_source (
+    user_id UUID NOT NULL,
+    word_outer_source_id UUID NOT NULL,
     example VARCHAR(512) NOT NULL,
     exampleTranslate VARCHAR(512) NOT NULL,
-    outer_source_name VARCHAR(64) NOT NULL,
-    outer_source_url VARCHAR(512) NOT NULL,
-    recent_update_date DATE NOT NULL,
-    UNIQUE( example, outer_source_name)
+    outer_source_uri_to_example VARCHAR(512) NOT NULL,
+    index INT NOT NULL,
+    FOREIGN KEY(word_outer_source_id) REFERENCES word_outer_source(word_outer_source_id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE(user_id, word_outer_source_id, example)
 );
+
+CREATE VIEW used_words_examples_outer_source
+AS
+SELECT words_examples_outer_source.user_id as user_id,
+       words_examples_outer_source.word_outer_source_id as word_outer_source_id,
+       words_examples.origin as example,
+       words.value as word_value
+    FROM words_examples_outer_source
+    INNER JOIN word_outer_source
+        ON word_outer_source.word_outer_source_id = words_examples_outer_source.word_outer_source_id
+    INNER JOIN words
+        ON words.value = word_outer_source.word_value AND
+           words.user_id = words_examples_outer_source.user_id
+    INNER JOIN words_examples
+        ON words_examples.word_id = words.word_id AND
+           words_examples.origin = words_examples_outer_source.example;
 
 ---------------------------------------------EXPRESSIONS-------------------------------------------------
 

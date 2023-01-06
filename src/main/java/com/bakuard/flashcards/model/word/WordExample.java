@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.model.word;
 
-import com.bakuard.flashcards.validation.NotBlankOrNull;
+import com.bakuard.flashcards.validation.annotation.NotBlankOrNull;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Пример к слову.
+ */
 @Table("words_examples")
 public class WordExample {
 
@@ -25,76 +28,52 @@ public class WordExample {
     @Column("note")
     @NotBlankOrNull(message = "WordExample.note.notBlankOrNull")
     private String note;
-    @Transient
-    private final List<ExampleOuterSource> outerSource;
 
+    /**
+     * Создает пример к слову.
+     * @param origin текст примера к слову на английском языке.
+     * @param translate перевод примера на родной язык пользователя.
+     * @param note примечание к примеру добавляемое пользователем.
+     */
     @PersistenceCreator
     public WordExample(String origin, String translate, String note) {
         this.origin = origin;
         this.translate = translate;
         this.note = note;
-        this.outerSource = new ArrayList<>();
     }
 
+    /**
+     * Выполняет глубокое копирование переданного примера к слову.
+     * @param other копируемый пример к слову.
+     */
     public WordExample(WordExample other) {
         this.origin = other.origin;
         this.translate = other.translate;
         this.note = other.note;
-        this.outerSource = new ArrayList<>(other.outerSource);
     }
 
+    /**
+     * Возвращает текст примера к слову на английском языке.
+     * @return текст примера к слову на английском языке.
+     */
     public String getOrigin() {
         return origin;
     }
 
+    /**
+     * Возвращает перевод к примеру слова.
+     * @return перевод к примеру слова.
+     */
     public String getTranslate() {
         return translate;
     }
 
+    /**
+     * Возвращает примечание к примеру заданное пользователем.
+     * @return примечание к примеру.
+     */
     public String getNote() {
         return note;
-    }
-
-    public List<ExampleOuterSource> getSourceInfo() {
-        return outerSource;
-    }
-
-    public Optional<LocalDate> getRecentUpdateDate(String outerSourceName) {
-        return outerSource.stream().
-                filter(outerSource -> outerSource.sourceName().equals(outerSourceName)).
-                findFirst().
-                map(ExampleOuterSource::recentUpdateDate);
-    }
-
-    public WordExample setTranslate(String translate) {
-        this.translate = translate;
-        return this;
-    }
-
-    public boolean merge(WordExample other) {
-        boolean isMerged = origin.equals(other.origin);
-        if(isMerged) {
-            for(int i = 0; i < other.outerSource.size(); i++) {
-                ExampleOuterSource otherInfo = other.outerSource.get(i);
-                boolean isFind = false;
-                int index = 0;
-                for(int j = 0; j < outerSource.size() && !isFind; j++) {
-                    isFind = outerSource.get(j).sourceName().equals(otherInfo.sourceName());
-                    index = j;
-                }
-                if(isFind) outerSource.set(index, otherInfo);
-                else outerSource.add(otherInfo);
-            }
-            if(translate == null && !outerSource.isEmpty()) {
-                translate = outerSource.get(0).translate();
-            }
-        }
-        return isMerged;
-    }
-
-    public WordExample addSourceInfo(ExampleOuterSource info) {
-        outerSource.add(info);
-        return this;
     }
 
     @Override
@@ -104,13 +83,12 @@ public class WordExample {
         WordExample example = (WordExample) o;
         return Objects.equals(origin, example.origin) &&
                 Objects.equals(translate, example.translate) &&
-                Objects.equals(note, example.note) &&
-                Objects.equals(outerSource, example.outerSource);
+                Objects.equals(note, example.note);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(origin, translate, note, outerSource);
+        return Objects.hash(origin, translate, note);
     }
 
     @Override
@@ -119,7 +97,6 @@ public class WordExample {
                 "origin='" + origin + '\'' +
                 ", translate='" + translate + '\'' +
                 ", note='" + note + '\'' +
-                ", sourceInfo=" + outerSource +
                 '}';
     }
 

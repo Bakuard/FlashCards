@@ -1,4 +1,4 @@
-package com.bakuard.flashcards.validation;
+package com.bakuard.flashcards.validation.annotation;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

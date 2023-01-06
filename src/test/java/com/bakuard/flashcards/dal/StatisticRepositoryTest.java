@@ -10,7 +10,9 @@ import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.model.filter.SortedEntity;
 import com.bakuard.flashcards.model.statistic.*;
 import com.bakuard.flashcards.model.word.Word;
-import com.bakuard.flashcards.validation.InvalidParameter;
+import com.bakuard.flashcards.validation.exception.InvalidParameter;
+import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +37,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -69,12 +72,242 @@ class StatisticRepositoryTest {
                 "words",
                 "intervals",
                 "users",
-                "words_interpretations_outer_source",
-                "words_transcriptions_outer_source",
-                "words_translations_outer_source",
+                "word_outer_source",
                 "words_examples_outer_source"
         ));
         clock.setDate(2022, 7, 7);
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatWordFromEnglishStatistic statistic):
+             statistic is null
+             => exception
+            """)
+    public void appendWordFromEnglish1() {
+        RepeatWordFromEnglishStatistic statistic = null;
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatWordFromEnglishStatistic statistic):
+             user with id = statistic.userId() not exists
+             => exception
+            """)
+    public void appendWordFromEnglish2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
+        RepeatWordFromEnglishStatistic statistic = wordFromEnglish(toUUID(2), word.getId(), 1, true);
+
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatWordFromEnglishStatistic statistic):
+             word with id = statistic.wordId() not exists
+             => exception
+            """)
+    public void appendWordFromEnglish3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        RepeatWordFromEnglishStatistic statistic = wordFromEnglish(user.getId(), toUUID(2), 1, true);
+
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatWordFromEnglishStatistic statistic):
+             this statistic already exists in DB
+             => exception
+            """)
+    public void appendWordFromEnglish4() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
+        RepeatWordFromEnglishStatistic statistic = wordFromEnglish(user.getId(), word.getId(), 1, true);
+        commit(() -> statisticRepository.append(statistic));
+
+        Assertions.assertThatExceptionOfType(NotUniqueEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatWordFromNativeStatistic statistic):
+             statistic is null
+             => exception
+            """)
+    public void appendWordFromNative1() {
+        RepeatWordFromNativeStatistic statistic = null;
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatWordFromNativeStatistic statistic):
+             user with id = statistic.userId() not exists
+             => exception
+            """)
+    public void appendWordFromNative2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
+        RepeatWordFromNativeStatistic statistic = wordFromNative(toUUID(2), word.getId(), 1, true);
+
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatWordFromNativeStatistic statistic):
+             word with id = statistic.wordId() not exists
+             => exception
+            """)
+    public void appendWordFromNative3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        RepeatWordFromNativeStatistic statistic = wordFromNative(user.getId(), toUUID(2), 1, true);
+
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatWordFromNativeStatistic statistic):
+             this statistic already exists in DB
+             => exception
+            """)
+    public void appendWordFromNative4() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
+        RepeatWordFromNativeStatistic statistic = wordFromNative(user.getId(), word.getId(), 1, true);
+        commit(() -> statisticRepository.append(statistic));
+
+        Assertions.assertThatExceptionOfType(NotUniqueEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatExpressionFromEnglishStatistic statistic):
+             statistic is null
+             => exception
+            """)
+    public void appendExpressionFromEnglish1() {
+        RepeatExpressionFromEnglishStatistic statistic = null;
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatExpressionFromEnglishStatistic statistic):
+             user with id = statistic.userId() not exists
+             => exception
+            """)
+    public void appendExpressionFromEnglish2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expression = commit(() -> expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+        RepeatExpressionFromEnglishStatistic statistic = expressionFromEnglish(toUUID(2), expression.getId(), 1, true);
+
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatExpressionFromEnglishStatistic statistic):
+             expression with id = statistic.expressionId() not exists
+             => exception
+            """)
+    public void appendExpressionFromEnglish3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        RepeatExpressionFromEnglishStatistic statistic = expressionFromEnglish(user.getId(), toUUID(2), 1, true);
+
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatExpressionFromEnglishStatistic statistic):
+             this statistic already exists in DB
+             => exception
+            """)
+    public void appendExpressionFromEnglish4() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expression = commit(() -> expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+        RepeatExpressionFromEnglishStatistic statistic = expressionFromEnglish(user.getId(), expression.getId(), 1, true);
+        commit(() -> statisticRepository.append(statistic));
+
+        Assertions.assertThatExceptionOfType(NotUniqueEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatExpressionFromNativeStatistic statistic):
+             statistic is null
+             => exception
+            """)
+    public void appendExpressionFromNative1() {
+        RepeatExpressionFromNativeStatistic statistic = null;
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatExpressionFromNativeStatistic statistic):
+             user with id = statistic.userId() not exists
+             => exception
+            """)
+    public void appendExpressionFromNative2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expression = commit(() -> expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+        RepeatExpressionFromNativeStatistic statistic = expressionFromNative(toUUID(2), expression.getId(), 1, true);
+
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatExpressionFromNativeStatistic statistic):
+             expression with id = statistic.expressionId() not exists
+             => exception
+            """)
+    public void appendExpressionFromNative3() {
+        User user = commit(() -> userRepository.save(user(1)));
+        RepeatExpressionFromNativeStatistic statistic = expressionFromNative(user.getId(), toUUID(2), 1, true);
+
+        Assertions.assertThatExceptionOfType(UnknownEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
+    }
+
+    @Test
+    @DisplayName("""
+            append(RepeatExpressionFromNativeStatistic statistic):
+             this statistic already exists in DB
+             => exception
+            """)
+    public void appendExpressionFromNative4() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expression = commit(() -> expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+        RepeatExpressionFromNativeStatistic statistic = expressionFromNative(user.getId(), expression.getId(), 1, true);
+        commit(() -> statisticRepository.append(statistic));
+
+        Assertions.assertThatExceptionOfType(NotUniqueEntityException.class).
+                isThrownBy(() -> commit(() -> statisticRepository.append(statistic)));
     }
 
     @Test
@@ -124,11 +357,13 @@ class StatisticRepositoryTest {
         User user = commit(() -> userRepository.save(user(1)));
         Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
 
-        WordRepetitionByPeriodStatistic actual = statisticRepository.wordRepetitionByPeriod(
+        Optional<WordRepetitionByPeriodStatistic> actual = statisticRepository.wordRepetitionByPeriod(
                 user.getId(), word.getId(), periodStart(0), periodEnd(1000)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
@@ -164,11 +399,13 @@ class StatisticRepositoryTest {
                     wordFromNative(user.getId(), word.getId(), 6, false));
         });
 
-        WordRepetitionByPeriodStatistic actual = statisticRepository.wordRepetitionByPeriod(
+        Optional<WordRepetitionByPeriodStatistic> actual = statisticRepository.wordRepetitionByPeriod(
                 user.getId(), word.getId(), periodStart(0), periodEnd(5)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
@@ -204,11 +441,13 @@ class StatisticRepositoryTest {
                     wordFromEnglish(user.getId(), word.getId(), 11, false));
         });
 
-        WordRepetitionByPeriodStatistic actual = statisticRepository.wordRepetitionByPeriod(
+        Optional<WordRepetitionByPeriodStatistic> actual = statisticRepository.wordRepetitionByPeriod(
                 user.getId(), word.getId(), periodStart(3), periodEnd(11)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
@@ -254,11 +493,13 @@ class StatisticRepositoryTest {
                     wordFromNative(user.getId(), word.getId(), 6, false));
         });
 
-        WordRepetitionByPeriodStatistic actual = statisticRepository.wordRepetitionByPeriod(
+        Optional<WordRepetitionByPeriodStatistic> actual = statisticRepository.wordRepetitionByPeriod(
                 user.getId(), word.getId(), periodStart(0), periodEnd(5)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
@@ -305,11 +546,13 @@ class StatisticRepositoryTest {
                     wordFromNative(user.getId(), word.getId(), 6, false));
         });
 
-        WordRepetitionByPeriodStatistic actual = statisticRepository.wordRepetitionByPeriod(
+        Optional<WordRepetitionByPeriodStatistic> actual = statisticRepository.wordRepetitionByPeriod(
                 user.getId(), word.getId(), periodStart(100), periodEnd(500)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new WordRepetitionByPeriodStatistic(
                         user.getId(),
@@ -324,7 +567,157 @@ class StatisticRepositoryTest {
 
     @Test
     @DisplayName("""
-            expressionRepetitionByPeriod(userId, wordId, start, end):
+            wordRepetitionByPeriod(userId, wordId, start, end):
+             userId is null
+             => exception
+            """)
+    public void wordRepetitionByPeriod7() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.wordRepetitionByPeriod(
+                                null, word.getId(), periodStart(1), periodEnd(5))
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            wordRepetitionByPeriod(userId, wordId, start, end):
+             wordId is null
+             => exception
+            """)
+    public void wordRepetitionByPeriod8() {
+        User user = commit(() -> userRepository.save(user(1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.wordRepetitionByPeriod(
+                                user.getId(), null, periodStart(1), periodEnd(5))
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            wordRepetitionByPeriod(userId, wordId, start, end):
+             start is null
+             => exception
+            """)
+    public void wordRepetitionByPeriod9() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.wordRepetitionByPeriod(
+                                user.getId(), word.getId(), null, periodEnd(5))
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            wordRepetitionByPeriod(userId, wordId, start, end):
+             end is null
+             => exception
+            """)
+    public void wordRepetitionByPeriod10() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.wordRepetitionByPeriod(
+                                user.getId(), word.getId(), periodStart(1), null)
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            wordRepetitionByPeriod(userId, wordId, start, end):
+             user with userId not exists
+             => return empty Optional
+            """)
+    public void wordRepetitionByPeriod11() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
+        commit(() -> {
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 0, true));
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 3, true));
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 5, true));
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 10, true));
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 11, false));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 0, true));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 3, true));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 4, false));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 5, false));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 6, false));
+        });
+
+        Optional<WordRepetitionByPeriodStatistic> actual = statisticRepository.wordRepetitionByPeriod(
+                toUUID(1), word.getId(), periodStart(0), periodEnd(5)
+        );
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            wordRepetitionByPeriod(userId, wordId, start, end):
+             user with userId hasn't word with wordId
+             => return empty Optional
+            """)
+    public void wordRepetitionByPeriod12() {
+        User user = commit(() -> userRepository.save(user(1)));
+        User user2 = commit(() -> userRepository.save(user(2)));
+        Word word = commit(() -> wordRepository.save(word(user.getId(), "valueA", "noteA", 1)));
+        commit(() -> {
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 0, true));
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 3, true));
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 5, true));
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 10, true));
+            statisticRepository.append(
+                    wordFromEnglish(user.getId(), word.getId(), 11, false));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 0, true));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 3, true));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 4, false));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 5, false));
+            statisticRepository.append(
+                    wordFromNative(user.getId(), word.getId(), 6, false));
+        });
+
+        Optional<WordRepetitionByPeriodStatistic> actual = statisticRepository.wordRepetitionByPeriod(
+                user2.getId(), word.getId(), periodStart(0), periodEnd(5)
+        );
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
              start > end
              => exception
             """)
@@ -362,7 +755,7 @@ class StatisticRepositoryTest {
 
     @Test
     @DisplayName("""
-            expressionRepetitionByPeriod(userId, wordId, start, end):
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
              user didn't repeat this expression from english and native
              => return result with zero value for all field
             """)
@@ -371,11 +764,13 @@ class StatisticRepositoryTest {
         Expression expression = commit(() ->
                 expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
 
-        ExpressionRepetitionByPeriodStatistic actual = statisticRepository.expressionRepetitionByPeriod(
+        Optional<ExpressionRepetitionByPeriodStatistic> actual = statisticRepository.expressionRepetitionByPeriod(
                 user.getId(), expression.getId(), periodStart(0), periodEnd(1000)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
@@ -390,7 +785,7 @@ class StatisticRepositoryTest {
 
     @Test
     @DisplayName("""
-            expressionRepetitionByPeriod(userId, wordId, start, end):
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
              user didn't repeat this expression from english,
              user repeated this expression from native
              => return result with zero value for repeat from english
@@ -412,11 +807,13 @@ class StatisticRepositoryTest {
                     expressionFromNative(user.getId(), expression.getId(), 6, false));
         });
 
-        ExpressionRepetitionByPeriodStatistic actual = statisticRepository.expressionRepetitionByPeriod(
+        Optional<ExpressionRepetitionByPeriodStatistic> actual = statisticRepository.expressionRepetitionByPeriod(
                 user.getId(), expression.getId(), periodStart(0), periodEnd(5)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
@@ -431,7 +828,7 @@ class StatisticRepositoryTest {
 
     @Test
     @DisplayName("""
-            expressionRepetitionByPeriod(userId, wordId, start, end):
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
              user didn't repeat this expression from native,
              user repeated this expression from english
              => return result with zero value for repeat from native
@@ -453,11 +850,13 @@ class StatisticRepositoryTest {
                     expressionFromEnglish(user.getId(), expression.getId(), 11, false));
         });
 
-        ExpressionRepetitionByPeriodStatistic actual = statisticRepository.expressionRepetitionByPeriod(
+        Optional<ExpressionRepetitionByPeriodStatistic> actual = statisticRepository.expressionRepetitionByPeriod(
                 user.getId(), expression.getId(), periodStart(3), periodEnd(11)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
@@ -472,7 +871,7 @@ class StatisticRepositoryTest {
 
     @Test
     @DisplayName("""
-            expressionRepetitionByPeriod(userId, wordId, start, end):
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
              user repeated this expression from native,
              user repeated this expression from english
              => return number repetition from english and native
@@ -504,11 +903,13 @@ class StatisticRepositoryTest {
                     expressionFromNative(user.getId(), expression.getId(), 6, false));
         });
 
-        ExpressionRepetitionByPeriodStatistic actual = statisticRepository.expressionRepetitionByPeriod(
+        Optional<ExpressionRepetitionByPeriodStatistic> actual = statisticRepository.expressionRepetitionByPeriod(
                 user.getId(), expression.getId(), periodStart(0), periodEnd(5)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
@@ -523,7 +924,7 @@ class StatisticRepositoryTest {
 
     @Test
     @DisplayName("""
-            expressionRepetitionByPeriod(userId, wordId, start, end):
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
              user repeated this expression from native,
              user repeated this expression from english,
              there are not data for repetition period
@@ -556,11 +957,13 @@ class StatisticRepositoryTest {
                     expressionFromNative(user.getId(), expression.getId(), 6, false));
         });
 
-        ExpressionRepetitionByPeriodStatistic actual = statisticRepository.expressionRepetitionByPeriod(
+        Optional<ExpressionRepetitionByPeriodStatistic> actual = statisticRepository.expressionRepetitionByPeriod(
                 user.getId(), expression.getId(), periodStart(100), periodEnd(500)
         );
 
         Assertions.assertThat(actual).
+                isPresent().
+                get().
                 usingRecursiveComparison().
                 isEqualTo(new ExpressionRepetitionByPeriodStatistic(
                         user.getId(),
@@ -571,6 +974,159 @@ class StatisticRepositoryTest {
                         0,
                         0
                 ));
+    }
+
+    @Test
+    @DisplayName("""
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
+             userId is null
+             => exception
+            """)
+    public void expressionRepetitionByPeriod7() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expression = commit(() -> expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.expressionRepetitionByPeriod(
+                                null, expression.getId(), periodStart(1), periodEnd(5))
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
+             expressionId is null
+             => exception
+            """)
+    public void expressionRepetitionByPeriod8() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expression = commit(() -> expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.expressionRepetitionByPeriod(
+                                user.getId(), null, periodStart(1), periodEnd(5))
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
+             start is null
+             => exception
+            """)
+    public void expressionRepetitionByPeriod9() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expression = commit(() -> expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.expressionRepetitionByPeriod(
+                                user.getId(), expression.getId(), null, periodEnd(5))
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
+             end is null
+             => exception
+            """)
+    public void expressionRepetitionByPeriod10() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expression = commit(() -> expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.expressionRepetitionByPeriod(
+                                user.getId(), expression.getId(), periodStart(1), null)
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
+             user with userId not exists
+             => return empty Optional
+            """)
+    public void expressionRepetitionByPeriod11() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Expression expression = commit(() ->
+                expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+        commit(() -> {
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 0, true));
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 3, true));
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 5, true));
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 10, true));
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 11, false));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 0, true));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 3, true));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 4, false));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 5, false));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 6, false));
+        });
+
+        Optional<ExpressionRepetitionByPeriodStatistic> actual = statisticRepository.expressionRepetitionByPeriod(
+                toUUID(2), expression.getId(), periodStart(0), periodEnd(5)
+        );
+
+        Assertions.assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("""
+            expressionRepetitionByPeriod(userId, expressionId, start, end):
+             user with userId hasn't expression with expressionId
+             => return empty Optional
+            """)
+    public void expressionRepetitionByPeriod12() {
+        User user = commit(() -> userRepository.save(user(1)));
+        User user2 = commit(() -> userRepository.save(user(2)));
+        Expression expression = commit(() ->
+                expressionRepository.save(expression(user.getId(), "valueA", "noteA", 1)));
+        commit(() -> {
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 0, true));
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 3, true));
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 5, true));
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 10, true));
+            statisticRepository.append(
+                    expressionFromEnglish(user.getId(), expression.getId(), 11, false));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 0, true));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 3, true));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 4, false));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 5, false));
+            statisticRepository.append(
+                    expressionFromNative(user.getId(), expression.getId(), 6, false));
+        });
+
+        Optional<ExpressionRepetitionByPeriodStatistic> actual = statisticRepository.expressionRepetitionByPeriod(
+                user2.getId(), expression.getId(), periodStart(0), periodEnd(5)
+        );
+
+        Assertions.assertThat(actual).isEmpty();
     }
 
     @Test
@@ -833,6 +1389,76 @@ class StatisticRepositoryTest {
                                 0,
                                 2,
                                 1)
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            wordsRepetitionByPeriod(userId, start, end, pageable):
+             userId is null
+             => exception
+            """)
+    public void wordsRepetitionByPeriod4() {
+        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.WORD_STATISTIC));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.wordsRepetitionByPeriod(
+                                null, periodStart(1), periodEnd(5), pageable)
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            wordsRepetitionByPeriod(userId, start, end, pageable):
+             start is null
+             => exception
+            """)
+    public void wordsRepetitionByPeriod5() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.WORD_STATISTIC));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.wordsRepetitionByPeriod(
+                                user.getId(), null, periodEnd(5), pageable)
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            wordsRepetitionByPeriod(userId, start, end, pageable):
+             end is null
+             => exception
+            """)
+    public void wordsRepetitionByPeriod6() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.WORD_STATISTIC));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.wordsRepetitionByPeriod(
+                                user.getId(), periodStart(1), null, pageable)
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            wordsRepetitionByPeriod(userId, start, end, pageable):
+             pageable is null
+             => exception
+            """)
+    public void wordsRepetitionByPeriod7() {
+        User user = commit(() -> userRepository.save(user(1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.wordsRepetitionByPeriod(
+                                user.getId(), periodStart(1), periodEnd(5), null)
+                        )
                 );
     }
 
@@ -1106,6 +1732,76 @@ class StatisticRepositoryTest {
                 );
     }
 
+    @Test
+    @DisplayName("""
+            expressionsRepetitionByPeriod(userId, start, end, pageable):
+             userId is null
+             => exception
+            """)
+    public void expressionsRepetitionByPeriod4() {
+        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.EXPRESSION_STATISTIC));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.expressionsRepetitionByPeriod(
+                                null, periodStart(1), periodEnd(5), pageable)
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            expressionsRepetitionByPeriod(userId, start, end, pageable):
+             start is null
+             => exception
+            """)
+    public void expressionsRepetitionByPeriod5() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.EXPRESSION_STATISTIC));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.expressionsRepetitionByPeriod(
+                                user.getId(), null, periodEnd(5), pageable)
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            expressionsRepetitionByPeriod(userId, start, end, pageable):
+             end is null
+             => exception
+            """)
+    public void expressionsRepetitionByPeriod6() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.EXPRESSION_STATISTIC));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.expressionsRepetitionByPeriod(
+                                user.getId(), periodStart(1), null, pageable)
+                        )
+                );
+    }
+
+    @Test
+    @DisplayName("""
+            expressionsRepetitionByPeriod(userId, start, end, pageable):
+             pageable is null
+             => exception
+            """)
+    public void expressionsRepetitionByPeriod7() {
+        User user = commit(() -> userRepository.save(user(1)));
+
+        Assertions.assertThatNullPointerException().
+                isThrownBy(() ->
+                        commit(() -> statisticRepository.expressionsRepetitionByPeriod(
+                                user.getId(), periodStart(1), periodEnd(5), null)
+                        )
+                );
+    }
+
 
     private LocalDate periodStart(int plusDays) {
         return LocalDate.now(Clock.offset(clock, Duration.ofDays(plusDays)));
@@ -1113,6 +1809,10 @@ class StatisticRepositoryTest {
 
     private LocalDate periodEnd(int plusDays) {
         return LocalDate.now(Clock.offset(clock, Duration.ofDays(plusDays)));
+    }
+
+    private UUID toUUID(int number) {
+        return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
     }
 
     private User user(int number) {
@@ -1193,7 +1893,10 @@ class StatisticRepositoryTest {
         try {
             executable.execute();
             transactionManager.commit(status);
-        } catch (Throwable e) {
+        } catch(RuntimeException e) {
+            transactionManager.rollback(status);
+            throw e;
+        } catch(Throwable e) {
             transactionManager.rollback(status);
             throw new RuntimeException(e);
         }
@@ -1206,9 +1909,9 @@ class StatisticRepositoryTest {
             T result = supplier.get();
             transactionManager.commit(status);
             return result;
-        } catch (Throwable e) {
+        } catch(RuntimeException e) {
             transactionManager.rollback(status);
-            throw new RuntimeException(e);
+            throw e;
         }
     }
 

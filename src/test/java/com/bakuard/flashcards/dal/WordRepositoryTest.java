@@ -62,9 +62,7 @@ class WordRepositoryTest {
                 "repeat_words_from_native_statistic",
                 "repeat_expressions_from_english_statistic",
                 "repeat_expressions_from_native_statistic",
-                "words_interpretations_outer_source",
-                "words_transcriptions_outer_source",
-                "words_translations_outer_source",
+                "word_outer_source",
                 "words_examples_outer_source"
         ));
         clock.setDate(2022, 7, 7);
@@ -246,7 +244,7 @@ class WordRepositoryTest {
     @DisplayName("""
             deleteById(userId, wordId):
              there is not word with such wordId
-             => do nothing
+             => don't delete any words
             """)
     public void deleteById1() {
         User user = commit(() -> userRepository.save(user(1)));
@@ -262,10 +260,27 @@ class WordRepositoryTest {
     @Test
     @DisplayName("""
             deleteById(userId, wordId):
+             there is not word with such wordId
+             => return false
+            """)
+    public void deleteById2() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
+
+        boolean actual = commit(() -> wordRepository.deleteById(user.getId(), toUUID(1)));
+
+        Assertions.assertThat(actual).isFalse();
+    }
+
+    @Test
+    @DisplayName("""
+            deleteById(userId, wordId):
              there is word with such wordId
              => delete this word
             """)
-    public void deleteById2() {
+    public void deleteById3() {
         User user = commit(() -> userRepository.save(user(1)));
         Word expected = commit(() -> wordRepository.save(
                 word(user.getId(), "value 1", "note 1", 1)
@@ -274,6 +289,23 @@ class WordRepositoryTest {
         commit(() -> wordRepository.deleteById(user.getId(), expected.getId()));
 
         Assertions.assertThat(wordRepository.existsById(expected.getId())).isFalse();
+    }
+
+    @Test
+    @DisplayName("""
+            deleteById(userId, wordId):
+             there is word with such wordId
+             => return true
+            """)
+    public void deleteById4() {
+        User user = commit(() -> userRepository.save(user(1)));
+        Word expected = commit(() -> wordRepository.save(
+                word(user.getId(), "value 1", "note 1", 1)
+        ));
+
+        boolean actual = commit(() -> wordRepository.deleteById(user.getId(), expected.getId()));
+
+        Assertions.assertThat(actual).isTrue();
     }
 
     @Test
