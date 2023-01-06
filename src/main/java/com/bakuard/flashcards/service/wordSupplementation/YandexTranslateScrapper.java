@@ -100,6 +100,11 @@ public class YandexTranslateScrapper implements WordSupplementation {
                     word, outerSourceName, e);
         }
 
+        transaction.execute(status -> {
+            wordOuterSourceBuffer.save(result);
+            return null;
+        });
+
         return result;
     }
 

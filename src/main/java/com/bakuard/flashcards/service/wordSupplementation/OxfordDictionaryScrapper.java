@@ -86,6 +86,11 @@ public class OxfordDictionaryScrapper implements WordSupplementation {
             }
         }
 
+        transaction.execute(status -> {
+            wordOuterSourceBuffer.save(result);
+            return null;
+        });
+
         return result;
     }
 

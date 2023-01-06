@@ -5,6 +5,11 @@ import com.bakuard.flashcards.model.word.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Содержит результат дополнения заданного английского слова транскрипциями, толкованиями, переводами
+ * или переводами примеров полученных из нескольких внешних сервисов. Данный объект также будет содержать
+ * транскрипции, толкования, переводы и переводы примеров добавленные самим пользователем.
+ */
 public class AggregateSupplementedWord {
 
     private final Word word;
@@ -17,6 +22,11 @@ public class AggregateSupplementedWord {
     private Map<String, List<OuterSource>> interpretationsOuterSource;
     private Map<String, List<ExampleOuterSource>> examplesOuterSource;
 
+    /**
+     * Создает объект для агрегирования всех результатов дополнения указанного слова из разных
+     * внешних источников.
+     * @param word дополняемое слово.
+     */
     public AggregateSupplementedWord(Word word) {
         this.word = word;
         transcriptions = new ArrayList<>(word.getTranscriptions());
@@ -28,11 +38,17 @@ public class AggregateSupplementedWord {
         translationsOuterSource = translations.stream().
                 collect(Collectors.toMap(WordTranslation::getValue, t -> new ArrayList<>()));
         interpretationsOuterSource = interpretations.stream().
-                collect(Collectors.toMap(WordInterpretation::getValue, t -> new ArrayList<>()));
+                collect(Collectors.toMap(WordInterpretation::getValue, i -> new ArrayList<>()));
         examplesOuterSource = examples.stream().
-                collect(Collectors.toMap(WordExample::getOrigin, t -> new ArrayList<>()));
+                collect(Collectors.toMap(WordExample::getOrigin, e -> new ArrayList<>()));
     }
 
+    /**
+     * Добавляет к результатам дополнения слова из разных внешних сервисов результат дополнения слова
+     * из ещё одного внешнего сервиса.
+     * @param word результат дополнения слова из ещё одного внешнего сервиса.
+     * @return ссылку на этот же объект.
+     */
     public AggregateSupplementedWord merge(SupplementedWord word) {
         mergeTranscriptions(word);
         mergeInterpretations(word);
@@ -41,38 +57,82 @@ public class AggregateSupplementedWord {
         return this;
     }
 
+    /**
+     * Возвращает ссылку на слово для которого было выполнено дополнение из внешних сервисов.
+     * @see Word
+     */
     public Word getWord() {
         return word;
     }
 
+    /**
+     * Возвращает список всех транскрипций к дополняемому слову.
+     * @return список всех транскрипций к дополняемому слову.
+     */
     public List<WordTranscription> getTranscriptions() {
         return Collections.unmodifiableList(transcriptions);
     }
 
+    /**
+     * Возвращает список всех интерпретаций к дополняемому слову.
+     * @return список всех интерпретаций к дополняемому слову.
+     */
     public List<WordInterpretation> getInterpretations() {
         return Collections.unmodifiableList(interpretations);
     }
 
+    /**
+     * Возвращает список всех перевод к дополняемому слову.
+     * @return список всех перевод к дополняемому слову.
+     */
     public List<WordTranslation> getTranslations() {
         return Collections.unmodifiableList(translations);
     }
 
+    /**
+     * Возвращает список всех примеров к дополняемому слову.
+     * @return список всех примеров к дополняемому слову.
+     */
     public List<WordExample> getExamples() {
         return Collections.unmodifiableList(examples);
     }
 
+    /**
+     * Возвращает список данных о всех внешних сервисах из которых была получена данная транскрипция.
+     * Если заданная транскрипция не связана ни с одним из внешних сервисов - возвращает пустой список.
+     * @param transcription одна из транскрипций этого слова.
+     * @return список данных о всех внешних сервисах из которых было получено данная транскрипция.
+     */
     public List<OuterSource> getOuterSource(WordTranscription transcription) {
-        return translationsOuterSource.get(transcription.getValue());
+        return transcriptionsOuterSource.get(transcription.getValue());
     }
 
+    /**
+     * Возвращает список данных о всех внешних сервисах из которых была получена данная интерпретация.
+     * Если заданная интерпретация не связана ни с одним из внешних сервисов - возвращает пустой список.
+     * @param interpretation одна из интерпретаций этого слова.
+     * @return список данных о всех внешних сервисах из которых было получено данная интерпретация.
+     */
     public List<OuterSource> getOuterSource(WordInterpretation interpretation) {
         return interpretationsOuterSource.get(interpretation.getValue());
     }
 
+    /**
+     * Возвращает список данных о всех внешних сервисах из которых был получен данный перевод.
+     * Если заданный перевод не связана ни с одним из внешних сервисов - возвращает пустой список.
+     * @param translation один из переводов этого слова.
+     * @return список данных о всех внешних сервисах из которых был получен данный перевод.
+     */
     public List<OuterSource> getOuterSource(WordTranslation translation) {
         return translationsOuterSource.get(translation.getValue());
     }
 
+    /**
+     * Возвращает список данных о всех внешних сервисах из которых был получен данный пример.
+     * Если заданный пример не связан ни с одним из внешних сервисов - возвращает пустой список.
+     * @param example один из примеров этого слова.
+     * @return список данных о всех внешних сервисах из которых был получен данный пример.
+     */
     public List<ExampleOuterSource> getOuterSource(WordExample example) {
         return examplesOuterSource.get(example.getOrigin());
     }
