@@ -1,7 +1,7 @@
 package com.bakuard.flashcards.validation.annotation;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class PasswordConstraintValidator implements ConstraintValidator<Password, String> {
 

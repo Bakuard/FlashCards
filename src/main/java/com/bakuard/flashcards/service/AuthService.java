@@ -17,7 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 import java.util.UUID;
 
 /**
@@ -193,9 +193,9 @@ public class AuthService {
     }
 
     /**
-     * Делегирует вызов методу {@link com.bakuard.flashcards.dal.fragment.UserSaver#save(Object)} добавляя
+     * Делегирует вызов методу {@link com.bakuard.flashcards.dal.fragment.UserSaver#save(User)} добавляя
      * предварительную валидацию данных пользователя.
-     * @throws NotUniqueEntityException см. {@link UserSaver#save(Object)}
+     * @throws NotUniqueEntityException см. {@link UserSaver#save(User)}
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link User}
      * @see com.bakuard.flashcards.dal.fragment.UserSaver
      */

@@ -3,6 +3,7 @@ package com.bakuard.flashcards.dal;
 import com.bakuard.flashcards.dal.fragment.UserSaver;
 import com.bakuard.flashcards.model.auth.credential.User;
 import org.springframework.data.jdbc.repository.query.Query;
+import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +15,8 @@ import java.util.UUID;
  * Отвечает за сохранение, извлечение и удаление учетных данных пользователей из постоянного хранилища.
  */
 @Repository
-public interface UserRepository extends PagingAndSortingRepository<User, UUID>, UserSaver<User> {
+public interface UserRepository extends PagingAndSortingRepository<User, UUID>,
+        UserSaver<User>, ListCrudRepository<User, UUID> {
 
     /**
      * Возвращает пользователя имеющего указанную почту. Если нет пользователя с такой почтой - возвращает

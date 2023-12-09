@@ -49,7 +49,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import javax.sql.DataSource;
-import javax.validation.Validator;
+import jakarta.validation.Validator;
 import java.time.Clock;
 
 @SpringBootApplication(
@@ -114,7 +114,7 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public UserSaver<User> userSaver(JdbcTemplate jdbcTemplate,
+        public UserSaver userSaver(JdbcTemplate jdbcTemplate,
                                          JdbcAggregateOperations jdbcAggregateOperation,
                                          ConfigData configData) {
                 return new UserSaverImpl(jdbcTemplate, jdbcAggregateOperation, configData);

@@ -16,7 +16,7 @@ import org.springframework.data.relational.core.conversion.DbActionExecutionExce
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;

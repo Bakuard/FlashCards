@@ -103,8 +103,9 @@ public class EmailService {
         properties.setProperty("mail.smtp.host", "smtp.gmail.com");
         properties.setProperty("mail.smtp.port", "465");
         properties.setProperty("mail.smtp.auth", "true");
+        properties.setProperty("mail.smtp.ssl.enable", "true");
         properties.setProperty("mail.smtp.socketFactory.port", "465");
-        properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        properties.setProperty("mail.smtp.socketFactory.class", "jakarta.net.ssl.SSLSocketFactory");
 
         Session session = Session.getInstance(properties, new Authenticator() {
             @Override

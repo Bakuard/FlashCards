@@ -81,7 +81,7 @@ public class JwsService {
         Objects.requireNonNull(jws, "jws can't be null");
         Objects.requireNonNull(keyName, "keyName can't be null");
 
-        KeyPair keyPair = keyPairs.get(keyName);
+        KeyPair keyPair = keyPairs.computeIfAbsent(keyName, key -> Keys.keyPairFor(SignatureAlgorithm.RS512));
 
         Claims claims = parseJws(jws, keyPair);
         return parseJwsBody(claims);

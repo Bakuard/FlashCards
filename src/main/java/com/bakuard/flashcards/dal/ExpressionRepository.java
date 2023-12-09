@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
+import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,7 +19,8 @@ import java.util.UUID;
  * @see Expression
  */
 @Repository
-public interface ExpressionRepository extends PagingAndSortingRepository<Expression, UUID> {
+public interface ExpressionRepository extends PagingAndSortingRepository<Expression, UUID>,
+        ListCrudRepository<Expression, UUID> {
 
     /**
      * Возвращает устойчивое выражение с идентификатором expressionId из словаря пользователя с идентификатором
@@ -64,12 +66,15 @@ public interface ExpressionRepository extends PagingAndSortingRepository<Express
      *               включены в список
      * @return список устойчивых выражений.
      */
-    @Query("""
+    @Query("""    
             select * from expressions
-                inner join expressions_translations
-                    on expressions.expression_id = expressions_translations.expression_id
-                       and expressions.user_id = :userId
-                       and expressions_translations.value = :translate
+                where expressions.expression_id in (
+                    select expressions.expression_id from expressions
+                        inner join expressions_translations
+                            on  expressions.expression_id = expressions_translations.expression_id
+                                and expressions.user_id = :userId
+                                and expressions_translations.value = :translate
+                )
                 order by expressions.value
                 limit :limit offset :offset;
             """)

@@ -6,14 +6,14 @@ import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
 import com.bakuard.flashcards.validation.annotation.NotContainsNull;
 import com.bakuard.flashcards.validation.annotation.PasswordConstraintValidator;
 import com.google.common.hash.Hashing;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.MappedCollection;
 import org.springframework.data.relational.core.mapping.Table;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
@@ -29,7 +29,7 @@ public class User implements Entity {
     private UUID id;
     @Column("email")
     @NotNull(message = "User.email.notNull")
-    @javax.validation.constraints.Email(message = "User.email.format")
+    @jakarta.validation.constraints.Email(message = "User.email.format")
     private String email;
     @Column("password_hash")
     private String passwordHash;

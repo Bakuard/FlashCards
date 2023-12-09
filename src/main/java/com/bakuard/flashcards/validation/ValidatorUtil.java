@@ -1,8 +1,9 @@
 package com.bakuard.flashcards.validation;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
+
 import java.util.Set;
 
 public class ValidatorUtil {

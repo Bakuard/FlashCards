@@ -1,21 +1,17 @@
 package com.bakuard.flashcards.config.security;
 
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 
-public class JwsAuthentication extends AbstractAuthenticationToken {
+import java.util.Collection;
+
+public class JwsAuthentication implements Authentication {
 
     private final String jws;
     private Object jwsBody;
     private String path;
 
-    public JwsAuthentication(String jws, String path) {
-        super(null);
-        this.jws = jws;
-        this.path = path;
-    }
-
     public JwsAuthentication(String jws, Object jwsBody, String path) {
-        super(null);
         this.jws = jws;
         this.jwsBody = jwsBody;
         this.path = path;
@@ -28,6 +24,29 @@ public class JwsAuthentication extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
+        return null;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public Object getDetails() {
+        return null;
+    }
+
+    @Override
+    public boolean isAuthenticated() {
+        return true;
+    }
+
+    @Override
+    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
+
+    @Override
+    public String getName() {
         return null;
     }
 
