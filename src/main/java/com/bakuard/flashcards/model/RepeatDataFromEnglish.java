@@ -1,8 +1,8 @@
 package com.bakuard.flashcards.model;
 
+import jakarta.validation.constraints.Min;
 import org.springframework.data.relational.core.mapping.Column;
 
-import jakarta.validation.constraints.Min;
 import java.time.LocalDate;
 
 /**

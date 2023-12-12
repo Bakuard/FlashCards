@@ -1,6 +1,6 @@
 package com.bakuard.flashcards.service.wordSupplementation;
 
-import com.bakuard.flashcards.model.word.*;
+import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.word.supplementation.SupplementedWord;
 
 /**

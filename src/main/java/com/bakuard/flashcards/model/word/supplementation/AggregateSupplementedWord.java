@@ -1,8 +1,16 @@
 package com.bakuard.flashcards.model.word.supplementation;
 
-import com.bakuard.flashcards.model.word.*;
+import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.model.word.WordExample;
+import com.bakuard.flashcards.model.word.WordInterpretation;
+import com.bakuard.flashcards.model.word.WordTranscription;
+import com.bakuard.flashcards.model.word.WordTranslation;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**

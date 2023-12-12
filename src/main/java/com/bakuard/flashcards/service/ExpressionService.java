@@ -5,10 +5,11 @@ import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.exception.UnknownEntityException;
-import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.google.common.collect.ImmutableList;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,6 @@ import org.springframework.data.relational.core.conversion.DbActionExecutionExce
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.validation.ConstraintViolationException;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;

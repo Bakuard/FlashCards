@@ -2,10 +2,11 @@ package com.bakuard.flashcards.model.auth.credential;
 
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.validation.annotation.AllUnique;
-import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
 import com.bakuard.flashcards.validation.annotation.NotContainsNull;
 import com.bakuard.flashcards.validation.annotation.PasswordConstraintValidator;
+import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
 import com.google.common.hash.Hashing;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.PersistenceCreator;
@@ -13,10 +14,14 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.MappedCollection;
 import org.springframework.data.relational.core.mapping.Table;
 
-import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Представление пользователя с точки зрения бизнес логики.

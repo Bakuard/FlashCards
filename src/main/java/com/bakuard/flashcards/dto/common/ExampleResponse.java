@@ -2,8 +2,6 @@ package com.bakuard.flashcards.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 @Schema(description = "Пример использования слова или устойчивого выражения.")

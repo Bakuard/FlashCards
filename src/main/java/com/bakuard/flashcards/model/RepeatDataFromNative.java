@@ -1,13 +1,13 @@
 package com.bakuard.flashcards.model;
 
+import jakarta.validation.constraints.Min;
 import org.springframework.data.relational.core.mapping.Column;
 
-import jakarta.validation.constraints.Min;
 import java.time.LocalDate;
 
 /**
  * Данные о последнем повторении слова или устойчивого выражения с родного языка пользователя на английский язык.
- * @param interval кол-во дней до следущего повторения с родного языка пользователя на английский язык.
+ * @param interval кол-во дней до следующего повторения с родного языка пользователя на английский язык.
  * @param lastDateOfRepeat дата последнего повторения с родного языка пользователя на английский язык.
  */
 public record RepeatDataFromNative(

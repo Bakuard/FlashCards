@@ -3,7 +3,10 @@ package com.bakuard.flashcards.controller;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
 import com.bakuard.flashcards.model.auth.policy.PermissionDeniedException;
-import com.bakuard.flashcards.validation.exception.*;
+import com.bakuard.flashcards.validation.exception.AbstractDomainException;
+import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
+import com.bakuard.flashcards.validation.exception.UnknownEntityException;
+import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import jakarta.validation.ConstraintViolationException;
 
 @ControllerAdvice
 public class ExceptionResolver {

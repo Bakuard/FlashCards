@@ -5,6 +5,5 @@ package com.bakuard.flashcards.model;
  * язык.
  * @param payload слово или устойчивое выражение.
  * @param isRemember true - если пользователь верно вспомнил нужный перевод на английский язык, false - в противном случае.
- * @param <T>
  */
 public record RepetitionResult<T>(T payload, boolean isRemember) {}

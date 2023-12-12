@@ -1,17 +1,12 @@
 package com.bakuard.flashcards.model.word;
 
 import com.bakuard.flashcards.validation.annotation.NotBlankOrNull;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.annotation.PersistenceCreator;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import jakarta.validation.constraints.NotBlank;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Пример к слову.
@@ -21,13 +16,13 @@ public class WordExample {
 
     @Column("origin")
     @NotBlank(message = "WordExample.origin.notBlank")
-    private String origin;
+    private final String origin;
     @Column("translate")
     @NotBlankOrNull(message = "WordExample.translate.notBlankOrNull")
-    private String translate;
+    private final String translate;
     @Column("note")
     @NotBlankOrNull(message = "WordExample.note.notBlankOrNull")
-    private String note;
+    private final String note;
 
     /**
      * Создает пример к слову.
@@ -99,5 +94,4 @@ public class WordExample {
                 ", note='" + note + '\'' +
                 '}';
     }
-
 }

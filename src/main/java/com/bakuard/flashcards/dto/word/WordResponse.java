@@ -1,6 +1,9 @@
 package com.bakuard.flashcards.dto.word;
 
-import com.bakuard.flashcards.dto.common.*;
+import com.bakuard.flashcards.dto.common.ExampleResponse;
+import com.bakuard.flashcards.dto.common.InterpretationResponse;
+import com.bakuard.flashcards.dto.common.TranscriptionResponse;
+import com.bakuard.flashcards.dto.common.TranslateResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;

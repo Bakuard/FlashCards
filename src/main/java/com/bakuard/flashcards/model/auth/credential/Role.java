@@ -1,9 +1,8 @@
 package com.bakuard.flashcards.model.auth.credential;
 
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-
-import jakarta.validation.constraints.NotBlank;
 
 /**
  * Роль пользователя.

@@ -1,8 +1,8 @@
 package com.bakuard.flashcards.service.wordSupplementation;
 
 import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
-import com.bakuard.flashcards.model.word.supplementation.AggregateSupplementedWord;
 import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.model.word.supplementation.AggregateSupplementedWord;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;

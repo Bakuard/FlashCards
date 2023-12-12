@@ -1,7 +1,12 @@
 package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.StatisticRepository;
-import com.bakuard.flashcards.model.statistic.*;
+import com.bakuard.flashcards.model.statistic.ExpressionRepetitionByPeriodStatistic;
+import com.bakuard.flashcards.model.statistic.RepeatExpressionFromEnglishStatistic;
+import com.bakuard.flashcards.model.statistic.RepeatExpressionFromNativeStatistic;
+import com.bakuard.flashcards.model.statistic.RepeatWordFromEnglishStatistic;
+import com.bakuard.flashcards.model.statistic.RepeatWordFromNativeStatistic;
+import com.bakuard.flashcards.model.statistic.WordRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

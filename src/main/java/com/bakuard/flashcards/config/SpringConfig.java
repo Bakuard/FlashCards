@@ -1,11 +1,17 @@
 package com.bakuard.flashcards.config;
 
 import com.bakuard.flashcards.config.configData.ConfigData;
+import com.bakuard.flashcards.config.security.JwsFilter;
 import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.config.security.RequestContextImpl;
 import com.bakuard.flashcards.controller.message.Messages;
 import com.bakuard.flashcards.controller.message.MessagesImpl;
-import com.bakuard.flashcards.dal.*;
+import com.bakuard.flashcards.dal.ExpressionRepository;
+import com.bakuard.flashcards.dal.IntervalRepository;
+import com.bakuard.flashcards.dal.StatisticRepository;
+import com.bakuard.flashcards.dal.UserRepository;
+import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
+import com.bakuard.flashcards.dal.WordRepository;
 import com.bakuard.flashcards.dal.fragment.UserSaver;
 import com.bakuard.flashcards.dal.fragment.UserSaverImpl;
 import com.bakuard.flashcards.dal.impl.IntervalRepositoryImpl;
@@ -17,10 +23,18 @@ import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.auth.policy.Access;
 import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.filter.SortRules;
-import com.bakuard.flashcards.service.*;
+import com.bakuard.flashcards.service.AuthService;
+import com.bakuard.flashcards.service.EmailService;
+import com.bakuard.flashcards.service.ExpressionService;
+import com.bakuard.flashcards.service.IntervalService;
+import com.bakuard.flashcards.service.JwsService;
+import com.bakuard.flashcards.service.StatisticService;
+import com.bakuard.flashcards.service.WordService;
 import com.bakuard.flashcards.service.wordSupplementation.WordSupplementationService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
@@ -29,18 +43,32 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Validator;
 import org.flywaydb.core.Flyway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.jdbc.core.JdbcAggregateOperations;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.data.relational.core.mapping.event.BeforeConvertEvent;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -49,7 +77,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import javax.sql.DataSource;
-import jakarta.validation.Validator;
 import java.time.Clock;
 
 @SpringBootApplication(
@@ -59,6 +86,7 @@ import java.time.Clock;
                 "com.bakuard.flashcards.config"
         }
 )
+@EnableWebSecurity
 @EnableTransactionManagement
 @EnableJdbcRepositories(basePackages = {"com.bakuard.flashcards.dal"})
 @ConfigurationPropertiesScan
@@ -67,6 +95,9 @@ import java.time.Clock;
 @SecurityScheme(name = "restorePassToken", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 @SecurityScheme(name = "deleteToken", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 public class SpringConfig implements WebMvcConfigurer {
+
+        private static final Logger logger = LoggerFactory.getLogger(SpringConfig.class.getName());
+
 
         @Bean
         public DataSource dataSource(ConfigData configData) {
@@ -302,6 +333,51 @@ public class SpringConfig implements WebMvcConfigurer {
                                         version("0.1.0").
                                         contact(new Contact().email("purplespicemerchant@gmail.com"))
                         );
+        }
+
+
+        @Bean
+        @Order(Ordered.HIGHEST_PRECEDENCE)
+        public SecurityFilterChain customFilterChain(HttpSecurity http,
+                                                     JwsService jwsService,
+                                                     DtoMapper mapper,
+                                                     Messages messages) throws Exception {
+                ObjectMapper jsonWriter = new ObjectMapper();
+                jsonWriter.registerModule(new JavaTimeModule());
+                jsonWriter.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+                return http.csrf(AbstractHttpConfigurer::disable).
+                        cors(Customizer.withDefaults()).
+                        sessionManagement(
+                                sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        ).
+                        exceptionHandling(
+                                exceptionConfig -> exceptionConfig.authenticationEntryPoint((request, response, ex) -> {
+                                        logger.error("Security fail", ex);
+
+                                        response.setContentType("application/json");
+                                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+                                        jsonWriter.writeValue(
+                                                response.getOutputStream(),
+                                                mapper.toExceptionResponse(HttpStatus.UNAUTHORIZED,
+                                                        messages.getMessage("unauthorized"))
+                                        );
+                                })
+                        ).
+                        authorizeHttpRequests(
+                                authRequestConf -> authRequestConf.requestMatchers(
+                                                "/api",
+                                                "/apiStandardFormat/**",
+                                                "/swagger-ui/**",
+                                                "/users/registration/firstStep",
+                                                "/users/restorePassword/firstStep",
+                                                "/users/enter"
+                                        ).permitAll().
+                                        anyRequest().authenticated()
+                        ).
+                        addFilterBefore(new JwsFilter(jwsService), UsernamePasswordAuthenticationFilter.class).
+                        build();
         }
 
 }

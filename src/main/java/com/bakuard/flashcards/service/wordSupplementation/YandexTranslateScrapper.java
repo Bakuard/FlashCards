@@ -1,7 +1,9 @@
 package com.bakuard.flashcards.service.wordSupplementation;
 
 import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
-import com.bakuard.flashcards.model.word.*;
+import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.model.word.WordExample;
+import com.bakuard.flashcards.model.word.WordTranslation;
 import com.bakuard.flashcards.model.word.supplementation.SupplementedWord;
 import com.bakuard.flashcards.model.word.supplementation.SupplementedWordExample;
 import com.fasterxml.jackson.databind.JsonNode;

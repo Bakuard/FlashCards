@@ -6,7 +6,11 @@ import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.filter.SortRules;
-import com.bakuard.flashcards.model.word.*;
+import com.bakuard.flashcards.model.word.Word;
+import com.bakuard.flashcards.model.word.WordExample;
+import com.bakuard.flashcards.model.word.WordInterpretation;
+import com.bakuard.flashcards.model.word.WordTranscription;
+import com.bakuard.flashcards.model.word.WordTranslation;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +32,11 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 @ExtendWith(SpringExtension.class)

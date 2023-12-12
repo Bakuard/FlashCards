@@ -1,7 +1,12 @@
 package com.bakuard.flashcards.dal.impl;
 
 import com.bakuard.flashcards.dal.StatisticRepository;
-import com.bakuard.flashcards.model.statistic.*;
+import com.bakuard.flashcards.model.statistic.ExpressionRepetitionByPeriodStatistic;
+import com.bakuard.flashcards.model.statistic.RepeatExpressionFromEnglishStatistic;
+import com.bakuard.flashcards.model.statistic.RepeatExpressionFromNativeStatistic;
+import com.bakuard.flashcards.model.statistic.RepeatWordFromEnglishStatistic;
+import com.bakuard.flashcards.model.statistic.RepeatWordFromNativeStatistic;
+import com.bakuard.flashcards.model.statistic.WordRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.validation.exception.InvalidParameter;
 import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.exception.UnknownEntityException;
@@ -15,7 +20,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.sql.Date;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 public class StatisticRepositoryImpl implements StatisticRepository {
 

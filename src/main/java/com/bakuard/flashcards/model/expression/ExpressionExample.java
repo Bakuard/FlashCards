@@ -1,11 +1,11 @@
 package com.bakuard.flashcards.model.expression;
 
 import com.bakuard.flashcards.validation.annotation.NotBlankOrNull;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import jakarta.validation.constraints.NotBlank;
 import java.util.Objects;
 
 /**

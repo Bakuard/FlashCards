@@ -1,10 +1,10 @@
 package com.bakuard.flashcards.service.wordSupplementation;
 
 import com.bakuard.flashcards.dal.WordOuterSourceBuffer;
-import com.bakuard.flashcards.model.word.supplementation.SupplementedWord;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.word.WordInterpretation;
 import com.bakuard.flashcards.model.word.WordTranscription;
+import com.bakuard.flashcards.model.word.supplementation.SupplementedWord;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

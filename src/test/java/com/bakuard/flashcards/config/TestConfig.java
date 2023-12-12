@@ -1,5 +1,6 @@
 package com.bakuard.flashcards.config;
 
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
@@ -17,4 +18,8 @@ public class TestConfig {
         return new HandlerMappingIntrospector();
     }
 
+    @Bean
+    public SecurityProperties securityProperties() {
+        return new SecurityProperties();
+    }
 }

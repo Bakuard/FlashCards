@@ -4,7 +4,12 @@ import com.bakuard.flashcards.config.security.RequestContext;
 import com.bakuard.flashcards.dto.DtoMapper;
 import com.bakuard.flashcards.dto.common.RepetitionResponse;
 import com.bakuard.flashcards.dto.exceptions.ExceptionResponse;
-import com.bakuard.flashcards.dto.word.*;
+import com.bakuard.flashcards.dto.word.WordForRepetitionFromEnglishResponse;
+import com.bakuard.flashcards.dto.word.WordForRepetitionFromNativeResponse;
+import com.bakuard.flashcards.dto.word.WordMarkForRepetitionRequest;
+import com.bakuard.flashcards.dto.word.WordRepeatFromEnglishRequest;
+import com.bakuard.flashcards.dto.word.WordRepeatFromNativeRequest;
+import com.bakuard.flashcards.dto.word.WordResponse;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.word.Word;
@@ -24,7 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 

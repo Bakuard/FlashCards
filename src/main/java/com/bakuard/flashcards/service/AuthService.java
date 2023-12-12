@@ -7,17 +7,17 @@ import com.bakuard.flashcards.dal.fragment.UserSaver;
 import com.bakuard.flashcards.model.auth.JwsWithUser;
 import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
-import com.bakuard.flashcards.validation.*;
+import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.bakuard.flashcards.validation.exception.FailToSendMailException;
 import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
 import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.exception.UnknownEntityException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import jakarta.validation.ConstraintViolationException;
 import java.util.UUID;
 
 /**
