@@ -1,9 +1,7 @@
-/.idea/**
-*.iml
-/target/**
-*.log
-/docs/**
-*.ini
-/externalConfig/**
-/saves/**
-/logs/**
+/*
+/*/
+!/README.md
+!/pom.xml
+!/LICENSE
+!/.gitignore
+!/src/

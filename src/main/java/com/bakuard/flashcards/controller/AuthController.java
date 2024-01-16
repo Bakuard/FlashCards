@@ -17,6 +17,7 @@ import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.auth.resource.Resource;
 import com.bakuard.flashcards.service.AuthService;
+import com.bakuard.flashcards.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -50,6 +51,7 @@ public class AuthController {
 
 
     private AuthService authService;
+    private UserService userService;
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
@@ -57,11 +59,13 @@ public class AuthController {
 
     @Autowired
     public AuthController(AuthService authService,
+                          UserService userService,
                           DtoMapper mapper,
                           RequestContext requestContext,
                           Messages messages,
                           Authorizer authorizer) {
         this.authService = authService;
+        this.userService = userService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
@@ -212,7 +216,7 @@ public class AuthController {
         authorizer.assertToHasAccess(userId, "user", userId, "update");
 
         User user = mapper.toUser(dto);
-        authService.save(user);
+        userService.save(user);
 
         return ResponseEntity.ok(mapper.toUserResponse(user));
     }
@@ -231,7 +235,7 @@ public class AuthController {
         UUID userId = requestContext.getCurrentJwsBodyAs(UUID.class);
         logger.info("get user by jws where user id={}", userId);
 
-        User user = authService.tryFindById(userId);
+        User user = userService.tryFindById(userId);
 
         return ResponseEntity.ok(mapper.toUserResponse(user));
     }
@@ -269,7 +273,7 @@ public class AuthController {
         logger.info("user {} get user with id={}", jwsUserId, userId);
         authorizer.assertToHasAccess(jwsUserId, "user", userId, "getUserById");
 
-        User user = authService.tryFindById(userId);
+        User user = userService.tryFindById(userId);
 
         return ResponseEntity.ok(mapper.toUserResponse(user));
     }
@@ -329,7 +333,7 @@ public class AuthController {
         logger.info("user {} find users by page={}, size={}, sort={}", userId, page, size, sort);
         authorizer.assertToHasAccess(Principal.of(userId), Resource.of("users"), "findAllBy");
 
-        Page<User> users = authService.findAll(mapper.toPageable(page, size, mapper.toUserSort(sort)));
+        Page<User> users = userService.findAll(mapper.toPageable(page, size, mapper.toUserSort(sort)));
 
         return ResponseEntity.ok(mapper.toUsersResponse(users));
     }

@@ -13,6 +13,7 @@ import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.word.supplementation.AggregateSupplementedWord;
 import com.bakuard.flashcards.service.AuthService;
+import com.bakuard.flashcards.service.UserService;
 import com.bakuard.flashcards.service.WordService;
 import com.bakuard.flashcards.service.wordSupplementation.WordSupplementationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,7 +52,7 @@ public class DictionaryOfWordsController {
 
 
     private WordService wordService;
-    private AuthService authService;
+    private UserService userService;
     private WordSupplementationService wordSupplementationService;
     private DtoMapper mapper;
     private RequestContext requestContext;
@@ -60,14 +61,14 @@ public class DictionaryOfWordsController {
 
     @Autowired
     public DictionaryOfWordsController(WordService wordService,
-                                       AuthService authService,
+                                       UserService userService,
                                        WordSupplementationService wordSupplementationService,
                                        DtoMapper mapper,
                                        RequestContext requestContext,
                                        Messages messages,
                                        Authorizer authorizer) {
         this.wordService = wordService;
-        this.authService = authService;
+        this.userService = userService;
         this.wordSupplementationService = wordSupplementationService;
         this.mapper = mapper;
         this.requestContext = requestContext;
@@ -290,7 +291,7 @@ public class DictionaryOfWordsController {
                 jwsUserId, userId, page, size, sort);
         authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findAllBy");
 
-        authService.assertExists(userId);
+        userService.assertExists(userId);
         Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(sort));
         Page<WordForDictionaryListResponse> result = mapper.toWordsForDictionaryListResponse(
                 wordService.findByUserId(userId, pageable)
@@ -553,5 +554,4 @@ public class DictionaryOfWordsController {
         wordService.tryDeleteById(userId, wordId);
         return ResponseEntity.ok(messages.getMessage("dictionary.words.delete"));
     }
-
 }

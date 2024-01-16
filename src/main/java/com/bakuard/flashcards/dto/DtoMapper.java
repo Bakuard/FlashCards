@@ -65,6 +65,7 @@ import com.bakuard.flashcards.model.word.supplementation.OuterSource;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.IntervalService;
+import com.bakuard.flashcards.service.UserService;
 import com.bakuard.flashcards.service.WordService;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.data.domain.Page;
@@ -85,7 +86,7 @@ public class DtoMapper {
     private WordService wordService;
     private ExpressionService expressionService;
     private IntervalService intervalService;
-    private AuthService authService;
+    private UserService userService;
     private ConfigData configData;
     private SortRules sortRules;
     private Clock clock;
@@ -94,13 +95,13 @@ public class DtoMapper {
     public DtoMapper(WordService wordService,
                      ExpressionService expressionService,
                      IntervalService intervalService,
-                     AuthService authService,
+                     UserService userService,
                      ConfigData configData,
                      SortRules sortRules,
                      Clock clock,
                      Messages messages) {
         this.wordService = wordService;
-        this.authService = authService;
+        this.userService = userService;
         this.intervalService = intervalService;
         this.expressionService = expressionService;
         this.configData = configData;
@@ -338,7 +339,7 @@ public class DtoMapper {
     }
 
     public User toUser(UserUpdateRequest dto) {
-        return authService.tryFindById(dto.getUserId()).
+        return userService.tryFindById(dto.getUserId()).
                 setEmail(dto.getEmail()).
                 setRoles(dto.getRoles().stream().map(this::toRole).toList()).
                 changePassword(dto.getPasswordChangeRequest().getCurrentPassword(),

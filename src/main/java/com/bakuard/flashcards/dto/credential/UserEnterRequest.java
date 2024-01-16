@@ -4,11 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Objects;
 
-@Schema(description = "Учетные данные пользвоателя для входа.")
+@Schema(description = "Учетные данные пользователя для входа.")
 public class UserEnterRequest {
 
     @Schema(description = """
-            Адрес электроной почты пользователя. <br/>
+            Адрес электронной почты пользователя. <br/>
              Ограничения: <br/>
              1. не должен быть null. <br/>
              2. заданное значение должно представлять корректный адрес электронной почты.

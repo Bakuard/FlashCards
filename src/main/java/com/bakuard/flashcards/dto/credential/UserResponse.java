@@ -9,7 +9,7 @@ import java.util.UUID;
 @Schema(description = "Возвращаемые учетные данные пользователя.")
 public class UserResponse {
 
-    @Schema(description = "Уникальный идентификатор поьзователя.")
+    @Schema(description = "Уникальный идентификатор пользователя.")
     private UUID userId;
     @Schema(description = "Адрес электронной почты пользователя.")
     private String email;

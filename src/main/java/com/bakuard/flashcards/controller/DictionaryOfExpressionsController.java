@@ -12,6 +12,7 @@ import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
+import com.bakuard.flashcards.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,7 +49,7 @@ public class DictionaryOfExpressionsController {
 
 
     private ExpressionService expressionService;
-    private AuthService authService;
+    private UserService userService;
     private DtoMapper mapper;
     private RequestContext requestContext;
     private Messages messages;
@@ -56,13 +57,13 @@ public class DictionaryOfExpressionsController {
 
     @Autowired
     public DictionaryOfExpressionsController(ExpressionService expressionService,
-                                             AuthService authService,
+                                             UserService userService,
                                              DtoMapper mapper,
                                              RequestContext requestContext,
                                              Messages messages,
                                              Authorizer authorizer) {
         this.expressionService = expressionService;
-        this.authService = authService;
+        this.userService = userService;
         this.mapper = mapper;
         this.requestContext = requestContext;
         this.messages = messages;
@@ -202,7 +203,7 @@ public class DictionaryOfExpressionsController {
                 jwsUserId, userId, page, size, sort);
         authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findAllBy");
 
-        authService.assertExists(userId);
+        userService.assertExists(userId);
         Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(sort));
         Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionsForDictionaryListResponse(
                 expressionService.findByUserId(userId, pageable)
@@ -412,5 +413,4 @@ public class DictionaryOfExpressionsController {
         expressionService.tryDeleteById(userId, expressionId);
         return ResponseEntity.ok(messages.getMessage("dictionary.expressions.delete"));
     }
-
 }

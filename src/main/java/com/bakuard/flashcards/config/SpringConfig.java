@@ -29,6 +29,7 @@ import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.IntervalService;
 import com.bakuard.flashcards.service.JwsService;
 import com.bakuard.flashcards.service.StatisticService;
+import com.bakuard.flashcards.service.UserService;
 import com.bakuard.flashcards.service.WordService;
 import com.bakuard.flashcards.service.wordSupplementation.WordSupplementationService;
 import com.bakuard.flashcards.validation.ValidatorUtil;
@@ -179,21 +180,30 @@ public class SpringConfig implements WebMvcConfigurer {
                 return new ExpressionService(expressionRepository, intervalRepository, clock, configData, validator);
         }
 
-        @Bean(initMethod = "initialize")
-        public AuthService authService(UserRepository userRepository,
+        @Bean(initMethod = "createOrReplaceSuperAdminIfNecessary")
+        public UserService userService(UserRepository userRepository,
                                        IntervalRepository intervalRepository,
+                                       ConfigData conf,
+                                       ValidatorUtil validator,
+                                       TransactionTemplate transactionTemplate) {
+                return new UserService(userRepository,
+                        intervalRepository,
+                        conf,
+                        validator,
+                        transactionTemplate);
+        }
+
+        @Bean()
+        public AuthService authService(UserService userService,
                                        JwsService jwsService,
                                        EmailService emailService,
                                        ConfigData configData,
-                                       ValidatorUtil validator,
-                                       TransactionTemplate transactionTemplate) {
-             return new AuthService(userRepository,
-                     intervalRepository,
+                                       ValidatorUtil validator) {
+             return new AuthService(userService,
                      jwsService,
                      emailService,
                      configData,
-                     validator,
-                     transactionTemplate);
+                     validator);
         }
 
         @Bean
@@ -294,7 +304,7 @@ public class SpringConfig implements WebMvcConfigurer {
         public DtoMapper dtoMapper(WordService wordService,
                                    ExpressionService expressionService,
                                    IntervalService intervalService,
-                                   AuthService authService,
+                                   UserService userService,
                                    ConfigData configData,
                                    SortRules sortRules,
                                    Clock clock,
@@ -302,7 +312,7 @@ public class SpringConfig implements WebMvcConfigurer {
                 return new DtoMapper(wordService,
                         expressionService,
                         intervalService,
-                        authService,
+                        userService,
                         configData,
                         sortRules,
                         clock,
