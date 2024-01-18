@@ -21,6 +21,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -67,8 +68,7 @@ public class UserService {
         boolean isUserNew = user.isNew();
         user = userRepository.save(user);
         if(isUserNew) {
-            //add default repeat intervals
-            intervalRepository.addAll(user.getId(), 1, 3, 5, 11);
+            intervalRepository.addAll(user.getId(), conf.repetition().defaultIntervals());
         }
         return user;
     }

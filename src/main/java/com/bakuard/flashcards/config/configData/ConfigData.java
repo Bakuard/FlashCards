@@ -9,4 +9,5 @@ public record ConfigData(int levenshteinMaxDistance,
                          Smtp smtp,
                          SuperAdmin superAdmin,
                          ConfirmationMail confirmationMail,
-                         Jws jws) {}
+                         Jws jws,
+                         Repetition repetition) {}
