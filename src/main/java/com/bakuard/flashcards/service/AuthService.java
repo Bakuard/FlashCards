@@ -61,14 +61,14 @@ public class AuthService {
      * @return подробная информация об учетных данных пользователя и JWS токен общего доступ
      * @throws ConstraintViolationException если нарушен хотя бы один из инвариантов {@link Credential}
      * @throws UnknownEntityException если пользователя с указанной почтой не существует
-     * @throws IncorrectCredentials см. {@link User#assertCurrentPassword(String)}
+     * @throws IncorrectCredentials см. {@link UserService#assertCurrentPassword(User, String)}
      * @see Credential
      * @see JwsWithUser
      */
     public JwsWithUser enter(Credential credential) {
         validator.assertValid(credential);
         User user = userService.tryFindByEmail(credential.email());
-        user.assertCurrentPassword(credential.password());
+        userService.assertCurrentPassword(user, credential.password());
         String jws = jwsService.generateJws(user.getId(), "common", conf.jws().commonTokenLifeTime());
         return new JwsWithUser(user, jws);
     }
@@ -101,7 +101,8 @@ public class AuthService {
      * @see JwsWithUser
      */
     public JwsWithUser registerFinalStep(Credential jwsBody) {
-        User user = userService.save(new User(jwsBody));
+        User user = userService.createUserFromCredential(jwsBody);
+        user = userService.save(user);
 
         String jws = jwsService.generateJws(user.getId(), "common", conf.jws().commonTokenLifeTime());
         return new JwsWithUser(user, jws);
@@ -137,7 +138,7 @@ public class AuthService {
      */
     public JwsWithUser restorePasswordFinalStep(Credential jwsBody) {
         User user = userService.tryFindByEmail(jwsBody.email());
-        user.setCredential(jwsBody);
+        userService.changePasswordWithoutCheck(user, jwsBody.password());
         user = userService.save(user);
         String jws = jwsService.generateJws(user.getId(), "common", conf.jws().commonTokenLifeTime());
         return new JwsWithUser(user, jws);

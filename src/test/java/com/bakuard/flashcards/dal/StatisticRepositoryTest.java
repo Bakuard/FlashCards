@@ -3,7 +3,6 @@ package com.bakuard.flashcards.dal;
 import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.filter.SortRules;
@@ -42,6 +41,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -1820,9 +1820,14 @@ class StatisticRepositoryTest {
         return UUID.fromString("00000000-0000-0000-0000-" + String.format("%012d", number));
     }
 
+
     private User user(int number) {
-        return new User(new Credential("me" + number + "@mail.com", "password" + number)).
-                setOrGenerateSalt("salt" + number);
+        return new User(
+                null,
+                "me" + number + "@mail.com",
+                "password" + number,
+                "salt" + number,
+                new ArrayList<>());
     }
 
     private Word word(UUID userId,

@@ -3,7 +3,6 @@ package com.bakuard.flashcards.dal;
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.config.configData.ConfigData;
-import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.model.filter.SortedEntity;
@@ -135,9 +134,21 @@ class UserRepositoryTest {
              => exception
             """)
     public void save4() {
-        User user = new User(new Credential(toEmail(1), "password1"));
+        User user = new User(
+                null,
+                toEmail(1),
+                "password1",
+                "salt1",
+                new ArrayList<>()
+        );
         commit(() -> userRepository.save(user));
-        User userWithDuplicateEmail = new User(new Credential(toEmail(1), "password1"));
+        User userWithDuplicateEmail = new User(
+                null,
+                toEmail(1),
+                "password2",
+                "salt2",
+                new ArrayList<>()
+        );
 
         Assertions.assertThatExceptionOfType(NotUniqueEntityException.class).
                 isThrownBy(() -> commit(() -> userRepository.save(userWithDuplicateEmail)));
@@ -374,8 +385,12 @@ class UserRepositoryTest {
     }
 
     private User user(int number) {
-        return new User(new Credential(toEmail(number), "password" + number)).
-                setOrGenerateSalt("salt" + number).
+        return new User(
+                null,
+                toEmail(number),
+                "password" + number,
+                "salt" + number,
+                new ArrayList<>()).
                 addRole("role1").
                 addRole("role2").
                 addRole("role3");

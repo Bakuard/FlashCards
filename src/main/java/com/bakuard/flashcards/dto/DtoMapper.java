@@ -339,11 +339,13 @@ public class DtoMapper {
     }
 
     public User toUser(UserUpdateRequest dto) {
-        return userService.tryFindById(dto.getUserId()).
-                setEmail(dto.getEmail()).
-                setRoles(dto.getRoles().stream().map(this::toRole).toList()).
-                changePassword(dto.getPasswordChangeRequest().getCurrentPassword(),
-                        dto.getPasswordChangeRequest().getNewPassword());
+        User user = userService.tryFindById(dto.getUserId());
+        userService.changePassword(user,
+                dto.getPasswordChangeRequest().getCurrentPassword(),
+                dto.getPasswordChangeRequest().getNewPassword());
+        user.setEmail(dto.getEmail()).
+                setRoles(dto.getRoles().stream().map(this::toRole).toList());
+        return user;
     }
 
     public UserResponse toUserResponse(User user) {

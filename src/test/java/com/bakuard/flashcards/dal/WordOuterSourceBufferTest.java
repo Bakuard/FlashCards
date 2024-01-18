@@ -3,7 +3,6 @@ package com.bakuard.flashcards.dal;
 import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
-import com.bakuard.flashcards.model.auth.credential.Credential;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.word.WordExample;
@@ -37,6 +36,7 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -569,8 +569,12 @@ class WordOuterSourceBufferTest {
 
 
     private User user(int number) {
-        return new User(new Credential("me" + number + "@mail.com", "password" + number)).
-                setOrGenerateSalt("salt" + number).
+        return new User(
+                null,
+                "me" + number + "@mail.com",
+                "password" + number,
+                "salt" + number,
+                new ArrayList<>()).
                 addRole("role1").
                 addRole("role2").
                 addRole("role3");

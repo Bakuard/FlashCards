@@ -3,9 +3,6 @@ package com.bakuard.flashcards.model.auth.credential;
 import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.validation.annotation.AllUnique;
 import com.bakuard.flashcards.validation.annotation.NotContainsNull;
-import com.bakuard.flashcards.validation.annotation.PasswordConstraintValidator;
-import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
-import com.google.common.hash.Hashing;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
@@ -14,10 +11,6 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.MappedCollection;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -63,18 +56,7 @@ public class User implements Entity {
     }
 
     /**
-     * Создает нового пользователя на основе указанных учетных данных.
-     * @param credential учетные данные пользователя.
-     */
-    public User(Credential credential) {
-        this.email = credential.email();
-        this.salt = generateSalt();
-        this.roles = new ArrayList<>();
-        this.passwordHash = calculatePasswordHash(credential.password(), salt);
-    }
-
-    /**
-     * см. {@link  Entity#getId()}
+     * Cм. {@link  Entity#getId()}
      */
     @Override
     public UUID getId() {
@@ -123,7 +105,7 @@ public class User implements Entity {
     }
 
     /**
-     * см. {@link  Entity#generateIdIfAbsent()} ()}
+     * Cм. {@link  Entity#generateIdIfAbsent()} ()}
      */
     @Override
     public void generateIdIfAbsent() {
@@ -141,80 +123,21 @@ public class User implements Entity {
     }
 
     /**
-     * Проверяет - является ли указанный пароль текущим паролем пользователя. Если это не так - выбрасывает
-     * исключение.
-     * @param currentPassword предполагаемый текущий пароль пользователя.
-     * @throws IncorrectCredentials Выбрасывается, если выполняется хотя бы одно из следующих условий:<br/>
-     *                              1. если указан неверный текущий пароль. <br/>
-     *                              2. если текущий пароль равен null. <br/>
-     *                              {@link IncorrectCredentials#getMessageKey()} вернет User.password.notNull
-     *                              или User.password.incorrect
-     */
-    public void assertCurrentPassword(String currentPassword) {
-        if(currentPassword == null) {
-            throw new IncorrectCredentials(
-                    "currentPassword can't be null", "User.password.notNull");
-        }
-
-        if(!calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
-            throw new IncorrectCredentials(
-                    "Incorrect current password", "User.password.incorrect");
-        }
-    }
-
-    /**
-     * Изменяет текущий пароль пользователя на указанный, при условии, что указан корректный текущий пароль
-     * пользователя. Иначе выбрасывает исключение.
-     * @param currentPassword предполагаемый текущий пароль пользователя.
-     * @param newPassword новый пароль пользователя.
+     * Устанавливает хеш-пароля.
      * @return ссылку на этот же объект.
-     * @throws IncorrectCredentials Выбрасывается, если выполняется хотя бы одно из следующих условий:<br/>
-     *                              1. если указан неверный текущий пароль. <br/>
-     *                              2. если текущий пароль равен null. <br/>
-     *                              3. если новый пароль равен null. <br/>
-     *                              4. если новый пароль не содержит отображаемых символов. <br/>
-     *                              5. если длина нового пароля не принадлежит промежутку [8; 50]. <br/>
-     *                              {@link IncorrectCredentials#getMessageKey()} вернет User.password.notNull,
-     *                              User.password.incorrect или User.newPassword.format
      */
-    public User changePassword(String currentPassword, String newPassword) {
-        if(!new PasswordConstraintValidator().isValid(newPassword, null)) {
-            throw new IncorrectCredentials(
-                    "Incorrect password format", "User.newPassword.format");
-        }
-
-        if(currentPassword == null) {
-            throw new IncorrectCredentials(
-                    "currentPassword can't be null", "User.password.notNull");
-        }
-
-        if(!calculatePasswordHash(currentPassword, salt).equals(passwordHash)) {
-            throw new IncorrectCredentials(
-                    "Incorrect current password", "User.password.incorrect");
-        }
-
-        this.passwordHash = calculatePasswordHash(newPassword, salt);
+    public User setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
         return this;
     }
 
     /**
-     * Устанавливает новые учетные данные для пользователя (см. {@link Credential}).
-     * @param credential новые учетные данные пользователя.
-     * @return ссылку на этот же объект.
-     */
-    public User setCredential(Credential credential) {
-        this.email = credential.email();
-        this.passwordHash = calculatePasswordHash(credential.password(), salt);
-        return this;
-    }
-
-    /**
-     * Устанавливает новую соль для хеширования пароля. Используется при тестировании.
+     * Устанавливает новую соль для хеширования пароля.
      * @param salt новая соль для хеширования паролей.
      * @return ссылку на этот же объект.
      */
-    public User setOrGenerateSalt(String salt) {
-        this.salt = salt == null ? generateSalt() : salt;
+    public User setSalt(String salt) {
+        this.salt = salt;
         return this;
     }
 
@@ -272,14 +195,4 @@ public class User implements Entity {
                 ", roles=" + roles +
                 '}';
     }
-
-
-    private String calculatePasswordHash(String newPassword, String salt) {
-        return Hashing.sha256().hashBytes(newPassword.concat(salt).getBytes(StandardCharsets.UTF_8)).toString();
-    }
-
-    private String generateSalt() {
-        return Base64.getEncoder().encodeToString(SecureRandom.getSeed(255));
-    }
-
 }
