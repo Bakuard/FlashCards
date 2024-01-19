@@ -3,6 +3,8 @@ package com.bakuard.flashcards.service;
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.dal.ExpressionRepository;
 import com.bakuard.flashcards.dal.IntervalRepository;
+import com.bakuard.flashcards.model.RepeatDataFromEnglish;
+import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.validation.ValidatorUtil;
@@ -187,50 +189,92 @@ public class ExpressionService {
     }
 
     /**
-     * Делегирует вызов методу {@link Expression#repeatFromEnglish(boolean, LocalDate, List)} выражения,
-     * имеющего идентификатор expressionId, сохраняет указанное устойчивое выражение, а затем возвращает его.
+     * Задает результат последнего повторения этого устойчивого выражения с английского языка
+     * на родной язык пользователя. Метод изменяет данные о последнем повторении устойчивого выражения,
+     * а именно: <br/>
+     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
+     * 2. Если повторение было успешно, то будет выбран ближайший больший интервал повторения (если таковые есть)
+     *    относительно текущего.<br/>
+     * 3. Если повторение не было успешно (isRemember = false), то будет выбран наименьший интервал
+     *    из списка intervals.
+     * @param userId идентификатор пользователя, для устойчивого выражения которого выполняется повторение.
+     * @param expressionId идентификатор повторяемого устойчивого выражения.
+     * @param isRemember true - если пользователь правильно вспомнил переводы, произношение и толкования
+     *                   устойчивого выражения, иначе - false.
      * @return устойчивое выражение с идентификатором expressionId.
      */
     public Expression repeatFromEnglish(UUID userId, UUID expressionId, boolean isRemember) {
         Expression expression = tryFindById(userId, expressionId);
-        expression.repeatFromEnglish(isRemember, LocalDate.now(clock), intervalRepository.findAll(expression.getUserId()));
+        List<Integer> allIntervals =  intervalRepository.findAll(userId);
+        int intervalIndex = findNextRepeatInterval(
+                allIntervals,
+                expression.getRepeatDataFromEnglish().interval(),
+                isRemember
+        );
+        LocalDate lastDateOfRepeat = LocalDate.now(clock);
+        expression.setRepeatDataFromEnglish(
+                new RepeatDataFromEnglish(allIntervals.get(intervalIndex), lastDateOfRepeat)
+        );
         save(expression);
         return expression;
     }
 
     /**
-     * Делегирует вызов методу {@link Expression#repeatFromNative(String, LocalDate, List)} выражения,
-     * имеющего идентификатор expressionId, сохраняет указанное устойчивое выражение, а затем возвращает его.
+     * Проверяет указанное пользователем значение устойчивого выражения при его повторении с родного языка пользователя
+     * на английский язык. Если заданное значение равняется значению текущего устойчивого выражения - повторение
+     * считается успешным. Метод изменяет данные о последнем повторении устойчивого выражения, а именно: <br/>
+     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
+     * 2. Если повторение было успешно, то будет выбран ближайший больший интервал повторения (если таковые есть)
+     *    относительно текущего.<br/>
+     * 3. Если повторение не было успешно, то будет выбран наименьший интервал из списка intervals.
+     * @param userId идентификатор пользователя, для слова которого выполняется повторение.
+     * @param expressionId идентификатор повторяемого устойчивого выражения.
+     * @param inputExpressionValue значения устойчивого выражения на английском языке указанное при проверке.
      * @return устойчивое выражение с идентификатором expressionId.
      */
-    public RepetitionResult<Expression> repeatFromNative(UUID userId, UUID expressionId, String inputWordValue) {
+    public RepetitionResult<Expression> repeatFromNative(UUID userId, UUID expressionId, String inputExpressionValue) {
         Expression expression = tryFindById(userId, expressionId);
-        boolean isRemember = expression.repeatFromNative(
-                inputWordValue, LocalDate.now(clock), intervalRepository.findAll(userId));
+        boolean isRemember = expression.getValue().equals(inputExpressionValue);
+        List<Integer> allIntervals =  intervalRepository.findAll(userId);
+        int intervalIndex = findNextRepeatInterval(
+                allIntervals,
+                expression.getRepeatDataFromEnglish().interval(),
+                isRemember
+        );
+        LocalDate lastDateOfRepeat = LocalDate.now(clock);
+        expression.setRepeatDataFromNative(
+                new RepeatDataFromNative(allIntervals.get(intervalIndex), lastDateOfRepeat)
+        );
         save(expression);
         return new RepetitionResult<>(expression, isRemember);
     }
 
     /**
-     * Делегирует вызов методу {@link Expression#markForRepetitionFromEnglish(LocalDate, int)} выражения,
-     * имеющего идентификатор expressionId, сохраняет указанное устойчивое выражение, а затем возвращает его.
+     * Указывает, что пользователь забыл перевод данного устойчивого выражения с английского на родной язык и его
+     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и
+     * установит наименьший из интервалов повторения пользователя.
      * @return устойчивое выражение с идентификатором expressionId.
      */
     public Expression markForRepetitionFromEnglish(UUID userId, UUID expressionId) {
         Expression expression = tryFindById(userId, expressionId);
-        expression.markForRepetitionFromEnglish(LocalDate.now(clock), intervalRepository.findAll(userId).get(0));
+        LocalDate lastDateOfRepeat = LocalDate.now(clock);
+        List<Integer> allIntervals =  intervalRepository.findAll(userId);
+        expression.setRepeatDataFromEnglish(new RepeatDataFromEnglish(allIntervals.getFirst(), lastDateOfRepeat));
         save(expression);
         return expression;
     }
 
     /**
-     * Делегирует вызов методу {@link Expression#markForRepetitionFromNative(LocalDate, int)} выражения,
-     * имеющего идентификатор expressionId, сохраняет указанное устойчивое выражение, а затем возвращает его.
+     * Указывает, что пользователь забыл перевод данного устойчивого выражения с родного языка на английский и его
+     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и
+     * установит наименьший из интервалов повторения пользователя.
      * @return устойчивое выражение с идентификатором expressionId.
      */
     public Expression markForRepetitionFromNative(UUID userId, UUID expressionId) {
         Expression expression = tryFindById(userId, expressionId);
-        expression.markForRepetitionFromNative(LocalDate.now(clock), intervalRepository.findAll(userId).get(0));
+        LocalDate lastDateOfRepeat = LocalDate.now(clock);
+        List<Integer> allIntervals =  intervalRepository.findAll(userId);
+        expression.setRepeatDataFromNative(new RepeatDataFromNative(allIntervals.getFirst(), lastDateOfRepeat));
         save(expression);
         return expression;
     }
@@ -253,4 +297,8 @@ public class ExpressionService {
         return expression.getRepeatDataFromNative().isHotRepeat(intervals.get(0));
     }
 
+
+    private int findNextRepeatInterval(List<Integer> allIntervals, int lastInterval, boolean isRemember) {
+        return isRemember ? Math.min(allIntervals.indexOf(lastInterval) + 1, allIntervals.size() - 1) : 0;
+    }
 }

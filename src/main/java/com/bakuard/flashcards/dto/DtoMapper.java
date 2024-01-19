@@ -292,13 +292,13 @@ public class DtoMapper {
                 setNote(dto.getNote()).
                 setInterpretations(toStream(dto.getInterpretations()).
                         map(this::toExpressionInterpretation).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setTranslations(toStream(dto.getTranslates()).
                         map(this::toExpressionTranslation).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
-                        toList());
+                        collect(Collectors.toCollection(ArrayList::new)));
     }
 
     public Expression toExpression(ExpressionUpdateRequest dto) {
@@ -307,13 +307,13 @@ public class DtoMapper {
                 setNote(dto.getNote()).
                 setInterpretations(toStream(dto.getInterpretations()).
                         map(this::toExpressionInterpretation).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setTranslations(toStream(dto.getTranslates()).
                         map(this::toExpressionTranslation).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toExpressionExample).
-                        toList());
+                        collect(Collectors.toCollection(ArrayList::new)));
     }
 
     public Sort toExpressionSort(String sortRule) {

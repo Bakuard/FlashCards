@@ -45,15 +45,15 @@ public class Expression implements Entity {
     @MappedCollection(idColumn = "expression_id", keyColumn = "index")
     @NotContainsNull(message = "Expression.interpretations.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Expression.interpretations.allUnique")
-    private final List<@Valid ExpressionInterpretation> interpretations;
+    private List<@Valid ExpressionInterpretation> interpretations;
     @MappedCollection(idColumn = "expression_id", keyColumn = "index")
     @NotContainsNull(message = "Expression.translations.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Expression.translations.allUnique")
-    private final List<@Valid ExpressionTranslation> translations;
+    private List<@Valid ExpressionTranslation> translations;
     @MappedCollection(idColumn = "expression_id", keyColumn = "index")
     @NotContainsNull(message = "Expression.examples.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getOrigin", message = "Expression.examples.allUnique")
-    private final List<@Valid ExpressionExample> examples;
+    private List<@Valid ExpressionExample> examples;
     @Embedded.Nullable
     @Valid
     private RepeatDataFromEnglish repeatDataFromEnglish;
@@ -152,7 +152,7 @@ public class Expression implements Entity {
      * @return список всех интерпретация устойчивого выражения.
      */
     public List<ExpressionInterpretation> getInterpretations() {
-        return Collections.unmodifiableList(interpretations);
+        return interpretations;
     }
 
     /**
@@ -160,7 +160,7 @@ public class Expression implements Entity {
      * @return список переводов устойчивого выражения.
      */
     public List<ExpressionTranslation> getTranslations() {
-        return Collections.unmodifiableList(translations);
+        return translations;
     }
 
     /**
@@ -168,7 +168,7 @@ public class Expression implements Entity {
      * @return список примеров устойчивого выражения.
      */
     public List<ExpressionExample> getExamples() {
-        return Collections.unmodifiableList(examples);
+        return examples;
     }
 
     /**
@@ -223,8 +223,7 @@ public class Expression implements Entity {
      * @return ссылку на этот же объект
      */
     public Expression setInterpretations(List<ExpressionInterpretation> interpretations) {
-        this.interpretations.clear();
-        if(interpretations != null) this.interpretations.addAll(interpretations);
+        this.interpretations = interpretations;
         return this;
     }
 
@@ -234,8 +233,7 @@ public class Expression implements Entity {
      * @return ссылку на этот же объект
      */
     public Expression setTranslations(List<ExpressionTranslation> translations) {
-        this.translations.clear();
-        if(translations != null) this.translations.addAll(translations);
+        this.translations = translations;
         return this;
     }
 
@@ -245,8 +243,7 @@ public class Expression implements Entity {
      * @return ссылку на этот же объект
      */
     public Expression setExamples(List<ExpressionExample> examples) {
-        this.examples.clear();
-        if(examples != null) this.examples.addAll(examples);
+        this.examples = examples;
         return this;
     }
 
@@ -282,75 +279,24 @@ public class Expression implements Entity {
 
     /**
      * Задает результат последнего повторения этого устойчивого выражения с английского языка
-     * на родной язык пользователя. Метод изменяет данные о последнем повторении устойчивого выражения,
-     * а именно: <br/>
-     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
-     * 2. Если повторение было успешно (isRemember = true), то будет выбран наименьший интервал
-     *    повторения из списка intervals, который больше текущего интервала
-     *    (см. {@link RepeatDataFromEnglish#interval()}). <br/>
-     *    Если текущий интервал повторения равен наибольшему в списке - он остается без изменения. <br/>
-     * 3. Если повторение не было успешно (isRemember = false), то будет выбран наименьший интервал
-     *    из списка intervals.
-     * @param isRemember true - если пользователь правильно вспомнил переводы, произношение и толкования
-     *                   устойчивого выражения, иначе - false.
-     * @param lastDateOfRepeat дата текущего повторения.
-     * @param intervals Все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
-     *                  пользователя.
+     * на родной язык пользователя.
+     * @param repeatDataFromEnglish (См. {@link RepeatDataFromEnglish}).
+     * @return ссылку на этот же объект
      */
-    public void repeatFromEnglish(boolean isRemember, LocalDate lastDateOfRepeat, List<Integer> intervals) {
-        int index = isRemember ?
-                Math.min(intervals.indexOf(repeatDataFromEnglish.interval()) + 1, intervals.size() - 1) : 0;
-
-        repeatDataFromEnglish = new RepeatDataFromEnglish(intervals.get(index), lastDateOfRepeat);
+    public Expression setRepeatDataFromEnglish(RepeatDataFromEnglish repeatDataFromEnglish) {
+        this.repeatDataFromEnglish = repeatDataFromEnglish;
+        return this;
     }
 
     /**
-     * Проверяет указанное пользователем значение устойчивого выражения при его повторении с родного языка пользователя
-     * на английский язык. Если заданное значение равняется значению текущего устойчивого выражения - повторение
-     * считается успешным. Метод изменяет данные о последнем повторении устойчивого выражения, а именно: <br/>
-     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
-     * 2. Если повторение было успешно, то будет выбран наименьший интервал повторения из списка intervals,
-     *    который больше текущего интервала (см. {@link RepeatDataFromEnglish#interval()}). <br/>
-     *    Если текущий интервал повторения равен наибольшему в списке - он остается без изменения. <br/>
-     * 3. Если повторение не было успешно, то будет выбран наименьший интервал из списка intervals.
-     * @param inputValue значение устойчивого выражения на английском языке.
-     * @param lastDateOfRepeat дата текущего повторения.
-     * @param intervals Все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
-     *                  пользователя.
-     * @return true - если повторение выполнено успешно, иначе - false.
+     * Задает результат последнего повторения этого устойчивого выражения с родного языка пользователя
+     * на английский язык.
+     * @param repeatDataFromNative (См. {@link RepeatDataFromNative}).
+     * @return ссылку на этот же объект
      */
-    public boolean repeatFromNative(String inputValue, LocalDate lastDateOfRepeat, List<Integer> intervals) {
-        boolean isRemember = inputValue.equalsIgnoreCase(value);
-        int index = inputValue.equalsIgnoreCase(value) ?
-                Math.min(intervals.indexOf(repeatDataFromNative.interval()) + 1, intervals.size() - 1) : 0;
-
-        repeatDataFromNative = new RepeatDataFromNative(intervals.get(index), lastDateOfRepeat);
-
-        return isRemember;
-    }
-
-    /**
-     * Указывает, что пользователь забыл перевод данного устойчивого выражения с английского на родной язык и его
-     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и
-     * установит наименьший из интервалов повторения пользователя.
-     * @param lastDateOfRepeat текущая дата.
-     * @param lowestInterval Наименьший из интервалов повторения пользователя
-     *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
-     */
-    public void markForRepetitionFromEnglish(LocalDate lastDateOfRepeat, int lowestInterval) {
-        repeatDataFromEnglish = new RepeatDataFromEnglish(lowestInterval, lastDateOfRepeat);
-    }
-
-    /**
-     * Указывает, что пользователь забыл перевод данного устойчивого выражения с родного языка на английский и его
-     * требуется повторить в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и
-     * установит наименьший из интервалов повторения пользователя.
-     * @param lastDateOfRepeat текущая дата.
-     * @param lowestInterval Наименьший из интервалов повторения пользователя
-     *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
-     */
-    public void markForRepetitionFromNative(LocalDate lastDateOfRepeat, int lowestInterval) {
-        repeatDataFromNative = new RepeatDataFromNative(lowestInterval, lastDateOfRepeat);
+    public Expression setRepeatDataFromNative(RepeatDataFromNative repeatDataFromNative) {
+        this.repeatDataFromNative = repeatDataFromNative;
+        return this;
     }
 
     @Override

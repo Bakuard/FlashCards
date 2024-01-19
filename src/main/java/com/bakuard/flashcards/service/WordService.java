@@ -332,5 +332,4 @@ public class WordService {
     private int findNextRepeatInterval(List<Integer> allIntervals, int lastInterval, boolean isRemember) {
         return isRemember ? Math.min(allIntervals.indexOf(lastInterval) + 1, allIntervals.size() - 1) : 0;
     }
-
 }
