@@ -75,10 +75,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DtoMapper {
@@ -194,16 +196,16 @@ public class DtoMapper {
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
                         map(this::toWordTranscription).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setInterpretations(toStream(dto.getInterpretations()).
                         map(this::toWordInterpretation).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setTranslations(toStream(dto.getTranslates()).
                         map(this::toWordTranslation).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
-                        toList());
+                        collect(Collectors.toCollection(ArrayList::new)));
     }
 
     public Word toWord(WordUpdateRequest dto) {
@@ -212,16 +214,16 @@ public class DtoMapper {
                 setNote(dto.getNote()).
                 setTranscriptions(toStream(dto.getTranscriptions()).
                         map(this::toWordTranscription).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setInterpretations(toStream(dto.getInterpretations()).
                         map(this::toWordInterpretation).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setTranslations(toStream(dto.getTranslates()).
                         map(this::toWordTranslation).
-                        toList()).
+                        collect(Collectors.toCollection(ArrayList::new))).
                 setExamples(toStream(dto.getExamples()).
                         map(this::toWordExample).
-                        toList());
+                        collect(Collectors.toCollection(ArrayList::new)));
     }
 
     public Sort toWordSort(String sortRule) {

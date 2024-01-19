@@ -9,7 +9,6 @@ import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.bakuard.flashcards.validation.exception.InvalidParameter;
 import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.exception.UnknownEntityException;
-import com.google.common.collect.ImmutableList;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,7 +80,7 @@ class IntervalsRepositoryTest {
         User user = userRepository.save(user(1));
         commit(() -> intervalRepository.add(user.getId(), 10));
 
-        ImmutableList<Integer> intervals = intervalRepository.findAll(user.getId());
+        List<Integer> intervals = intervalRepository.findAll(user.getId());
 
         Assertions.assertThat(intervals).contains(10);
     }
@@ -158,7 +157,7 @@ class IntervalsRepositoryTest {
         User user = userRepository.save(user(1));
         commit(() -> intervalRepository.addAll(user.getId(), 1, 3, 5, 11));
 
-        ImmutableList<Integer> intervals = intervalRepository.findAll(user.getId());
+        List<Integer> intervals = intervalRepository.findAll(user.getId());
 
         Assertions.assertThat(intervals).containsExactly(1, 3, 5, 11);
     }

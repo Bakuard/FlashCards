@@ -6,6 +6,7 @@ import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import com.google.common.collect.ImmutableList;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -20,8 +21,8 @@ import java.util.UUID;
  * 2. Также у пользователя есть слово wordA, текущий интервал повторения которого равен 3. <br/>
  * В случае успешного повторения слова wordA, в качестве нового текущего интервала повторения будет взято
  * значение 5.
- * @see com.bakuard.flashcards.model.word.Word#repeatFromEnglish(boolean, LocalDate, ImmutableList)
- * @see com.bakuard.flashcards.model.word.Word#repeatFromNative(String, LocalDate, ImmutableList)
+ * @see com.bakuard.flashcards.service.WordService#repeatFromEnglish(UUID, UUID, boolean)
+ * @see com.bakuard.flashcards.service.WordService#repeatFromNative(UUID, UUID, String)
  * @see com.bakuard.flashcards.model.expression.Expression#repeatFromEnglish(boolean, LocalDate, ImmutableList)
  * @see com.bakuard.flashcards.model.expression.Expression#repeatFromNative(String, LocalDate, ImmutableList)
  */
@@ -75,6 +76,6 @@ public interface IntervalRepository {
      * @param userId идентификатор пользователя
      * @return все интервалы повторения пользователя
      */
-    public ImmutableList<Integer> findAll(UUID userId);
+    public List<Integer> findAll(UUID userId);
 
 }

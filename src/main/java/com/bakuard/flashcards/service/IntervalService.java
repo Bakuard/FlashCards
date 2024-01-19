@@ -1,9 +1,9 @@
 package com.bakuard.flashcards.service;
 
 import com.bakuard.flashcards.dal.IntervalRepository;
-import com.google.common.collect.ImmutableList;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -41,7 +41,7 @@ public class IntervalService {
     /**
      * Делегирует вызов методу {@link IntervalRepository#findAll(UUID)}.
      */
-    public ImmutableList<Integer> findAll(UUID userId) {
+    public List<Integer> findAll(UUID userId) {
         return intervalRepository.findAll(userId);
     }
 

@@ -47,19 +47,19 @@ public class Word implements Entity {
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
     @NotContainsNull(message = "Word.interpretations.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Word.interpretations.allUnique")
-    private final List<@Valid WordInterpretation> interpretations;
+    private List<@Valid WordInterpretation> interpretations;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
     @NotContainsNull(message = "Word.transcriptions.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Word.transcriptions.allUnique")
-    private final List<@Valid WordTranscription> transcriptions;
+    private List<@Valid WordTranscription> transcriptions;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
     @NotContainsNull(message = "Word.translations.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getValue", message = "Word.translations.allUnique")
-    private final List<@Valid WordTranslation> translations;
+    private List<@Valid WordTranslation> translations;
     @MappedCollection(idColumn = "word_id", keyColumn = "index")
     @NotContainsNull(message = "Word.examples.notContainsNull")
     @AllUnique(nameOfGetterMethod = "getOrigin", message = "Word.examples.allUnique")
-    private final List<@Valid WordExample> examples;
+    private List<@Valid WordExample> examples;
     @Embedded.Nullable
     @Valid
     private RepeatDataFromEnglish repeatDataFromEnglish;
@@ -148,7 +148,7 @@ public class Word implements Entity {
     }
 
     /**
-     * см. {@link Entity#getId()}
+     * См. {@link Entity#getId()}
      */
     @Override
     public UUID getId() {
@@ -180,11 +180,11 @@ public class Word implements Entity {
     }
 
     /**
-     * Возвращает список всех интерпретация слова.
+     * Возвращает список всех интерпретаций слова.
      * @return список всех интерпретация слова.
      */
     public List<WordInterpretation> getInterpretations() {
-        return Collections.unmodifiableList(interpretations);
+        return interpretations;
     }
 
     /**
@@ -192,7 +192,7 @@ public class Word implements Entity {
      * @return список всех транскрипций слова.
      */
     public List<WordTranscription> getTranscriptions() {
-        return Collections.unmodifiableList(transcriptions);
+        return transcriptions;
     }
 
     /**
@@ -200,7 +200,7 @@ public class Word implements Entity {
      * @return все переводы данного слова.
      */
     public List<WordTranslation> getTranslations() {
-        return Collections.unmodifiableList(translations);
+        return translations;
     }
 
     /**
@@ -208,7 +208,7 @@ public class Word implements Entity {
      * @return список всех примеров к слову.
      */
     public List<WordExample> getExamples() {
-        return Collections.unmodifiableList(examples);
+        return examples;
     }
 
     /**
@@ -228,7 +228,7 @@ public class Word implements Entity {
     }
 
     /**
-     * см. {@link Entity#generateIdIfAbsent()}
+     * См. {@link Entity#generateIdIfAbsent()}
      */
     @Override
     public void generateIdIfAbsent() {
@@ -261,8 +261,7 @@ public class Word implements Entity {
      * @return ссылку на этот же объект
      */
     public Word setInterpretations(List<WordInterpretation> interpretations) {
-        this.interpretations.clear();
-        if(interpretations != null) this.interpretations.addAll(interpretations);
+        this.interpretations = interpretations;
         return this;
     }
 
@@ -272,8 +271,7 @@ public class Word implements Entity {
      * @return ссылку на этот же объект
      */
     public Word setTranscriptions(List<WordTranscription> transcriptions) {
-        this.transcriptions.clear();
-        if(transcriptions != null) this.transcriptions.addAll(transcriptions);
+        this.transcriptions = transcriptions;
         return this;
     }
 
@@ -283,8 +281,7 @@ public class Word implements Entity {
      * @return ссылку на этот же объект
      */
     public Word setTranslations(List<WordTranslation> translations) {
-        this.translations.clear();
-        if(translations != null) this.translations.addAll(translations);
+        this.translations = translations;
         return this;
     }
 
@@ -294,8 +291,7 @@ public class Word implements Entity {
      * @return ссылку на этот же объект
      */
     public Word setExamples(List<WordExample> examples) {
-        this.examples.clear();
-        if(examples != null) this.examples.addAll(examples);
+        this.examples = examples;
         return this;
     }
 
@@ -381,74 +377,22 @@ public class Word implements Entity {
 
     /**
      * Задает результат последнего повторения этого слова с английского языка на родной язык пользователя.
-     * Метод изменяет данные о последнем повторении слова, а именно: <br/>
-     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
-     * 2. Если повторение было успешно (isRemember = true), то будет выбран наименьший интервал
-     *    повторения из списка intervals, который больше текущего интервала
-     *    (см. {@link RepeatDataFromEnglish#interval()}). <br/>
-     *    Если текущий интервал повторения равен наибольшему в списке - он остается без изменения. <br/>
-     * 3. Если повторение не было успешно (isRemember = false), то будет выбран наименьший интервал
-     *    из списка intervals.
-     * @param isRemember true - если пользователь правильно вспомнил переводы, произношение и толкования слова,
-     *                   иначе - false.
-     * @param lastDateOfRepeat дата текущего повторения.
-     * @param intervals Все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
-     *                  пользователя.
+     * @param repeatDataFromEnglish (См. {@link RepeatDataFromEnglish}).
+     * @return ссылку на этот же объект
      */
-    public void repeatFromEnglish(boolean isRemember, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
-        int index = isRemember ?
-                Math.min(intervals.indexOf(repeatDataFromEnglish.interval()) + 1, intervals.size() - 1) : 0;
-
-        repeatDataFromEnglish = new RepeatDataFromEnglish(intervals.get(index), lastDateOfRepeat);
+    public Word setRepeatDataFromEnglish(RepeatDataFromEnglish repeatDataFromEnglish) {
+        this.repeatDataFromEnglish = repeatDataFromEnglish;
+        return this;
     }
 
     /**
-     * Проверяет указанное пользователем значение английского слова при его повторении с родного языка пользователя
-     * на английский язык. Если заданное значение равняется значению текущего слова - повторение считается успешным.
-     * Метод изменяет данные о последнем повторении слова, а именно: <br/>
-     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
-     * 2. Если повторение было успешно, то будет выбран наименьший интервал повторения из списка intervals,
-     *    который больше текущего интервала (см. {@link RepeatDataFromEnglish#interval()}). <br/>
-     *    Если текущий интервал повторения равен наибольшему в списке - он остается без изменения. <br/>
-     * 3. Если повторение не было успешно, то будет выбран наименьший интервал из списка intervals.
-     * @param inputValue значение слова на английском языке.
-     * @param lastDateOfRepeat дата текущего повторения.
-     * @param intervals Все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
-     *                  пользователя.
-     * @return true - если повторение выполнено успешно, иначе - false.
+     * Задает результат последнего повторения этого слова с родного языка пользователя на английский язык.
+     * @param repeatDataFromNative (См. {@link RepeatDataFromNative}).
+     * @return ссылку на этот же объект
      */
-    public boolean repeatFromNative(String inputValue, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
-        boolean isRemember = inputValue.equalsIgnoreCase(value);
-        int index = isRemember ?
-                Math.min(intervals.indexOf(repeatDataFromNative.interval()) + 1, intervals.size() - 1) : 0;
-
-        repeatDataFromNative = new RepeatDataFromNative(intervals.get(index), lastDateOfRepeat);
-
-        return isRemember;
-    }
-
-    /**
-     * Указывает, что пользователь забыл перевод данного слова с английского на родной язык и его требуется повторить
-     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и установит наименьший из интервалов
-     * повторения пользователя.
-     * @param lastDateOfRepeat текущая дата.
-     * @param lowestInterval Наименьший из интервалов повторения пользователя
-     *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
-     */
-    public void markForRepetitionFromEnglish(LocalDate lastDateOfRepeat, int lowestInterval) {
-        repeatDataFromEnglish = new RepeatDataFromEnglish(lowestInterval, lastDateOfRepeat);
-    }
-
-    /**
-     * Указывает, что пользователь забыл перевод данного слова с родного языка на английский и его требуется повторить
-     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и установит наименьший из интервалов
-     * повторения пользователя.
-     * @param lastDateOfRepeat текущая дата.
-     * @param lowestInterval Наименьший из интервалов повторения пользователя
-     *                       (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
-     */
-    public void markForRepetitionFromNative(LocalDate lastDateOfRepeat, int lowestInterval) {
-        repeatDataFromNative = new RepeatDataFromNative(lowestInterval, lastDateOfRepeat);
+    public Word setRepeatDataFromNative(RepeatDataFromNative repeatDataFromNative) {
+        this.repeatDataFromNative = repeatDataFromNative;
+        return this;
     }
 
     @Override
@@ -479,5 +423,4 @@ public class Word implements Entity {
                 ", repeatDataFromNative=" + repeatDataFromNative +
                 '}';
     }
-
 }

@@ -8,7 +8,6 @@ import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.exception.UnknownEntityException;
-import com.google.common.collect.ImmutableList;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
@@ -188,7 +187,7 @@ public class ExpressionService {
     }
 
     /**
-     * Делегирует вызов методу {@link Expression#repeatFromEnglish(boolean, LocalDate, ImmutableList)} выражения,
+     * Делегирует вызов методу {@link Expression#repeatFromEnglish(boolean, LocalDate, List)} выражения,
      * имеющего идентификатор expressionId, сохраняет указанное устойчивое выражение, а затем возвращает его.
      * @return устойчивое выражение с идентификатором expressionId.
      */
@@ -200,7 +199,7 @@ public class ExpressionService {
     }
 
     /**
-     * Делегирует вызов методу {@link Expression#repeatFromNative(String, LocalDate, ImmutableList)} выражения,
+     * Делегирует вызов методу {@link Expression#repeatFromNative(String, LocalDate, List)} выражения,
      * имеющего идентификатор expressionId, сохраняет указанное устойчивое выражение, а затем возвращает его.
      * @return устойчивое выражение с идентификатором expressionId.
      */

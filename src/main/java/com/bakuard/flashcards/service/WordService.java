@@ -3,6 +3,8 @@ package com.bakuard.flashcards.service;
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.dal.WordRepository;
+import com.bakuard.flashcards.model.RepeatDataFromEnglish;
+import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.model.RepetitionResult;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.validation.ValidatorUtil;
@@ -218,49 +220,92 @@ public class WordService {
     }
 
     /**
-     * Делегирует вызов методу {@link Word#repeatFromEnglish(boolean, LocalDate, ImmutableList)} слова,
-     * имеющего идентификатор wordId, сохраняет указанное слово, а затем возвращает его.
+     * Задает результат последнего повторения этого слова с английского языка на родной язык пользователя.
+     * Метод изменяет данные о последнем повторении слова, а именно: <br/>
+     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
+     * 2. Если повторение было успешно, то будет выбран ближайший больший интервал повторения (если таковые есть)
+     *    относительно текущего.<br/>
+     * 3. Если повторение не было успешно (isRemember = false), то будет выбран наименьший интервал
+     *    из всех интервалов повторения данного пользователя.
+     * @param userId идентификатор пользователя, для слова которого выполняется повторение.
+     * @param wordId идентификатор повторяемого слова.
+     * @param isRemember true - если пользователь правильно вспомнил переводы, произношение и толкования слова,
+     *                   иначе - false.
      * @return слово с идентификатором wordId.
      */
     public Word repeatFromEnglish(UUID userId, UUID wordId, boolean isRemember) {
         Word word = tryFindById(userId, wordId);
-        word.repeatFromEnglish(isRemember, LocalDate.now(clock), intervalRepository.findAll(userId));
+        List<Integer> allIntervals =  intervalRepository.findAll(userId);
+        int intervalIndex = findNextRepeatInterval(
+                allIntervals,
+                word.getRepeatDataFromEnglish().interval(),
+                isRemember
+        );
+        LocalDate lastDateOfRepeat = LocalDate.now(clock);
+        word.setRepeatDataFromEnglish(
+                new RepeatDataFromEnglish(allIntervals.get(intervalIndex), lastDateOfRepeat)
+        );
         save(word);
         return word;
     }
 
     /**
-     * Делегирует вызов методу {@link Word#repeatFromNative(String, LocalDate, ImmutableList)} слова,
-     * имеющего идентификатор wordId, сохраняет указанное слово, а затем возвращает его.
+     * Проверяет указанное пользователем значение английского слова при его повторении с родного языка
+     * на английский язык. Если заданное значение равняется значению текущего слова - повторение считается успешным.
+     * Метод изменяет данные о последнем повторении слова, а именно: <br/>
+     * 1. В качестве даты последнего повторения устанавливается текущая дата. <br/>
+     * 2. Если повторение было успешно, то будет выбран ближайший больший интервал повторения (если таковые есть)
+     *    относительно текущего.<br/>
+     * 3. Если повторение не было успешно (isRemember = false), то будет выбран наименьший интервал
+     *    из всех интервалов повторения данного пользователя.
+     * @param userId идентификатор пользователя, для слова которого выполняется повторение.
+     * @param wordId идентификатор повторяемого слова.
+     * @param inputWordValue значения слова на английском языке указанное при проверке.
      * @return слово с идентификатором wordId.
      */
     public RepetitionResult<Word> repeatFromNative(UUID userId, UUID wordId, String inputWordValue) {
         Word word = tryFindById(userId, wordId);
-        boolean isRemember = word.repeatFromNative(inputWordValue, LocalDate.now(clock), intervalRepository.findAll(userId));
+        boolean isRemember = word.getValue().equals(inputWordValue);
+        List<Integer> allIntervals =  intervalRepository.findAll(userId);
+        int intervalIndex = findNextRepeatInterval(
+                allIntervals,
+                word.getRepeatDataFromEnglish().interval(),
+                isRemember
+        );
+        LocalDate lastDateOfRepeat = LocalDate.now(clock);
+        word.setRepeatDataFromNative(
+                new RepeatDataFromNative(allIntervals.get(intervalIndex), lastDateOfRepeat)
+        );
         save(word);
         return new RepetitionResult<>(word, isRemember);
     }
 
     /**
-     * Делегирует вызов методу {@link Word#markForRepetitionFromEnglish(LocalDate, int)} слова,
-     * имеющего идентификатор wordId, сохраняет указанное слово, а затем возвращает его.
+     * Указывает, что пользователь забыл перевод данного слова с английского на родной язык и его требуется повторить
+     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и установит наименьший из интервалов
+     * повторения пользователя.
      * @return слово с идентификатором wordId.
      */
     public Word markForRepetitionFromEnglish(UUID userId, UUID wordId) {
         Word word = tryFindById(userId, wordId);
-        word.markForRepetitionFromEnglish(LocalDate.now(clock), intervalRepository.findAll(userId).get(0));
+        LocalDate lastDateOfRepeat = LocalDate.now(clock);
+        List<Integer> allIntervals =  intervalRepository.findAll(userId);
+        word.setRepeatDataFromEnglish(new RepeatDataFromEnglish(allIntervals.getFirst(), lastDateOfRepeat));
         save(word);
         return word;
     }
 
     /**
-     * Делегирует вызов методу {@link Word#markForRepetitionFromNative(LocalDate, int)} слова,
-     * имеющего идентификатор wordId, сохраняет указанное слово, а затем возвращает его.
+     * Указывает, что пользователь забыл перевод данного слова с родного языка на английский и его требуется повторить
+     * в ближайшее время. Метод отметит текущую дату, как дату последнего повторения и установит наименьший из интервалов
+     * повторения пользователя.
      * @return слово с идентификатором wordId.
      */
     public Word markForRepetitionFromNative(UUID userId, UUID wordId) {
         Word word = tryFindById(userId, wordId);
-        word.markForRepetitionFromNative(LocalDate.now(clock), intervalRepository.findAll(userId).get(0));
+        LocalDate lastDateOfRepeat = LocalDate.now(clock);
+        List<Integer> allIntervals =  intervalRepository.findAll(userId);
+        word.setRepeatDataFromNative(new RepeatDataFromNative(allIntervals.getFirst(), lastDateOfRepeat));
         save(word);
         return word;
     }
@@ -283,5 +328,9 @@ public class WordService {
         return word.getRepeatDataFromNative().isHotRepeat(intervals.get(0));
     }
 
+
+    private int findNextRepeatInterval(List<Integer> allIntervals, int lastInterval, boolean isRemember) {
+        return isRemember ? Math.min(allIntervals.indexOf(lastInterval) + 1, allIntervals.size() - 1) : 0;
+    }
 
 }

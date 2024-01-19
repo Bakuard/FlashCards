@@ -6,7 +6,6 @@ import com.bakuard.flashcards.model.RepeatDataFromNative;
 import com.bakuard.flashcards.validation.annotation.AllUnique;
 import com.bakuard.flashcards.validation.annotation.NotBlankOrNull;
 import com.bakuard.flashcards.validation.annotation.NotContainsNull;
-import com.google.common.collect.ImmutableList;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -298,7 +297,7 @@ public class Expression implements Entity {
      * @param intervals Все интервалы повторения (подробнее см. {@link com.bakuard.flashcards.service.IntervalService})
      *                  пользователя.
      */
-    public void repeatFromEnglish(boolean isRemember, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
+    public void repeatFromEnglish(boolean isRemember, LocalDate lastDateOfRepeat, List<Integer> intervals) {
         int index = isRemember ?
                 Math.min(intervals.indexOf(repeatDataFromEnglish.interval()) + 1, intervals.size() - 1) : 0;
 
@@ -320,7 +319,7 @@ public class Expression implements Entity {
      *                  пользователя.
      * @return true - если повторение выполнено успешно, иначе - false.
      */
-    public boolean repeatFromNative(String inputValue, LocalDate lastDateOfRepeat, ImmutableList<Integer> intervals) {
+    public boolean repeatFromNative(String inputValue, LocalDate lastDateOfRepeat, List<Integer> intervals) {
         boolean isRemember = inputValue.equalsIgnoreCase(value);
         int index = inputValue.equalsIgnoreCase(value) ?
                 Math.min(intervals.indexOf(repeatDataFromNative.interval()) + 1, intervals.size() - 1) : 0;

@@ -4,7 +4,6 @@ import com.bakuard.flashcards.dal.IntervalRepository;
 import com.bakuard.flashcards.validation.exception.InvalidParameter;
 import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.exception.UnknownEntityException;
-import com.google.common.collect.ImmutableList;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -14,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -84,7 +84,7 @@ public class IntervalRepositoryImpl implements IntervalRepository {
 
     @Override
     public void replace(UUID userId, int oldInterval, int newInterval) {
-        ImmutableList<Integer> intervals = findAll(userId);
+        List<Integer> intervals = findAll(userId);
 
         assertIntervalNotNegative(newInterval);
         assertUserHasInterval(oldInterval, userId, intervals);
@@ -118,14 +118,14 @@ public class IntervalRepositoryImpl implements IntervalRepository {
     }
 
     @Override
-    public ImmutableList<Integer> findAll(UUID userId) {
+    public List<Integer> findAll(UUID userId) {
         return jdbcTemplate.query(
                 "select * from intervals where user_id=?;",
                 ps -> ps.setObject(1 ,userId),
                 rs -> {
                     ArrayList<Integer> result = new ArrayList<>();
                     while(rs.next()) result.add(rs.getInt("number_days"));
-                    return ImmutableList.copyOf(result);
+                    return result;
                 }
         );
     }
@@ -201,7 +201,7 @@ public class IntervalRepositoryImpl implements IntervalRepository {
         }
     }
 
-    private void assertUserHasInterval(int interval, UUID userId, ImmutableList<Integer> intervals) {
+    private void assertUserHasInterval(int interval, UUID userId, List<Integer> intervals) {
         if(!intervals.contains(interval)) {
             throw new InvalidParameter(
                     "User with id=" + userId + " hasn't interval=" + interval,
