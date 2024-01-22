@@ -50,8 +50,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -75,8 +74,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -100,8 +98,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -125,8 +122,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -151,8 +147,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -174,8 +169,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -199,8 +193,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -224,8 +217,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -249,8 +241,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -276,8 +267,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")
@@ -301,8 +291,7 @@ class UserServiceTest {
                 Mockito.mock(UserRepository.class),
                 Mockito.mock(IntervalRepository.class),
                 configData,
-                validator,
-                transactionTemplate
+                validator
         );
         User user = service.createUserFromCredential(
                 new Credential("me@gmail.com", "password")

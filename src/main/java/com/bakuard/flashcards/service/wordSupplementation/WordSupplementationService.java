@@ -5,6 +5,7 @@ import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.word.supplementation.AggregateSupplementedWord;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -69,6 +70,7 @@ public class WordSupplementationService {
      * Создает (если ещё не создан) отдельный поток, отвечающий за периодическое удаление всех переводов
      * не используемых примеров.
      */
+    @PostConstruct
     public void scheduleDeleteUnusedExamples() {
         thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {

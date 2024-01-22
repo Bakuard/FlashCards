@@ -12,7 +12,10 @@ import com.bakuard.flashcards.validation.exception.IncorrectCredentials;
 import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import com.bakuard.flashcards.validation.exception.UnknownEntityException;
 import com.google.common.hash.Hashing;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +38,6 @@ public class UserService {
     private IntervalRepository intervalRepository;
     private ConfigData conf;
     private ValidatorUtil validator;
-    private TransactionTemplate transactionTemplate;
 
     /**
      * Создает новый сервис управления учетными данными.
@@ -47,13 +49,11 @@ public class UserService {
     public UserService(UserRepository userRepository,
                        IntervalRepository intervalRepository,
                        ConfigData conf,
-                       ValidatorUtil validator,
-                       TransactionTemplate transactionTemplate) {
+                       ValidatorUtil validator) {
         this.userRepository = userRepository;
         this.intervalRepository = intervalRepository;
         this.conf = conf;
         this.validator = validator;
-        this.transactionTemplate = transactionTemplate;
     }
 
     /**
@@ -183,33 +183,6 @@ public class UserService {
     }
 
     /**
-     * Если в постоянном хранилище отсутствует учетная запись супер-администратора, то создает её. <br/>
-     * Иначе, если в конфигурации приложения задано пересоздание этой учетной записи - пересоздает её. <br/>
-     * Иначе, ничего не делает.
-     */
-    public void createOrReplaceSuperAdminIfNecessary() {
-        long countUserWithRole = userRepository.countForRole(conf.superAdmin().roleName());
-        if(countUserWithRole < 1) {
-            Credential credential = new Credential(conf.superAdmin().mail(), conf.superAdmin().password());
-            validator.assertValid(credential);
-
-            transactionTemplate.execute(status -> save(
-                    createUserFromCredential(credential).addRole(conf.superAdmin().roleName())
-            ));
-        } else if(conf.superAdmin().recreate()) {
-            transactionTemplate.execute(status -> {
-                User superAdmin = userRepository.findByRole(conf.superAdmin().roleName(), 1, 0).get(0);
-                Credential credential = new Credential(conf.superAdmin().mail(), conf.superAdmin().password());
-                validator.assertValid(credential);
-                superAdmin.setEmail(credential.email());
-                changePasswordWithoutCheck(superAdmin, credential.password());
-                save(superAdmin);
-                return superAdmin;
-            });
-        }
-    }
-
-    /**
      * Проверяет - является ли указанный пароль текущим паролем пользователя. Если это не так - выбрасывает
      * исключение.
      * @param user пользователь, для которого выполняется проверка на корректность текущего пароля.
@@ -290,6 +263,33 @@ public class UserService {
                 salt,
                 new ArrayList<>()
         );
+    }
+
+    /**
+     * Если в постоянном хранилище отсутствует учетная запись супер-администратора, то создает её. <br/>
+     * Иначе, если в конфигурации приложения задано пересоздание этой учетной записи - пересоздает её. <br/>
+     * Иначе, ничего не делает.
+     */
+    public User createOrReplaceSuperAdminIfNecessary() {
+        long countUserWithRole = userRepository.countForRole(conf.superAdmin().roleName());
+        User superAdmin = null;
+
+        if(countUserWithRole < 1) {
+            Credential credential = new Credential(conf.superAdmin().mail(), conf.superAdmin().password());
+            validator.assertValid(credential);
+            superAdmin = createUserFromCredential(credential).addRole(conf.superAdmin().roleName());
+        } else if(conf.superAdmin().recreate()) {
+                superAdmin = userRepository.findByRole(conf.superAdmin().roleName(), 1, 0).get(0);
+                Credential credential = new Credential(conf.superAdmin().mail(), conf.superAdmin().password());
+                validator.assertValid(credential);
+                superAdmin.setEmail(credential.email());
+                changePasswordWithoutCheck(superAdmin, credential.password());
+        } else {
+            superAdmin = userRepository.findByEmail(conf.superAdmin().mail()).orElseThrow();
+        }
+
+        save(superAdmin);
+        return superAdmin;
     }
 
 

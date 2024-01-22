@@ -180,17 +180,15 @@ public class SpringConfig implements WebMvcConfigurer {
                 return new ExpressionService(expressionRepository, intervalRepository, clock, configData, validator);
         }
 
-        @Bean(initMethod = "createOrReplaceSuperAdminIfNecessary")
+        @Bean
         public UserService userService(UserRepository userRepository,
                                        IntervalRepository intervalRepository,
                                        ConfigData conf,
-                                       ValidatorUtil validator,
-                                       TransactionTemplate transactionTemplate) {
+                                       ValidatorUtil validator) {
                 return new UserService(userRepository,
                         intervalRepository,
                         conf,
-                        validator,
-                        transactionTemplate);
+                        validator);
         }
 
         @Bean()
@@ -226,7 +224,7 @@ public class SpringConfig implements WebMvcConfigurer {
                 return new StatisticService(statisticRepository, clock);
         }
 
-        @Bean(initMethod = "scheduleDeleteUnusedExamples")
+        @Bean
         public WordSupplementationService wordSupplementationService(WordOuterSourceBuffer wordOuterSourceBuffer,
                                                                      Clock clock,
                                                                      ObjectMapper mapper,
@@ -236,10 +234,12 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public Authorizer authorizer(UserRepository userRepository,
-                                     ConfigData configData) {
-                User superAdmin = userRepository.findByRole(configData.superAdmin().roleName(), 1, 0).get(0);
+        public User superAdmin(UserService userService) {
+                return userService.createOrReplaceSuperAdminIfNecessary();
+        }
 
+        @Bean
+        public Authorizer authorizer(User superAdmin, ConfigData configData) {
                 return Authorizer.newBuilder().
                         policy(request -> request.getPrincipal().
                                 filter(p -> p.getId().equals(superAdmin.getId())).
