@@ -228,11 +228,11 @@ public class Word implements Entity {
     }
 
     /**
-     * См. {@link Entity#generateIdIfAbsent()}
+     * {@inheritDoc}
      */
     @Override
-    public void generateIdIfAbsent() {
-        if(id == null) id = UUID.randomUUID();
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**

@@ -190,11 +190,11 @@ public class Expression implements Entity {
     }
 
     /**
-     * см. {@link Entity#generateIdIfAbsent()}
+     * {@inheritDoc}
      */
     @Override
-    public void generateIdIfAbsent() {
-        if(id == null) id = UUID.randomUUID();
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**

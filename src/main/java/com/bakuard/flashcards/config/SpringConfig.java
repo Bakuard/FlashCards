@@ -79,6 +79,7 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import javax.sql.DataSource;
 import java.time.Clock;
+import java.util.UUID;
 
 @SpringBootApplication(
         exclude = {SecurityAutoConfiguration.class},
@@ -328,7 +329,7 @@ public class SpringConfig implements WebMvcConfigurer {
         public ApplicationListener<BeforeConvertEvent<?>> entityCreator() {
                 return event -> {
                        if(event.getEntity() instanceof Entity entity) {
-                               entity.generateIdIfAbsent();
+                               if(entity.isNew()) entity.setId(UUID.randomUUID());
                        }
                 };
         }

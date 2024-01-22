@@ -28,6 +28,5 @@ public interface Entity extends Persistable<UUID> {
      * Данный метод используется слоем доступа к данным для генерации идентификатор сущности перед её первым
      * сохранением
      */
-    public void generateIdIfAbsent();
-
+    public void setId(UUID id);
 }

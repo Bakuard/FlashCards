@@ -74,7 +74,7 @@ public class WordOuterSourceBufferImpl implements WordOuterSourceBuffer {
 
     private void saveRoot(SupplementedWord word) {
         if(word.isNew()) {
-            word.generateIdIfAbsent();
+            word.setId(UUID.randomUUID());
             try {
                 jdbcTemplate.update("""
                                 insert into word_outer_source(word_outer_source_id,
