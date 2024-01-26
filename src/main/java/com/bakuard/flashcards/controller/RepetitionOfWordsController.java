@@ -113,7 +113,7 @@ public class RepetitionOfWordsController {
                 jwsUserId, userId, page, size);
         authorizer.assertToHasAccess(jwsUserId, "repetition", userId, "findAllFromEnglishBy");
 
-        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(null));
+        Pageable pageable = mapper.toWordPageable(page, size, null);
         Page<Word> result = wordService.findAllForRepeatFromEnglish(userId, pageable);
 
         return ResponseEntity.ok(mapper.toWordsForRepetitionFromEnglishResponse(result));
@@ -209,7 +209,7 @@ public class RepetitionOfWordsController {
                 jwsUserId, userId, page, size);
         authorizer.assertToHasAccess(jwsUserId, "repetition", userId, "findAllFromNativeBy");
 
-        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(null));
+        Pageable pageable = mapper.toWordPageable(page, size, null);
         Page<Word> result = wordService.findAllForRepeatFromNative(userId, pageable);
 
         return ResponseEntity.ok(mapper.toWordsForRepetitionFromNativeResponse(result));

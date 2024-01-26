@@ -316,7 +316,7 @@ public class WordService {
      */
     public boolean isHotRepeatFromEnglish(Word word) {
         List<Integer> intervals = intervalRepository.findAll(word.getUserId());
-        return word.getRepeatDataFromEnglish().isHotRepeat(intervals.get(0));
+        return word.getRepeatDataFromEnglish().isHotRepeat(intervals.getFirst());
     }
 
     /**
@@ -325,7 +325,7 @@ public class WordService {
      */
     public boolean isHotRepeatFromNative(Word word) {
         List<Integer> intervals = intervalRepository.findAll(word.getUserId());
-        return word.getRepeatDataFromNative().isHotRepeat(intervals.get(0));
+        return word.getRepeatDataFromNative().isHotRepeat(intervals.getFirst());
     }
 
 

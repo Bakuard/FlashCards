@@ -4,8 +4,6 @@ import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.model.auth.credential.User;
-import com.bakuard.flashcards.model.filter.SortRules;
-import com.bakuard.flashcards.model.filter.SortedEntity;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import com.bakuard.flashcards.validation.exception.NotUniqueEntityException;
 import org.assertj.core.api.Assertions;
@@ -18,7 +16,6 @@ import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -50,8 +47,6 @@ class UserRepositoryTest {
     private ValidatorUtil validator;
     @Autowired
     private ConfigData configData;
-    @Autowired
-    private SortRules sortRules;
 
     @BeforeEach
     public void beforeEach() {
@@ -344,7 +339,12 @@ class UserRepositoryTest {
         List<User> users = IntStream.range(10, 61).mapToObj(this::user).toList();
         commit(() -> users.forEach(u -> userRepository.save(u)));
 
-        Pageable pageable = PageRequest.of(3, 5, sortRules.toSort("email.desc", SortedEntity.USER));
+        Pageable pageable = PaginationRequest.toUserPageRequest(
+                3,
+                5,
+                "email.desc",
+                configData
+        );
         Page<User> actual = userRepository.findAll(pageable);
 
         Assertions.assertThat(actual.getContent()).
@@ -371,7 +371,12 @@ class UserRepositoryTest {
         commit(() -> users.forEach(u -> userRepository.save(u)));
         users.sort(Comparator.comparing(u -> u.getId().toString()));
 
-        Pageable pageable = PageRequest.of(0, 15, sortRules.toSort("id", SortedEntity.USER));
+        Pageable pageable = PaginationRequest.toUserPageRequest(
+                0,
+                15,
+                "id",
+                configData
+        );
         Page<User> actual = userRepository.findAll(pageable);
 
         Assertions.assertThat(actual.getContent()).

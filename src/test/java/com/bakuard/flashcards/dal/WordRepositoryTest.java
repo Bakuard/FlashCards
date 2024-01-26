@@ -4,7 +4,6 @@ import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
 import com.bakuard.flashcards.model.auth.credential.User;
-import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.word.WordExample;
 import com.bakuard.flashcards.model.word.WordInterpretation;
@@ -55,8 +54,6 @@ class WordRepositoryTest {
     private ValidatorUtil validator;
     @Autowired
     private MutableClock clock;
-    @Autowired
-    private SortRules sortRules;
 
     @BeforeEach
     public void beforeEach() {

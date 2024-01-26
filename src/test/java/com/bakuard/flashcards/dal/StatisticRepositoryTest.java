@@ -3,10 +3,9 @@ package com.bakuard.flashcards.dal;
 import com.bakuard.flashcards.config.MutableClock;
 import com.bakuard.flashcards.config.SpringConfig;
 import com.bakuard.flashcards.config.TestConfig;
+import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.expression.Expression;
-import com.bakuard.flashcards.model.filter.SortRules;
-import com.bakuard.flashcards.model.filter.SortedEntity;
 import com.bakuard.flashcards.model.statistic.ExpressionRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.model.statistic.RepeatExpressionFromEnglishStatistic;
 import com.bakuard.flashcards.model.statistic.RepeatExpressionFromNativeStatistic;
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -68,7 +66,7 @@ class StatisticRepositoryTest {
     @Autowired
     private MutableClock clock;
     @Autowired
-    private SortRules sortRules;
+    private ConfigData config;
 
     @BeforeEach
     public void beforeEach() {
@@ -1193,7 +1191,12 @@ class StatisticRepositoryTest {
             statisticRepository.append(wordFromNative(user.getId(), wordF.getId(), 1, false));
         });
 
-        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.WORD_STATISTIC));
+        Pageable pageable = PaginationRequest.toWordStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
         Assertions.assertThatExceptionOfType(InvalidParameter.class).
                 isThrownBy(() -> statisticRepository.wordsRepetitionByPeriod(
                         user.getId(), periodStart(10), periodEnd(0), pageable)
@@ -1264,8 +1267,17 @@ class StatisticRepositoryTest {
             statisticRepository.append(wordFromNative(user.getId(), wordF.getId(), 1, false));
         });
 
-        Pageable pageable = PageRequest.of(0, 100,
-                sortRules.toSort("remember_from_english.asc,not_remember_from_english.asc,remember_from_native.desc,not_remember_from_native.desc", SortedEntity.WORD_STATISTIC));
+        Pageable pageable = PaginationRequest.toWordStatisticsPageRequest(
+                0,
+                100,
+                """
+                remember_from_english.asc,
+                not_remember_from_english.asc,
+                remember_from_native.desc,
+                not_remember_from_native.desc
+                """,
+                config
+        );
         Page<WordRepetitionByPeriodStatistic> actual = statisticRepository.wordsRepetitionByPeriod(
                 user.getId(), periodStart(0), periodEnd(100), pageable
         );
@@ -1363,7 +1375,12 @@ class StatisticRepositoryTest {
             statisticRepository.append(wordFromNative(user.getId(), wordC.getId(), 2, true));
         });
 
-        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.WORD_STATISTIC));
+        Pageable pageable = PaginationRequest.toWordStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
         Page<WordRepetitionByPeriodStatistic> actual = statisticRepository.wordsRepetitionByPeriod(
                 user.getId(), periodStart(0), periodEnd(4), pageable
         );
@@ -1404,7 +1421,12 @@ class StatisticRepositoryTest {
              => exception
             """)
     public void wordsRepetitionByPeriod4() {
-        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.WORD_STATISTIC));
+        Pageable pageable = PaginationRequest.toWordStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
 
         Assertions.assertThatNullPointerException().
                 isThrownBy(() ->
@@ -1422,7 +1444,12 @@ class StatisticRepositoryTest {
             """)
     public void wordsRepetitionByPeriod5() {
         User user = commit(() -> userRepository.save(user(1)));
-        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.WORD_STATISTIC));
+        Pageable pageable = PaginationRequest.toWordStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
 
         Assertions.assertThatNullPointerException().
                 isThrownBy(() ->
@@ -1440,7 +1467,12 @@ class StatisticRepositoryTest {
             """)
     public void wordsRepetitionByPeriod6() {
         User user = commit(() -> userRepository.save(user(1)));
-        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.WORD_STATISTIC));
+        Pageable pageable = PaginationRequest.toWordStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
 
         Assertions.assertThatNullPointerException().
                 isThrownBy(() ->
@@ -1526,8 +1558,12 @@ class StatisticRepositoryTest {
             statisticRepository.append(expressionFromNative(user.getId(), expressionF.getId(), 1, false));
         });
 
-        Pageable pageable = PageRequest.of(0, 100,
-                sortRules.getDefaultSort(SortedEntity.EXPRESSION_STATISTIC));
+        Pageable pageable = PaginationRequest.toExpressionStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
         Assertions.assertThatExceptionOfType(InvalidParameter.class).
                 isThrownBy(() -> statisticRepository.expressionsRepetitionByPeriod(
                         user.getId(), periodStart(10), periodEnd(0), pageable)
@@ -1598,13 +1634,17 @@ class StatisticRepositoryTest {
             statisticRepository.append(expressionFromNative(user.getId(), expressionF.getId(), 1, false));
         });
 
-        Pageable pageable = PageRequest.of(0, 100,
-                sortRules.toSort("""
+        Pageable pageable = PaginationRequest.toExpressionStatisticsPageRequest(
+                0,
+                100,
+                """
                         remember_from_english.asc,
                         not_remember_from_english.asc,
                         remember_from_native.desc,
                         not_remember_from_native.desc
-                        """, SortedEntity.WORD_STATISTIC));
+                        """,
+                config
+        );
         Page<ExpressionRepetitionByPeriodStatistic> actual = statisticRepository.expressionsRepetitionByPeriod(
                 user.getId(), periodStart(0), periodEnd(100), pageable
         );
@@ -1702,8 +1742,12 @@ class StatisticRepositoryTest {
             statisticRepository.append(expressionFromNative(user.getId(), expressionC.getId(), 2, true));
         });
 
-        Pageable pageable = PageRequest.of(0, 100,
-                sortRules.getDefaultSort(SortedEntity.EXPRESSION_STATISTIC));
+        Pageable pageable = PaginationRequest.toExpressionStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
         Page<ExpressionRepetitionByPeriodStatistic> actual = statisticRepository.expressionsRepetitionByPeriod(
                 user.getId(), periodStart(0), periodEnd(4), pageable
         );
@@ -1744,7 +1788,12 @@ class StatisticRepositoryTest {
              => exception
             """)
     public void expressionsRepetitionByPeriod4() {
-        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.EXPRESSION_STATISTIC));
+        Pageable pageable = PaginationRequest.toExpressionStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
 
         Assertions.assertThatNullPointerException().
                 isThrownBy(() ->
@@ -1762,7 +1811,12 @@ class StatisticRepositoryTest {
             """)
     public void expressionsRepetitionByPeriod5() {
         User user = commit(() -> userRepository.save(user(1)));
-        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.EXPRESSION_STATISTIC));
+        Pageable pageable = PaginationRequest.toExpressionStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
 
         Assertions.assertThatNullPointerException().
                 isThrownBy(() ->
@@ -1780,7 +1834,12 @@ class StatisticRepositoryTest {
             """)
     public void expressionsRepetitionByPeriod6() {
         User user = commit(() -> userRepository.save(user(1)));
-        Pageable pageable = PageRequest.of(0, 100, sortRules.getDefaultSort(SortedEntity.EXPRESSION_STATISTIC));
+        Pageable pageable = PaginationRequest.toExpressionStatisticsPageRequest(
+                0,
+                100,
+                "",
+                config
+        );
 
         Assertions.assertThatNullPointerException().
                 isThrownBy(() ->

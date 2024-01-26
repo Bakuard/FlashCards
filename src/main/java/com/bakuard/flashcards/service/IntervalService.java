@@ -51,7 +51,7 @@ public class IntervalService {
      * @return наименьший из интервалов повторения пользователя
      */
     public int getLowestInterval(UUID userId) {
-        return intervalRepository.findAll(userId).get(0);
+        return intervalRepository.findAll(userId).getFirst();
     }
 
 }

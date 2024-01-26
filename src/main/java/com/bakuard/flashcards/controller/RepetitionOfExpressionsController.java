@@ -113,7 +113,7 @@ public class RepetitionOfExpressionsController {
                 jwsUserId, userId, page, size);
         authorizer.assertToHasAccess(jwsUserId, "repetition", userId, "findAllFromEnglishBy");
 
-        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(null));
+        Pageable pageable = mapper.toExpressionPageable(page, size, null);
         Page<Expression> result = expressionService.findAllForRepeatFromEnglish(userId, pageable);
 
         return ResponseEntity.ok(mapper.toExpressionsForRepetitionFromEnglishResponse(result));
@@ -210,7 +210,7 @@ public class RepetitionOfExpressionsController {
                 jwsUserId, userId, page, size);
         authorizer.assertToHasAccess(jwsUserId, "repetition", userId, "findAllFromNativeBy");
 
-        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(null));
+        Pageable pageable = mapper.toExpressionPageable(page, size, null);
         Page<Expression> result = expressionService.findAllForRepeatFromNative(userId, pageable);
 
         return ResponseEntity.ok(mapper.toExpressionForRepetitionFromNativeResponse(result));

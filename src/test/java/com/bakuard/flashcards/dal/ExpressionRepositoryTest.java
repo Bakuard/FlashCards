@@ -8,7 +8,6 @@ import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.expression.ExpressionExample;
 import com.bakuard.flashcards.model.expression.ExpressionInterpretation;
 import com.bakuard.flashcards.model.expression.ExpressionTranslation;
-import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.validation.ValidatorUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,8 +53,6 @@ class ExpressionRepositoryTest {
     private ValidatorUtil validator;
     @Autowired
     private MutableClock clock;
-    @Autowired
-    private SortRules sortRules;
 
     @BeforeEach
     public void beforeEach() {

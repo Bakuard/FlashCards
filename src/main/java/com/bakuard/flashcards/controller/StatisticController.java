@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -195,8 +196,9 @@ public class StatisticController {
                 jwsUserId, userId, startDate, endDate, page, size, sort);
         authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForWordsRepetition");
 
+        Pageable pageable = mapper.toWordStatisticsPageable(page, size, sort);
         Page<WordRepetitionByPeriodStatistic> statistic = statisticService.getWordsRepetitionByPeriod(
-                userId, startDate, endDate, mapper.toPageable(page, size, mapper.toWordStatisticSort(sort))
+                userId, startDate, endDate, pageable
         );
 
         return ResponseEntity.ok(mapper.toWordsRepetitionByPeriodResponse(statistic));
@@ -343,8 +345,9 @@ public class StatisticController {
                 jwsUserId, userId, startDate, endDate, page, size, sort);
         authorizer.assertToHasAccess(jwsUserId, "statistic", userId, "findStatisticForExpressionsRepetition");
 
+        Pageable pageable = mapper.toExpressionStatisticsPageable(page, size, sort);
         Page<ExpressionRepetitionByPeriodStatistic> statistic = statisticService.getExpressionsRepetitionByPeriod(
-                userId, startDate, endDate, mapper.toPageable(page, size, mapper.toExpressionStatisticSort(sort))
+                userId, startDate, endDate, pageable
         );
 
         return ResponseEntity.ok(mapper.toExpressionsRepetitionByPeriodResponse(statistic));

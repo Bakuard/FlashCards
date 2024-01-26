@@ -12,7 +12,6 @@ import com.bakuard.flashcards.dto.word.WordUpdateRequest;
 import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.word.Word;
 import com.bakuard.flashcards.model.word.supplementation.AggregateSupplementedWord;
-import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.UserService;
 import com.bakuard.flashcards.service.WordService;
 import com.bakuard.flashcards.service.wordSupplementation.WordSupplementationService;
@@ -292,7 +291,7 @@ public class DictionaryOfWordsController {
         authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findAllBy");
 
         userService.assertExists(userId);
-        Pageable pageable = mapper.toPageable(page, size, mapper.toWordSort(sort));
+        Pageable pageable = mapper.toWordPageable(page, size, sort);
         Page<WordForDictionaryListResponse> result = mapper.toWordsForDictionaryListResponse(
                 wordService.findByUserId(userId, pageable)
         );
@@ -400,7 +399,7 @@ public class DictionaryOfWordsController {
                 jwsUserId, userId, value, maxDistance, page, size);
         authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findByValue");
 
-        Pageable pageable = mapper.toPageable(page, size);
+        Pageable pageable = mapper.toUnsortedPageable(page, size);
         Page<Word> words = wordService.findByValue(userId, value, maxDistance, pageable);
         return ResponseEntity.ok(mapper.toWordsForDictionaryListResponse(words));
     }
@@ -454,7 +453,7 @@ public class DictionaryOfWordsController {
                 jwsUserId, userId, translate, page, size);
         authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findByTranslate");
 
-        Pageable pageable = mapper.toPageable(page, size);
+        Pageable pageable = mapper.toUnsortedPageable(page, size);
         Page<Word> words = wordService.findByTranslate(userId, translate, pageable);
         return ResponseEntity.ok(mapper.toWordsForDictionaryListResponse(words));
     }

@@ -22,7 +22,6 @@ import com.bakuard.flashcards.model.Entity;
 import com.bakuard.flashcards.model.auth.credential.User;
 import com.bakuard.flashcards.model.auth.policy.Access;
 import com.bakuard.flashcards.model.auth.policy.Authorizer;
-import com.bakuard.flashcards.model.filter.SortRules;
 import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.EmailService;
 import com.bakuard.flashcards.service.ExpressionService;
@@ -297,17 +296,11 @@ public class SpringConfig implements WebMvcConfigurer {
         }
 
         @Bean
-        public SortRules sortRules() {
-                return new SortRules();
-        }
-
-        @Bean
         public DtoMapper dtoMapper(WordService wordService,
                                    ExpressionService expressionService,
                                    IntervalService intervalService,
                                    UserService userService,
                                    ConfigData configData,
-                                   SortRules sortRules,
                                    Clock clock,
                                    Messages messages) {
                 return new DtoMapper(wordService,
@@ -315,7 +308,6 @@ public class SpringConfig implements WebMvcConfigurer {
                         intervalService,
                         userService,
                         configData,
-                        sortRules,
                         clock,
                         messages);
         }

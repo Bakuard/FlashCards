@@ -2,6 +2,7 @@ package com.bakuard.flashcards.dto;
 
 import com.bakuard.flashcards.config.configData.ConfigData;
 import com.bakuard.flashcards.controller.message.Messages;
+import com.bakuard.flashcards.dal.PaginationRequest;
 import com.bakuard.flashcards.dto.common.ExampleOuterSourceResponse;
 import com.bakuard.flashcards.dto.common.ExampleRequest;
 import com.bakuard.flashcards.dto.common.ExampleResponse;
@@ -50,8 +51,6 @@ import com.bakuard.flashcards.model.expression.Expression;
 import com.bakuard.flashcards.model.expression.ExpressionExample;
 import com.bakuard.flashcards.model.expression.ExpressionInterpretation;
 import com.bakuard.flashcards.model.expression.ExpressionTranslation;
-import com.bakuard.flashcards.model.filter.SortRules;
-import com.bakuard.flashcards.model.filter.SortedEntity;
 import com.bakuard.flashcards.model.statistic.ExpressionRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.model.statistic.WordRepetitionByPeriodStatistic;
 import com.bakuard.flashcards.model.word.Word;
@@ -62,16 +61,13 @@ import com.bakuard.flashcards.model.word.WordTranslation;
 import com.bakuard.flashcards.model.word.supplementation.AggregateSupplementedWord;
 import com.bakuard.flashcards.model.word.supplementation.ExampleOuterSource;
 import com.bakuard.flashcards.model.word.supplementation.OuterSource;
-import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.IntervalService;
 import com.bakuard.flashcards.service.UserService;
 import com.bakuard.flashcards.service.WordService;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 
 import java.time.Clock;
@@ -90,7 +86,6 @@ public class DtoMapper {
     private IntervalService intervalService;
     private UserService userService;
     private ConfigData configData;
-    private SortRules sortRules;
     private Clock clock;
     private Messages messages;
 
@@ -99,7 +94,6 @@ public class DtoMapper {
                      IntervalService intervalService,
                      UserService userService,
                      ConfigData configData,
-                     SortRules sortRules,
                      Clock clock,
                      Messages messages) {
         this.wordService = wordService;
@@ -107,7 +101,6 @@ public class DtoMapper {
         this.intervalService = intervalService;
         this.expressionService = expressionService;
         this.configData = configData;
-        this.sortRules = sortRules;
         this.clock = clock;
         this.messages = messages;
     }
@@ -226,10 +219,6 @@ public class DtoMapper {
                         collect(Collectors.toCollection(ArrayList::new)));
     }
 
-    public Sort toWordSort(String sortRule) {
-        return sortRules.toSort(sortRule, SortedEntity.WORD);
-    }
-
 
     public ExpressionResponse toExpressionResponse(Expression expression) {
         return new ExpressionResponse().
@@ -316,10 +305,6 @@ public class DtoMapper {
                         collect(Collectors.toCollection(ArrayList::new)));
     }
 
-    public Sort toExpressionSort(String sortRule) {
-        return sortRules.toSort(sortRule, SortedEntity.EXPRESSION);
-    }
-
 
     public Credential toCredential(UserEnterRequest dto) {
         return new Credential(dto.getEmail(), dto.getPassword());
@@ -360,10 +345,6 @@ public class DtoMapper {
 
     public Page<UserResponse> toUsersResponse(Page<User> users) {
         return users.map(this::toUserResponse);
-    }
-
-    public Sort toUserSort(String sortRule) {
-        return sortRules.toSort(sortRule, SortedEntity.USER);
     }
 
 
@@ -408,14 +389,6 @@ public class DtoMapper {
         return statistic.map(this::toExpressionRepetitionByPeriodResponse);
     }
 
-    public Sort toExpressionStatisticSort(String sortRule) {
-        return sortRules.toSort(sortRule, SortedEntity.EXPRESSION_STATISTIC);
-    }
-
-    public Sort toWordStatisticSort(String sortRule) {
-        return sortRules.toSort(sortRule, SortedEntity.WORD_STATISTIC);
-    }
-
 
     public ExceptionResponse toExceptionResponse(HttpStatus httpStatus, String... messageKeys) {
         ExceptionResponse response = new ExceptionResponse(httpStatus, clock);
@@ -444,20 +417,28 @@ public class DtoMapper {
                 setPayload(payload);
     }
 
-    public Pageable toPageable(int page, int size) {
-        size = Math.min(size, configData.pagination().maxPageSize());
-        if(size == 0) size = configData.pagination().defaultPageSize();
-        size = Math.max(configData.pagination().minPageSize(), size);
-
-        return PageRequest.of(page, size);
+    public Pageable toUserPageable(int page, int size, String sort) {
+        return PaginationRequest.toUserPageRequest(page, size, sort, configData);
     }
 
-    public Pageable toPageable(int page, int size, Sort sort) {
-        size = Math.min(size, configData.pagination().maxPageSize());
-        if(size == 0) size = configData.pagination().defaultPageSize();
-        size = Math.max(configData.pagination().minPageSize(), size);
+    public Pageable toExpressionPageable(int page, int size, String sort) {
+        return PaginationRequest.toExpressionPageRequest(page, size, sort, configData);
+    }
 
-        return PageRequest.of(page, size, sort);
+    public Pageable toWordPageable(int page, int size, String sort) {
+        return PaginationRequest.toWordPageRequest(page, size, sort, configData);
+    }
+
+    public Pageable toExpressionStatisticsPageable(int page, int size, String sort) {
+        return PaginationRequest.toExpressionStatisticsPageRequest(page, size, sort, configData);
+    }
+
+    public Pageable toWordStatisticsPageable(int page, int size, String sort) {
+        return PaginationRequest.toWordStatisticsPageRequest(page, size, sort, configData);
+    }
+
+    public Pageable toUnsortedPageable(int page, int size) {
+        return PaginationRequest.toUnsortedPageRequest(page, size, configData);
     }
 
 

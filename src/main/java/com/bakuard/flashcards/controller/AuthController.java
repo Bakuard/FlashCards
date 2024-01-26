@@ -333,7 +333,7 @@ public class AuthController {
         logger.info("user {} find users by page={}, size={}, sort={}", userId, page, size, sort);
         authorizer.assertToHasAccess(Principal.of(userId), Resource.of("users"), "findAllBy");
 
-        Page<User> users = userService.findAll(mapper.toPageable(page, size, mapper.toUserSort(sort)));
+        Page<User> users = userService.findAll(mapper.toUserPageable(page, size, sort));
 
         return ResponseEntity.ok(mapper.toUsersResponse(users));
     }

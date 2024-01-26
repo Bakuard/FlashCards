@@ -10,7 +10,6 @@ import com.bakuard.flashcards.dto.expression.ExpressionResponse;
 import com.bakuard.flashcards.dto.expression.ExpressionUpdateRequest;
 import com.bakuard.flashcards.model.auth.policy.Authorizer;
 import com.bakuard.flashcards.model.expression.Expression;
-import com.bakuard.flashcards.service.AuthService;
 import com.bakuard.flashcards.service.ExpressionService;
 import com.bakuard.flashcards.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -204,7 +203,7 @@ public class DictionaryOfExpressionsController {
         authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findAllBy");
 
         userService.assertExists(userId);
-        Pageable pageable = mapper.toPageable(page, size, mapper.toExpressionSort(sort));
+        Pageable pageable = mapper.toExpressionPageable(page, size, sort);
         Page<ExpressionForDictionaryListResponse> result = mapper.toExpressionsForDictionaryListResponse(
                 expressionService.findByUserId(userId, pageable)
         );
@@ -312,7 +311,7 @@ public class DictionaryOfExpressionsController {
                 jwsUserId, userId, value, maxDistance, page, size);
         authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findByValue");
 
-        Pageable pageable = mapper.toPageable(page, size);
+        Pageable pageable = mapper.toUnsortedPageable(page, size);
         Page<Expression> expressions = expressionService.findByValue(userId, value, maxDistance, pageable);
         return ResponseEntity.ok(mapper.toExpressionsForDictionaryListResponse(expressions));
     }
@@ -366,7 +365,7 @@ public class DictionaryOfExpressionsController {
                 jwsUserId, userId, translate, page, size);
         authorizer.assertToHasAccess(jwsUserId, "dictionary", userId, "findByTranslate");
 
-        Pageable pageable = mapper.toPageable(page, size);
+        Pageable pageable = mapper.toUnsortedPageable(page, size);
         Page<Expression> expressions = expressionService.findByTranslate(userId, translate, pageable);
         return ResponseEntity.ok(mapper.toExpressionsForDictionaryListResponse(expressions));
     }
